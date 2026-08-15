@@ -29,7 +29,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="IngestionUpdatedIntegrationEvent",
+        type_name="IngestionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),

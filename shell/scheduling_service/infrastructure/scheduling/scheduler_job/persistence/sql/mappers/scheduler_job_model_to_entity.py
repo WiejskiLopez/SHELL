@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime dla konstrukcji VO
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
@@ -49,5 +49,5 @@ def scheduler_job_model_to_entity(model: SchedulerJobModel) -> SchedulerJob:
         if model.config
         else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(model.created_at),
-        updated_at=UpdatedAt.from_datetime(model.updated_at),
+        changed_at=ChangedAt.from_datetime(model.changed_at),
     )

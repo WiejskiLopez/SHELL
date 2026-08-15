@@ -18,13 +18,6 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-    PERSISTENCE_DELIVERY_MODELS,
-)
-from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
-    SqlAlchemyRunnerConfigUnitOfWork,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -36,7 +29,14 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
+    SqlAlchemyUnitOfWorkBase,
+)
 from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+    PERSISTENCE_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -135,14 +135,14 @@ class TestAtomicity:
         await _add_event(session_factory, "evt-atomic", event=event)
 
         class CommitHandler:
-            def __init__(self, uow: SqlAlchemyRunnerConfigUnitOfWork) -> None:
+            def __init__(self, uow: SqlAlchemyUnitOfWorkBase) -> None:
                 self._uow = uow
 
             async def handle(self, item: object) -> None:
                 async with self._uow as uow:
                     uow.stage_events([item])
 
-        uow = SqlAlchemyRunnerConfigUnitOfWork(
+        uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
             models=PERSISTENCE_DELIVERY_MODELS,
         )
@@ -164,7 +164,7 @@ class TestAtomicity:
         await _add_event(session_factory, "evt-rollback", event=event)
 
         class RollbackHandler:
-            def __init__(self, uow: SqlAlchemyRunnerConfigUnitOfWork) -> None:
+            def __init__(self, uow: SqlAlchemyUnitOfWorkBase) -> None:
                 self._uow = uow
 
             async def handle(self, item: object) -> None:
@@ -172,7 +172,7 @@ class TestAtomicity:
                     uow.stage_events([item])
                     await uow.rollback()
 
-        uow = SqlAlchemyRunnerConfigUnitOfWork(
+        uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
             models=PERSISTENCE_DELIVERY_MODELS,
         )
@@ -268,7 +268,7 @@ class TestProcessedDeliveryAtomicWrite:
         event = _event()
         await _add_event(session_factory, "evt-dedup-atomic", event=event)
 
-        uow = SqlAlchemyRunnerConfigUnitOfWork(
+        uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
             models=PERSISTENCE_DELIVERY_MODELS,
         )
@@ -308,7 +308,7 @@ class TestProcessedDeliveryAtomicWrite:
         event = _event()
         await _add_event(session_factory, "evt-dedup-replay", event=event)
 
-        first_uow = SqlAlchemyRunnerConfigUnitOfWork(
+        first_uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
             models=PERSISTENCE_DELIVERY_MODELS,
         )
@@ -337,7 +337,7 @@ class TestProcessedDeliveryAtomicWrite:
             row.lease_until = None
             await session.commit()
 
-        second_uow = SqlAlchemyRunnerConfigUnitOfWork(
+        second_uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
             models=PERSISTENCE_DELIVERY_MODELS,
         )
@@ -366,7 +366,7 @@ class _NoopHandler:
 class _CommitHandler:
     """Stages the dispatched item into the processing UoW (shared session)."""
 
-    def __init__(self, uow: SqlAlchemyRunnerConfigUnitOfWork) -> None:
+    def __init__(self, uow: SqlAlchemyUnitOfWorkBase) -> None:
         self._uow = uow
 
     async def handle(self, item: object) -> None:

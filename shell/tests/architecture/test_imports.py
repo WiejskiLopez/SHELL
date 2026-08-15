@@ -263,7 +263,7 @@ def test_platform_does_not_import_bounded_contexts() -> None:
 
 
 def test_domain_does_not_import_datetime() -> None:
-    """Domain layer must use CreatedAt/UpdatedAt/DeletedAt, never raw datetime."""
+    """Domain layer must use CreatedAt/ChangedAt/DeletedAt, never raw datetime."""
     violations: list[str] = []
     for path in _iter_python_files("domain"):
         if path.name == "__init__.py":
@@ -273,7 +273,7 @@ def test_domain_does_not_import_datetime() -> None:
             violations.append(str(path.relative_to(BASE)))
     assert not violations, (
         "Domain layer must not import datetime. "
-        "Use CreatedAt/UpdatedAt/DeletedAt value objects instead.\n" + "\n".join(violations)
+        "Use CreatedAt/ChangedAt/DeletedAt value objects instead.\n" + "\n".join(violations)
     )
 
 

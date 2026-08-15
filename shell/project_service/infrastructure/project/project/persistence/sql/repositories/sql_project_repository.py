@@ -9,9 +9,9 @@ from shell.project_service.domain.project.aggregates.project.repositories.projec
     ProjectRepository,
 )
 from shell.project_service.infrastructure.project.project.persistence.sql.mappers import (
+    project_change_model,
     project_entity_to_model,
     project_model_to_entity,
-    project_update_model,
 )
 
 from ..models import ProjectModel
@@ -40,7 +40,7 @@ class SqlProjectRepository(ProjectRepository):
             model = project_entity_to_model(project)
             self._session.add(model)
         else:
-            project_update_model(model, project)
+            project_change_model(model, project)
 
     async def delete(self, id: ProjectId) -> None:
         model = await self._session.get(ProjectModel, id.value)

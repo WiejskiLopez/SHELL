@@ -20,10 +20,6 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.inge
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
-from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-    MESSAGE_DELIVERY_MODELS,
-)
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
@@ -36,6 +32,10 @@ from shell.platform.infrastructure.serialization import (
     DomainMessageSerializer,
 )
 from shell.platform.types import JsonStr
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+    MESSAGE_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

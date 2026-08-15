@@ -6,11 +6,11 @@ import uuid
 from dataclasses import dataclass
 from typing import Self
 
-from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.base.entity_id import EntityId
 
 
 @dataclass(frozen=True, slots=True)
-class EventId(ValueObject):
+class EventId(EntityId):
     value: str
 
     @classmethod

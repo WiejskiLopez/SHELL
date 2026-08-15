@@ -9,9 +9,9 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.
     SchedulerDefinitionRepository,
 )
 from shell.scheduling_service.infrastructure.scheduling.scheduler_definition.persistence.sql.mappers import (
+    scheduler_definition_change_model,
     scheduler_definition_entity_to_model,
     scheduler_definition_model_to_entity,
-    scheduler_definition_update_model,
 )
 from shell.scheduling_service.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
@@ -70,4 +70,4 @@ class SqlSchedulerDefinitionRepository(SchedulerDefinitionRepository):
             model = scheduler_definition_entity_to_model(definition)
             self._session.add(model)
         else:
-            scheduler_definition_update_model(model, definition)
+            scheduler_definition_change_model(model, definition)

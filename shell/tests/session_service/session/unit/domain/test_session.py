@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.session_service.domain.session.aggregates.session import Session
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
     SessionId,
@@ -14,7 +14,7 @@ from shell.session_service.domain.session.aggregates.session.value_objects.sessi
 from shell.session_service.domain.session.value_objects.session_status import SessionStatus
 
 _NOW = CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
-_LATER_DT = UpdatedAt.from_datetime(datetime(2025, 1, 2, tzinfo=UTC))
+_LATER_DT = ChangedAt.from_datetime(datetime(2025, 1, 2, tzinfo=UTC))
 
 
 class TestSession:
@@ -36,4 +36,4 @@ class TestSession:
         import pytest
 
         with pytest.raises(DomainError):
-            s.close(UpdatedAt.from_datetime(datetime(2025, 1, 3, tzinfo=UTC)))
+            s.close(ChangedAt.from_datetime(datetime(2025, 1, 3, tzinfo=UTC)))

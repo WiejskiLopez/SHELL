@@ -13,6 +13,7 @@ from _arch_helpers import (
     find_classes,
     get_slots,
     has_slots,
+    iter_domain_files,
     iter_py_files,
     parse_file,
 )
@@ -21,14 +22,14 @@ if TYPE_CHECKING:
     import pathlib
 
 
-# ── 21. Aggregates must have _created_at and _updated_at in __slots__ ─────
+# ── 21. Aggregates must have _created_at and _changed_at in __slots__ ─────
 
 _KNOWN_AGGREGATE_NO_TIMESTAMPS: frozenset[str] = frozenset({})
 
 
 def test_aggregates_have_timestamps() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -44,12 +45,12 @@ def test_aggregates_have_timestamps() -> None:
                 key = f"{path.relative_to(BASE)}: {node.name} missing _created_at in __slots__"
                 if key not in _KNOWN_AGGREGATE_NO_TIMESTAMPS:
                     violations.append(key)
-            if "_updated_at" not in slots:
-                key = f"{path.relative_to(BASE)}: {node.name} missing _updated_at in __slots__"
+            if "_changed_at" not in slots:
+                key = f"{path.relative_to(BASE)}: {node.name} missing _changed_at in __slots__"
                 if key not in _KNOWN_AGGREGATE_NO_TIMESTAMPS:
                     violations.append(key)
     assert not violations, (
-        "Aggregates must have _created_at and _updated_at in __slots__:\n" + "\n".join(violations)
+        "Aggregates must have _created_at and _changed_at in __slots__:\n" + "\n".join(violations)
     )
 
 
@@ -60,7 +61,7 @@ _KNOWN_NO_PRIVATE_NEW: frozenset[str] = frozenset({})
 
 def test_aggregates_have_private_new() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -86,7 +87,7 @@ _KNOWN_NO_RESTORE: frozenset[str] = frozenset({})
 
 def test_aggregates_have_restore() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -112,7 +113,7 @@ _KNOWN_NO_FACTORY_EVENT: frozenset[str] = frozenset({})
 
 def test_aggregate_factory_emits_event() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -145,15 +146,15 @@ def test_aggregate_factory_emits_event() -> None:
     )
 
 
-# ── 25. Aggregates must have private _new, _delete, _update methods ─────
+# ── 25. Aggregates must have private _new, _delete, _change methods ─────
 
-_PRIVATE_MUST_HAVE = frozenset({"_new", "_delete", "_update"})
+_PRIVATE_MUST_HAVE = frozenset({"_new", "_delete", "_change"})
 _KNOWN_PRIVATE_MISSING: frozenset[str] = frozenset({})
 
 
 def test_aggregates_have_private_methods() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -169,7 +170,7 @@ def test_aggregates_have_private_methods() -> None:
                     if key not in _KNOWN_PRIVATE_MISSING:
                         violations.append(key)
     assert not violations, (
-        "Aggregates must have private methods _new(), _delete(), _update():\n"
+        "Aggregates must have private methods _new(), _delete(), _change():\n"
         + "\n".join(violations)
     )
 
@@ -212,14 +213,14 @@ def test_no_external_calls_to_private_methods() -> None:
     )
 
 
-# ── 27. _new() must NOT set _updated_at ─────────────────────────────
+# ── 27. _new() must NOT set _changed_at ─────────────────────────────
 
-_KNOWN_NEW_SETS_UPDATED_AT: frozenset[str] = frozenset({})
+_KNOWN_NEW_SETS_CHANGED_AT: frozenset[str] = frozenset({})
 
 
-def test_aggregate_new_does_not_set_updated_at() -> None:
+def test_aggregate_new_does_not_set_changed_at() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -234,11 +235,11 @@ def test_aggregate_new_does_not_set_updated_at() -> None:
                     and stmt.name == "_new"
                 ):
                     source = ast.unparse(stmt)
-                    if "updated_at" in source.lower():
-                        key = f"{path.relative_to(BASE)}: {node.name}._new() sets _updated_at"
-                        if key not in _KNOWN_NEW_SETS_UPDATED_AT:
+                    if "changed_at" in source.lower():
+                        key = f"{path.relative_to(BASE)}: {node.name}._new() sets _changed_at"
+                        if key not in _KNOWN_NEW_SETS_CHANGED_AT:
                             violations.append(key)
     assert not violations, (
-        "_new() must NOT set _updated_at. Nothing updated yet. Use _update():\n"
+        "_new() must NOT set _changed_at. Nothing changed yet. Use _change():\n"
         + "\n".join(violations)
     )

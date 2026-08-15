@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from shell.user_service.application.user.auth_session.integration_events.auth_session_changed_integration_event import (
+    AuthSessionChangedIntegrationEvent,
+)
 from shell.user_service.application.user.auth_session.integration_events.auth_session_created_integration_event import (
     AuthSessionCreatedIntegrationEvent,
 )
@@ -9,13 +12,10 @@ from shell.user_service.application.user.auth_session.integration_events.auth_se
 from shell.user_service.application.user.auth_session.integration_events.auth_session_revoked_integration_event import (
     AuthSessionRevokedIntegrationEvent,
 )
-from shell.user_service.application.user.auth_session.integration_events.auth_session_updated_integration_event import (
-    AuthSessionUpdatedIntegrationEvent,
-)
 
 __all__ = [
     "AuthSessionCreatedIntegrationEvent",
     "AuthSessionDeletedIntegrationEvent",
     "AuthSessionRevokedIntegrationEvent",
-    "AuthSessionUpdatedIntegrationEvent",
+    "AuthSessionChangedIntegrationEvent",
 ]

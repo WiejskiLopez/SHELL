@@ -4,14 +4,14 @@ from fastapi import HTTPException
 
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.scheduling_service.application.scheduling.scheduler_execution.commands.change_scheduler_execution_command import (
+    ChangeSchedulerExecutionCommand,
+)
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
     CreateSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
     DeleteSchedulerExecutionCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_execution.commands.update_scheduler_execution_command import (
-    UpdateSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.queries.get_scheduler_execution_by_id_query import (
     GetSchedulerExecutionByIdQuery,
@@ -64,7 +64,7 @@ class SchedulerExecutionController:
             started_at=result.started_at,
             completed_at=result.completed_at,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
         )
 
     async def list_scheduler_executions(
@@ -87,7 +87,7 @@ class SchedulerExecutionController:
                 started_at=d.started_at,
                 completed_at=d.completed_at,
                 created_at=d.created_at,
-                updated_at=d.updated_at,
+                changed_at=d.changed_at,
             )
             for d in dtos
         ]
@@ -100,10 +100,10 @@ class SchedulerExecutionController:
         )
         return ApiCreateResponse(id=execution_id)
 
-    async def update_scheduler_execution(self, scheduler_execution_id: str) -> None:
+    async def change_scheduler_execution(self, scheduler_execution_id: str) -> None:
         try:
             await self._command_bus.dispatch(
-                UpdateSchedulerExecutionCommand(scheduler_execution_id=scheduler_execution_id)
+                ChangeSchedulerExecutionCommand(scheduler_execution_id=scheduler_execution_id)
             )
         except HTTPException:
             raise

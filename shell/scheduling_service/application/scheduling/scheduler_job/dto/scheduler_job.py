@@ -17,4 +17,4 @@ class SchedulerJobDto:
     batch_size: int = 50
     enabled: bool = True
     config: JsonStr | None = None
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

@@ -31,7 +31,7 @@ class SchedulerExecutionModel(SchedulingSqlAlchemyModelBase, VersionedMixin):
     started_at: Mapped[datetime | None] = mapped_column(nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
     def __mapper_args__(cls) -> dict[str, object]:

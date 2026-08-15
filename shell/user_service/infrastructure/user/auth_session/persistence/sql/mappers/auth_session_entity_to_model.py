@@ -20,6 +20,6 @@ def auth_session_entity_to_model(auth_session: AuthSession) -> AuthSessionModel:
         created_at=auth_session.created_at.value,
         expires_at=auth_session.expires_at.value,
         revoked_at=auth_session.revoked_at.value,
-        updated_at=auth_session.updated_at.value,
+        changed_at=auth_session.changed_at.value,
         deleted_at=auth_session.deleted_at.value,
     )

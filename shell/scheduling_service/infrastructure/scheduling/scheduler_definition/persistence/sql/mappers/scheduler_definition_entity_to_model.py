@@ -44,5 +44,5 @@ def scheduler_definition_entity_to_model(
         },
         enabled=entity.enabled.value,
         created_at=entity.created_at.value,
-        updated_at=entity.updated_at.value,
+        changed_at=entity.changed_at.value,
     )

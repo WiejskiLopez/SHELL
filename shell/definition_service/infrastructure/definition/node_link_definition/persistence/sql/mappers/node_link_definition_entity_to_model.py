@@ -17,4 +17,7 @@ def node_link_definition_entity_to_model(entity: NodeLinkDefinition) -> NodeLink
         id=entity.id.value,
         graph_definition_id=entity.graph_definition_id.value,
         node_definition_id=entity.node_definition_id.value,
+        created_at=entity.created_at.value,
+        changed_at=(entity.changed_at.value if entity.changed_at.value else None),
+        deleted_at=(entity.deleted_at.value if entity.deleted_at.value else None),
     )

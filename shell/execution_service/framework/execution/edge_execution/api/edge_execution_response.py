@@ -11,4 +11,4 @@ class EdgeExecutionResponse(BaseModel):
     source_node_execution_id: str | None = None
     target_node_execution_id: str | None = None
     created_at: datetime | None = None
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

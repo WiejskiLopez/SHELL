@@ -9,9 +9,9 @@ from shell.execution_service.domain.execution.aggregates.user_execution.reposito
     UserExecutionRepository,
 )
 from shell.execution_service.infrastructure.execution.user_execution.persistence.sql.mappers import (
+    user_execution_change_model,
     user_execution_entity_to_model,
     user_execution_model_to_entity,
-    user_execution_update_model,
 )
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
@@ -41,7 +41,7 @@ class SqlUserExecutionRepository(UserExecutionRepository):
             model = user_execution_entity_to_model(user_execution)
             self._session.add(model)
         else:
-            user_execution_update_model(model, user_execution)
+            user_execution_change_model(model, user_execution)
 
     async def delete(self, id: UserExecutionId, now: datetime | None = None) -> None:
         if now is None:

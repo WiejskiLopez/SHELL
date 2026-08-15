@@ -7,20 +7,23 @@ from fastapi import HTTPException
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.models.page import Page
+from shell.project_service.application.project.project.commands.change_project_command import (
+    ChangeProjectCommand,
+)
 from shell.project_service.application.project.project.commands.create_project_command import (
     CreateProjectCommand,
 )
 from shell.project_service.application.project.project.commands.delete_project_command import (
     DeleteProjectCommand,
 )
-from shell.project_service.application.project.project.commands.update_project_command import (
-    UpdateProjectCommand,
-)
 from shell.project_service.application.project.project.queries.get_project_by_id_query import (
     GetProjectByIdQuery,
 )
 from shell.project_service.application.project.project.queries.list_projects_query import (
     ListProjectsQuery,
+)
+from shell.project_service.framework.project.project.api.change_project_request import (
+    ChangeProjectRequest as ApiChangeProjectRequest,
 )
 from shell.project_service.framework.project.project.api.create_project_request import (
     CreateProjectRequest as ApiCreateProjectRequest,
@@ -30,9 +33,6 @@ from shell.project_service.framework.project.project.api.create_project_response
 )
 from shell.project_service.framework.project.project.api.project_response import (
     ProjectResponse as ApiProjectResponse,
-)
-from shell.project_service.framework.project.project.api.update_project_request import (
-    UpdateProjectRequest as ApiUpdateProjectRequest,
 )
 
 if TYPE_CHECKING:
@@ -46,7 +46,7 @@ def _dto_to_response(dto: ProjectDto) -> ApiProjectResponse:
         repo_url=dto.repo_url,
         status=dto.status,
         created_at=dto.created_at,
-        updated_at=dto.updated_at,
+        changed_at=dto.changed_at,
         deleted_at=dto.deleted_at,
     )
 
@@ -86,7 +86,7 @@ class ProjectController:
             repo_url=result.repo_url,
             status=result.status,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
             deleted_at=result.deleted_at,
         )
 
@@ -96,10 +96,10 @@ class ProjectController:
         )
         return ApiCreateProjectResponse(id=str(project_id))
 
-    async def update_project(self, project_id: str, body: ApiUpdateProjectRequest) -> None:
+    async def change_project(self, project_id: str, body: ApiChangeProjectRequest) -> None:
         try:
             await self._command_bus.dispatch(
-                UpdateProjectCommand(
+                ChangeProjectCommand(
                     project_id=project_id,
                     name=body.name,
                     repo_url=body.repo_url,

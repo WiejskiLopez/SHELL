@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.hash import Hash
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.user_service.application.user.auth_session.dto.login_auth_session_result import (
     LoginAuthSessionResult,
 )
@@ -73,7 +73,7 @@ class LoginAuthSessionHandler:
             ).get_active_by_user_id(user.id, now)
             if active_auth_session is not None:
                 active_auth_session.renew_token(
-                    Hash.of(raw_token), UpdatedAt.from_datetime(now.value)
+                    Hash.of(raw_token), OccurredAt.from_datetime(now.value)
                 )
                 auth_session = active_auth_session
             else:

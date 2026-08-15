@@ -10,9 +10,9 @@ from shell.session_service.domain.session.aggregates.session.repositories.sessio
     SessionRepository,
 )
 from shell.session_service.infrastructure.session.session.persistence.sql.mappers import (
+    session_change_model,
     session_entity_to_model,
     session_model_to_entity,
-    session_update_model,
 )
 
 from ..models import SessionModel
@@ -37,7 +37,7 @@ class SqlSessionRepository(SessionRepository):
             model = session_entity_to_model(session)
             self._session.add(model)
         else:
-            session_update_model(model, session)
+            session_change_model(model, session)
 
     async def get_by_id(self, session_id: SessionId) -> Session | None:
         query = select(SessionModel).where(SessionModel.id == session_id.value)

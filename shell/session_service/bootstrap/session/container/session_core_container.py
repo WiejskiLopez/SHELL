@@ -36,6 +36,9 @@ from shell.platform.infrastructure.serialization.command_registry import (
 )
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.platform.infrastructure.time.system_clock import SystemClock
+from shell.session_service.application.session.session.command_handlers.change_session_handler import (
+    ChangeSessionHandler,
+)
 from shell.session_service.application.session.session.command_handlers.close_session_handler import (
     CloseSessionHandler,
 )
@@ -45,8 +48,8 @@ from shell.session_service.application.session.session.command_handlers.delete_s
 from shell.session_service.application.session.session.command_handlers.open_session_handler import (
     OpenSessionHandler,
 )
-from shell.session_service.application.session.session.command_handlers.update_session_handler import (
-    UpdateSessionHandler,
+from shell.session_service.application.session.session.commands.change_session_command import (
+    ChangeSessionCommand,
 )
 from shell.session_service.application.session.session.commands.close_session_command import (
     CloseSessionCommand,
@@ -56,9 +59,6 @@ from shell.session_service.application.session.session.commands.delete_session_c
 )
 from shell.session_service.application.session.session.commands.open_session_command import (
     OpenSessionCommand,
-)
-from shell.session_service.application.session.session.commands.update_session_command import (
-    UpdateSessionCommand,
 )
 from shell.session_service.application.session.session.event_handlers.auth_session_created_event_handler import (
     AuthSessionCreatedEventHandler,
@@ -223,8 +223,8 @@ class SessionCoreContainer(containers.DeclarativeContainer):
         unit_of_work=unit_of_work_factory,
         clock=clock_factory,
     )
-    update_session_handler_factory = providers.Factory(
-        UpdateSessionHandler,
+    change_session_handler_factory = providers.Factory(
+        ChangeSessionHandler,
         unit_of_work=unit_of_work_factory,
         clock=clock_factory,
     )
@@ -260,7 +260,7 @@ def configure_session_container(container: SessionCoreContainer) -> None:
 
     command_bus.register(OpenSessionCommand, container.open_session_handler_factory)
     command_bus.register(CloseSessionCommand, container.close_session_handler_factory)
-    command_bus.register(UpdateSessionCommand, container.update_session_handler_factory)
+    command_bus.register(ChangeSessionCommand, container.change_session_handler_factory)
     command_bus.register(DeleteSessionCommand, container.delete_session_handler_factory)
 
     query_bus.register(GetSessionHistoryQuery, container.get_session_history_handler_factory)

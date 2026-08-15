@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.base.entity_id import EntityId
 
 
 @dataclass(frozen=True, slots=True)
-class AggregateId(ValueObject):
+class AggregateId(EntityId):
     value: str

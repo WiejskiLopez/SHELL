@@ -2,20 +2,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.user_execution_state.events.user_execution_state_changed_event import (
+    UserExecutionStateChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.user_execution_state.events.user_execution_state_created_event import (
     UserExecutionStateCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.user_execution_state.events.user_execution_state_deleted_event import (
     UserExecutionStateDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.user_execution_state.events.user_execution_state_updated_event import (
-    UserExecutionStateUpdatedEvent,
-)
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_execution_id",
         "_direction",
@@ -42,7 +42,7 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
     _deleted_at: DeletedAt
 
     def __init__(
@@ -58,7 +58,7 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = NONE_UPDATED_AT
+        self._changed_at = NONE_CHANGED_AT
         self._deleted_at = NONE_DELETED_AT
 
     @classmethod
@@ -98,7 +98,7 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             UserExecutionStateDeletedEvent.now(
                 user_execution_state_id=self._id,
@@ -106,10 +106,10 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            UserExecutionStateUpdatedEvent.now(
+            UserExecutionStateChangedEvent.now(
                 user_execution_state_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -130,6 +130,10 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
+
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @classmethod
     def _new(

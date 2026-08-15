@@ -9,9 +9,6 @@ from typing import TYPE_CHECKING, Any, cast
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
-    COMMAND_DELIVERY_MODELS,
-)
 from shell.platform.infrastructure.messaging.command.command_outbox_to_inbox_relay import (
     CommandOutboxToInboxRelay,
 )
@@ -22,6 +19,9 @@ from shell.platform.infrastructure.messaging.command.sql_command_outbox_publishe
     SqlCommandOutboxPublisher,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.tests.platform.integration.platform_delivery_models import (
+    COMMAND_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

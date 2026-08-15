@@ -2,23 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.user_execution.events.user_execution_changed_event import (
+    UserExecutionChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
     UserExecutionCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.user_execution.events.user_execution_deleted_event import (
     UserExecutionDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.user_execution.events.user_execution_updated_event import (
-    UserExecutionUpdatedEvent,
-)
 from shell.execution_service.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
     UserExecutionId,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.user_execution.value_objects.user_id_ref import (
@@ -29,14 +29,14 @@ if TYPE_CHECKING:
 class UserExecution(AggregateRoot[UserExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_id",
     )
 
     _user_id: UserIdRef | None
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
     _deleted_at: DeletedAt
 
     def __init__(
@@ -50,7 +50,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         self._user_id = user_id
         if created_at is not None:
             self._created_at = created_at
-        self._updated_at = NONE_UPDATED_AT
+        self._changed_at = NONE_CHANGED_AT
         self._deleted_at = NONE_DELETED_AT
 
     @classmethod
@@ -77,10 +77,10 @@ class UserExecution(AggregateRoot[UserExecutionId]):
             created_at=created_at,
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            UserExecutionUpdatedEvent.now(
+            UserExecutionChangedEvent.now(
                 user_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -88,7 +88,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             UserExecutionDeletedEvent.now(
                 user_execution_id=self._id,
@@ -103,6 +103,10 @@ class UserExecution(AggregateRoot[UserExecutionId]):
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
+
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @classmethod
     def _new(

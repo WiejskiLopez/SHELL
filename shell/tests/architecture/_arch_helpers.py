@@ -37,6 +37,18 @@ def iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
         yield py_file
 
 
+def iter_domain_files() -> Iterator[pathlib.Path]:
+    """Iterate all real domain directories across bounded contexts and platform.
+
+    After the monolith split, domain code lives per-service (shell/<svc>/domain) plus
+    shell/platform/domain, not shell/domain. Using iter_py_files(BASE / "domain")
+    would silently match nothing and disable every domain architecture test.
+    """
+    for service_dir in (BASE / "platform", *BASE.glob("*_service")):
+        domain_dir = service_dir / "domain"
+        yield from iter_py_files(domain_dir)
+
+
 def parse_file(path: pathlib.Path) -> ast.Module | None:
     try:
         return ast.parse(path.read_text(encoding="utf-8"))

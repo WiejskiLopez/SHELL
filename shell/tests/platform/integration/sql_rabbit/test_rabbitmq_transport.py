@@ -14,9 +14,6 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from sqlalchemy import select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -35,6 +32,9 @@ from shell.platform.infrastructure.messaging.transport import OutboxToTransportR
 from shell.platform.infrastructure.messaging.transport.rabbit import (
     RabbitDeliveryTransport,
     RabbitInboxConsumer,
+)
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
 )
 
 if TYPE_CHECKING:

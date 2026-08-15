@@ -9,9 +9,9 @@ from shell.execution_service.domain.execution.aggregates.edge_execution.reposito
     EdgeExecutionRepository,
 )
 from shell.execution_service.infrastructure.execution.edge_execution.persistence.sql.mappers import (
+    edge_execution_change_model,
     edge_execution_entity_to_model,
     edge_execution_model_to_entity,
-    edge_execution_update_model,
 )
 from shell.execution_service.infrastructure.execution.edge_execution.persistence.sql.models.edge_execution import (
     EdgeExecutionModel,
@@ -45,7 +45,7 @@ class SqlEdgeExecutionRepository(EdgeExecutionRepository):
         _now = datetime.now(tz=UTC)
         model = await self._session.get(EdgeExecutionModel, edge.id.value)
         if model is not None:
-            edge_execution_update_model(model, edge, _now)
+            edge_execution_change_model(model, edge, _now)
             return
         model = edge_execution_entity_to_model(edge, _now)
         self._session.add(model)

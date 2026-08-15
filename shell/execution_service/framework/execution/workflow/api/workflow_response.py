@@ -11,5 +11,5 @@ class WorkflowResponse(BaseModel):
     session_id: str
     project_id: str
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

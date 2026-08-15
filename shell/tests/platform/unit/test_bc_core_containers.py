@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from shell.session_service.application.session.session.commands.change_session_command import (
+    ChangeSessionCommand,
+)
 from shell.session_service.application.session.session.commands.close_session_command import (
     CloseSessionCommand,
 )
@@ -8,9 +11,6 @@ from shell.session_service.application.session.session.commands.delete_session_c
 )
 from shell.session_service.application.session.session.commands.open_session_command import (
     OpenSessionCommand,
-)
-from shell.session_service.application.session.session.commands.update_session_command import (
-    UpdateSessionCommand,
 )
 from shell.session_service.application.session.session.queries.get_session_by_id_query import (
     GetSessionByIdQuery,
@@ -42,7 +42,7 @@ def test_session_core_container_registers_only_session_handlers() -> None:
     assert set(container.command_bus()._handler_factories) == {
         OpenSessionCommand,
         CloseSessionCommand,
-        UpdateSessionCommand,
+        ChangeSessionCommand,
         DeleteSessionCommand,
     }
     assert set(container.query_bus()._factories) == {

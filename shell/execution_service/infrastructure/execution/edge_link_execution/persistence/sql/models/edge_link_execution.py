@@ -25,7 +25,7 @@ class EdgeLinkExecutionModel(ExecutionSqlAlchemyModelBase, VersionedMixin):
     )
 
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     @declared_attr  # type: ignore[arg-type]

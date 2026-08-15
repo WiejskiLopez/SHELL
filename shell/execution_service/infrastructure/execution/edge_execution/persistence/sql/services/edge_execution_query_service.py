@@ -32,5 +32,5 @@ class EdgeExecutionQueryService:
                 source_node_execution_id=model.source_node_execution_id,
                 target_node_execution_id=model.target_node_execution_id,
                 created_at=model.created_at,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
             )

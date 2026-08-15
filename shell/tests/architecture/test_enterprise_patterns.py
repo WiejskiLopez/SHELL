@@ -34,6 +34,12 @@ def _iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
         yield py_file
 
 
+def _iter_domain_files() -> Iterator[pathlib.Path]:
+    for service_dir in (BASE / "platform", *BASE.glob("*_service")):
+        domain_dir = service_dir / "domain"
+        yield from _iter_py_files(domain_dir)
+
+
 def _get_imports(path: pathlib.Path) -> list[str]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -147,7 +153,7 @@ _KNOWN_MISSING_RESTORE: frozenset[str] = frozenset({})
 
 def test_all_aggregates_have_restore() -> None:
     missing: list[str] = []
-    for path in _iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except SyntaxError:
@@ -177,7 +183,7 @@ def test_all_aggregates_have_restore() -> None:
 
 def test_all_aggregates_have_factory() -> None:
     missing: list[str] = []
-    for path in _iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         try:
             tree = ast.parse(path.read_text(encoding="utf-8"))
         except SyntaxError:
@@ -211,7 +217,7 @@ def test_all_aggregates_have_factory() -> None:
 def test_infra_mappers_use_restore() -> None:
     violations: list[str] = []
     aggregate_names: set[str] = set()
-    for path in _iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef) and any(
@@ -591,7 +597,7 @@ def _is_domain_event_base(base: ast.AST) -> bool:
 
 def test_domain_event_fields_no_mutable_collections() -> None:
     violations: list[str] = []
-    for path in _iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if not isinstance(node, ast.ClassDef):

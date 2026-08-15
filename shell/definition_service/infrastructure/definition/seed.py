@@ -52,6 +52,7 @@ def _seed_sync(sync_conn: Connection) -> None:
         node = NodeDefinitionModel(
             id="base-planner-node-1",
             node_type="agent",
+            created_at=datetime.now(tz=UTC),
         )
         session.add(node)
         session.flush()
@@ -60,6 +61,7 @@ def _seed_sync(sync_conn: Connection) -> None:
             id="base-planner-link-1",
             graph_definition_id=graph_definition_model.id,
             node_definition_id=node.id,
+            created_at=datetime.now(tz=UTC),
         )
         session.add(link)
 

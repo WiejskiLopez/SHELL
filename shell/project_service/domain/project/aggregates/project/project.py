@@ -4,18 +4,18 @@ from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
+from shell.project_service.domain.project.aggregates.project.events.project_changed_event import (
+    ProjectChangedEvent,
+)
 from shell.project_service.domain.project.aggregates.project.events.project_created_event import (
     ProjectCreatedEvent,
 )
 from shell.project_service.domain.project.aggregates.project.events.project_deleted_event import (
     ProjectDeletedEvent,
-)
-from shell.project_service.domain.project.aggregates.project.events.project_updated_event import (
-    ProjectUpdatedEvent,
 )
 from shell.project_service.domain.project.aggregates.project.value_objects.project_id import (
     ProjectId,
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 class Project(AggregateRoot[ProjectId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_name",
         "_repo_url",
@@ -52,7 +52,7 @@ class Project(AggregateRoot[ProjectId]):
         *,
         id: ProjectId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         name: ProjectName,
         repo_url: RepoUrl,
@@ -63,7 +63,7 @@ class Project(AggregateRoot[ProjectId]):
         self._repo_url = repo_url
         self._status = status
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -72,7 +72,7 @@ class Project(AggregateRoot[ProjectId]):
         *,
         id: ProjectId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         name: ProjectName,
         repo_url: RepoUrl,
@@ -84,7 +84,7 @@ class Project(AggregateRoot[ProjectId]):
             repo_url=repo_url,
             status=status,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
 
@@ -124,7 +124,7 @@ class Project(AggregateRoot[ProjectId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             ProjectDeletedEvent.now(
                 project_id=self._id,
@@ -132,10 +132,10 @@ class Project(AggregateRoot[ProjectId]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            ProjectUpdatedEvent.now(
+            ProjectChangedEvent.now(
                 project_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -158,33 +158,27 @@ class Project(AggregateRoot[ProjectId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
-    def update(self, *, name: ProjectName, repo_url: RepoUrl, now: UpdatedAt) -> None:
-        """Update project fields and bump updated_at."""
+    def change(self, *, name: ProjectName, repo_url: RepoUrl, now: OccurredAt) -> None:
+        """Change project fields and bump changed_at."""
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot update a deleted project")
+            raise DomainError("Cannot change a deleted project")
         self._name = name
         self._repo_url = repo_url
-        self._updated_at = now
-        self.append_event(
-            ProjectUpdatedEvent.now(
-                project_id=self._id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+        self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         """Soft-delete this project."""
         if self._deleted_at.value is not None:
             raise DomainError("Project already deleted")
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             ProjectDeletedEvent.now(
                 project_id=self._id,

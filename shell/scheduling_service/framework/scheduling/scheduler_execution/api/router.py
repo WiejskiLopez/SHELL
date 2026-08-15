@@ -52,11 +52,11 @@ async def create_scheduler_execution(
 
 
 @router.put("/{scheduler_execution_id}", status_code=204)
-async def update_scheduler_execution(
+async def change_scheduler_execution(
     scheduler_execution_id: str,
     controller: SchedulerExecutionController = Depends(get_controller),
 ) -> None:
-    await controller.update_scheduler_execution(scheduler_execution_id)
+    await controller.change_scheduler_execution(scheduler_execution_id)
 
 
 @router.delete("/{scheduler_execution_id}", status_code=204)

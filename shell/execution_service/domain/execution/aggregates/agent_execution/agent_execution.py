@@ -2,22 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.agent_execution.events.agent_execution_changed_event import (
+    AgentExecutionChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.agent_execution.events.agent_execution_created_event import (
     AgentExecutionCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.agent_execution.events.agent_execution_deleted_event import (
     AgentExecutionDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.agent_execution.events.agent_execution_updated_event import (
-    AgentExecutionUpdatedEvent,
-)
 from shell.execution_service.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
     AgentExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
@@ -29,27 +29,27 @@ if TYPE_CHECKING:
 class AgentExecution(AggregateRoot[AgentExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_node_execution_id",
     )
 
     _node_execution_id: NodeExecutionId
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
 
     def __init__(
         self,
         *,
         id_: AgentExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         node_execution_id: NodeExecutionId,
     ) -> None:
         super().__init__(id_)
         self._node_execution_id = node_execution_id
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
 
     @classmethod
     def _new(
@@ -90,19 +90,19 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         *,
         id_: AgentExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         node_execution_id: NodeExecutionId,
     ) -> Self:
         return cls(
             id_=id_,
             node_execution_id=node_execution_id,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
         )
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             AgentExecutionDeletedEvent.now(
                 agent_execution_id=self._id,
@@ -110,10 +110,10 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            AgentExecutionUpdatedEvent.now(
+            AgentExecutionChangedEvent.now(
                 agent_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -128,5 +128,5 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at

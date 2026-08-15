@@ -33,5 +33,5 @@ class ProjectSkillQueryService:
                 project_id=model.project_id,
                 skill_data=JsonStr(json.dumps(dict(model.skill_data))),
                 created_at=model.created_at,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
             )

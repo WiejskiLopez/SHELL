@@ -19,4 +19,7 @@ def node_definition_entity_to_model(
         id=node_definition.id.value,
         node_type=node_definition.node_type.value,
         max_step=(node_definition.max_step.value if node_definition.max_step is not None else None),
+        created_at=node_definition.created_at.value,
+        changed_at=(node_definition.changed_at.value if node_definition.changed_at.value else None),
+        deleted_at=(node_definition.deleted_at.value if node_definition.deleted_at.value else None),
     )

@@ -8,9 +8,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution.reposito
     TaskExecutionRepository,
 )
 from shell.execution_service.infrastructure.execution.task_execution.persistence.sql.mappers import (
+    task_execution_change_model,
     task_execution_entity_to_model,
     task_execution_model_to_entity,
-    task_execution_update_model,
 )
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
@@ -59,7 +59,7 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
             model = task_execution_entity_to_model(task_execution)
             self._session.add(model)
         else:
-            task_execution_update_model(model, task_execution)
+            task_execution_change_model(model, task_execution)
 
     async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[TaskExecution]:
         query = select(TaskExecutionModel).where(

@@ -81,5 +81,5 @@ class SchedulerDefinitionQueryService:
                 execution_policy=execution_policy,
                 enabled=model.enabled,
                 created_at=model.created_at,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
             )

@@ -14,4 +14,4 @@ class SchedulerJobResponse(BaseModel):
     batch_size: int = 50
     enabled: bool = True
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

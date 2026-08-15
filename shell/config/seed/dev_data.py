@@ -780,7 +780,7 @@ def _seed_workflow_scenario(session: Session) -> None:
                             id=agent_exec_id,
                             node_execution_id=gne_id,
                             created_at=_NOW,
-                            updated_at=_NOW,
+                            changed_at=_NOW,
                         )
                     )
                     session.add(
@@ -813,7 +813,7 @@ def _seed_workflow_scenario(session: Session) -> None:
                     source_node_execution_id=f"{ge_id}-node-0",
                     target_node_execution_id=f"{ge_id}-node-1" if len(node_defs) > 1 else None,
                     created_at=_NOW,
-                    updated_at=_NOW,
+                    changed_at=_NOW,
                 )
             )
             session.add(
@@ -822,7 +822,7 @@ def _seed_workflow_scenario(session: Session) -> None:
                     node_execution_id=f"{ge_id}-node-0",
                     edge_execution_id=edge_id,
                     created_at=_NOW,
-                    updated_at=_NOW,
+                    changed_at=_NOW,
                 )
             )
 
@@ -898,7 +898,7 @@ def _seed_scheduler(session: Session) -> None:
                 execution_policy=dd["execution_policy"],
                 enabled=True,
                 created_at=_NOW,
-                updated_at=_NOW,
+                changed_at=_NOW,
             )
             session.add(definition)
 
@@ -919,7 +919,7 @@ def _seed_scheduler(session: Session) -> None:
                     enabled=True,
                     config={"poll_interval": 10, **dd["action_config"]},
                     created_at=_NOW,
-                    updated_at=_NOW,
+                    changed_at=_NOW,
                 )
                 session.add(execution)
         except Exception:

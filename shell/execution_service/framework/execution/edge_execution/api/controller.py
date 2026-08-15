@@ -4,14 +4,14 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException
 
+from shell.execution_service.application.execution.edge_execution.commands.change_edge_execution_command import (
+    ChangeEdgeExecutionCommand,
+)
 from shell.execution_service.application.execution.edge_execution.commands.create_edge_execution_command import (
     CreateEdgeExecutionCommand,
 )
 from shell.execution_service.application.execution.edge_execution.commands.delete_edge_execution_command import (
     DeleteEdgeExecutionCommand,
-)
-from shell.execution_service.application.execution.edge_execution.commands.update_edge_execution_command import (
-    UpdateEdgeExecutionCommand,
 )
 from shell.execution_service.application.execution.edge_execution.queries.get_edge_execution_by_id_query import (
     GetEdgeExecutionByIdQuery,
@@ -24,11 +24,11 @@ from shell.execution_service.framework.execution.edge_execution.api.edge_executi
 )
 
 if TYPE_CHECKING:
+    from shell.execution_service.framework.execution.edge_execution.api.change_edge_execution_request import (
+        ChangeEdgeExecutionRequest,
+    )
     from shell.execution_service.framework.execution.edge_execution.api.create_edge_execution_request import (
         CreateEdgeExecutionRequest,
-    )
-    from shell.execution_service.framework.execution.edge_execution.api.update_edge_execution_request import (
-        UpdateEdgeExecutionRequest,
     )
     from shell.platform.application.bus.command_bus import CommandBus
     from shell.platform.application.bus.query_bus import QueryBus
@@ -55,7 +55,7 @@ class EdgeExecutionController:
             source_node_execution_id=result.source_node_execution_id,
             target_node_execution_id=result.target_node_execution_id,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
         )
 
     async def create_edge_execution(
@@ -72,10 +72,10 @@ class EdgeExecutionController:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         return EdgeExecutionResponse(id=str(edge_execution_id))
 
-    async def update_edge_execution(
-        self, edge_execution_id: str, body: UpdateEdgeExecutionRequest
+    async def change_edge_execution(
+        self, edge_execution_id: str, body: ChangeEdgeExecutionRequest
     ) -> None:
-        command = UpdateEdgeExecutionCommand(
+        command = ChangeEdgeExecutionCommand(
             id=edge_execution_id,
             target_node_execution_id=body.target_node_execution_id,
         )

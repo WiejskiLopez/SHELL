@@ -6,6 +6,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.change_scheduler_job_handler import (
+    ChangeSchedulerJobHandler,
+)
+from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.change_scheduler_job_handler import (
+    SchedulerJobNotFoundError as SchedulerJobChangeNotFoundError,
+)
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
     CreateSchedulerJobHandler,
 )
@@ -15,20 +21,14 @@ from shell.scheduling_service.application.scheduling.scheduler_job.command_handl
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
     SchedulerJobNotFoundError as SchedulerJobDeleteNotFoundError,
 )
-from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
-    SchedulerJobNotFoundError as SchedulerJobUpdateNotFoundError,
-)
-from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
-    UpdateSchedulerJobHandler,
+from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
+    ChangeSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
     CreateSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
     DeleteSchedulerJobCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_job.commands.update_scheduler_job_command import (
-    UpdateSchedulerJobCommand,
 )
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_job_id import (
     SchedulerJobId,
@@ -81,7 +81,7 @@ class TestSchedulerJobHandlers:
         assert job is not None
         assert job.name.value == "test-job"
 
-    async def test_update(
+    async def test_change(
         self,
         unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
@@ -93,18 +93,18 @@ class TestSchedulerJobHandlers:
                 name="test-job",
             )
         )
-        await UpdateSchedulerJobHandler(unit_of_work, clock).handle(
-            UpdateSchedulerJobCommand(scheduler_job_id=job_id_str)
+        await ChangeSchedulerJobHandler(unit_of_work, clock).handle(
+            ChangeSchedulerJobCommand(scheduler_job_id=job_id_str)
         )
 
-    async def test_update_not_found(
+    async def test_change_not_found(
         self,
         unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
     ) -> None:
-        with pytest.raises(SchedulerJobUpdateNotFoundError):
-            await UpdateSchedulerJobHandler(unit_of_work, clock).handle(
-                UpdateSchedulerJobCommand(scheduler_job_id="no-such-id")
+        with pytest.raises(SchedulerJobChangeNotFoundError):
+            await ChangeSchedulerJobHandler(unit_of_work, clock).handle(
+                ChangeSchedulerJobCommand(scheduler_job_id="no-such-id")
             )
 
     async def test_delete(

@@ -1,4 +1,4 @@
-"""Architecture tests: aggregate _delete() and _update() behavior (#28-#29)."""
+"""Architecture tests: aggregate _delete() and _change() behavior (#28-#29)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from _arch_helpers import (
     extends_any_base,
     find_classes,
     has_slots,
-    iter_py_files,
+    iter_domain_files,
     parse_file,
 )
 
@@ -21,7 +21,7 @@ _KNOWN_DELETE_BEHAVIOR: frozenset[str] = frozenset({})
 
 def test_aggregate_delete_sets_deleted_at_and_emits_event() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -49,14 +49,14 @@ def test_aggregate_delete_sets_deleted_at_and_emits_event() -> None:
     )
 
 
-# ── 29. _update() must set _updated_at and emit UpdatedEvent ──────────────
+# ── 29. _change() must set _changed_at and emit ChangedEvent ──────────────
 
-_KNOWN_UPDATE_BEHAVIOR: frozenset[str] = frozenset({})
+_KNOWN_CHANGE_BEHAVIOR: frozenset[str] = frozenset({})
 
 
-def test_aggregate_update_sets_updated_at_and_emits_event() -> None:
+def test_aggregate_change_sets_changed_at_and_emits_event() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -65,20 +65,20 @@ def test_aggregate_update_sets_updated_at_and_emits_event() -> None:
                 continue
             if not has_slots(node):
                 continue
-            has_proper_update = False
+            has_proper_change = False
             for stmt in node.body:
                 if (
                     isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
-                    and stmt.name == "_update"
+                    and stmt.name == "_change"
                 ):
                     source = ast.unparse(stmt)
-                    if "append_event(" in source and "_updated_at" in source:
-                        has_proper_update = True
+                    if "append_event(" in source and "_changed_at" in source:
+                        has_proper_change = True
                         break
-            if not has_proper_update:
-                key = f"{path.relative_to(BASE)}: {node.name} has no proper _update(now) with _updated_at + append_event"
-                if key not in _KNOWN_UPDATE_BEHAVIOR:
+            if not has_proper_change:
+                key = f"{path.relative_to(BASE)}: {node.name} has no proper _change(now) with _changed_at + append_event"
+                if key not in _KNOWN_CHANGE_BEHAVIOR:
                     violations.append(key)
-    assert not violations, "_update() must set _updated_at and call append_event():\n" + "\n".join(
+    assert not violations, "_change() must set _changed_at and call append_event():\n" + "\n".join(
         violations
     )

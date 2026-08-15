@@ -27,7 +27,7 @@ class SchedulerJobModel(SchedulingSqlAlchemyModelBase, VersionedMixin):
     enabled: Mapped[bool] = mapped_column(nullable=False, default=True)
     config: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, object]:

@@ -26,5 +26,5 @@ def edge_execution_entity_to_model(
             entity.target_node_execution_id.value if entity.target_node_execution_id else None
         ),
         created_at=now,
-        updated_at=now,
+        changed_at=now,
     )

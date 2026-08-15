@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -19,6 +16,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
     SqlEventOutboxPublisher,
+)
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
 )
 
 if TYPE_CHECKING:

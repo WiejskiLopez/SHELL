@@ -35,7 +35,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="AuthSessionUpdatedIntegrationEvent",
+        type_name="AuthSessionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -65,7 +65,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="UserSkillUpdatedIntegrationEvent",
+        type_name="UserSkillChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -83,13 +83,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="UserStateUpdatedIntegrationEvent",
-        owner=OWNER,
-        supported_schema_versions=frozenset({1}),
-        producers=(OWNER,),
-    ),
-    ContractEntry(
-        type_name="UserUpdatedIntegrationEvent",
+        type_name="UserChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),

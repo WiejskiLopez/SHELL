@@ -13,5 +13,5 @@ class SessionDto:
     opened_at: datetime
     closed_at: datetime | None
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

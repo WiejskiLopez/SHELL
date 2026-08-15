@@ -29,7 +29,7 @@ class IngestionQueryService:
                 ingestion_data=model.ingestion_data,
                 ingestion_context=model.ingestion_context,
                 created_at=model.created_at,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
                 deleted_at=model.deleted_at,
             )
 

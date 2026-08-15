@@ -2,17 +2,20 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
+from shell.ingestion_service.application.ingestion.ingestion.commands.change_ingestion_command import (
+    ChangeIngestionCommand,
+)
 from shell.ingestion_service.application.ingestion.ingestion.commands.create_ingestion_command import (
     CreateIngestionCommand,
 )
 from shell.ingestion_service.application.ingestion.ingestion.commands.delete_ingestion_command import (
     DeleteIngestionCommand,
 )
-from shell.ingestion_service.application.ingestion.ingestion.commands.update_ingestion_command import (
-    UpdateIngestionCommand,
-)
 from shell.ingestion_service.application.ingestion.ingestion.queries.get_ingestion_by_id_query import (
     GetIngestionByIdQuery,
+)
+from shell.ingestion_service.framework.ingestion.ingestion.api.change_ingestion_request import (
+    ChangeIngestionRequest as ApiChangeIngestionRequest,
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.create_ingestion_request import (
     CreateIngestionRequest as ApiCreateIngestionRequest,
@@ -22,9 +25,6 @@ from shell.ingestion_service.framework.ingestion.ingestion.api.create_ingestion_
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.ingestion_response import (
     IngestionResponse as ApiIngestionResponse,
-)
-from shell.ingestion_service.framework.ingestion.ingestion.api.update_ingestion_request import (
-    UpdateIngestionRequest as ApiUpdateIngestionRequest,
 )
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
@@ -50,7 +50,7 @@ class IngestionController:
             ingestion_data=str(result.ingestion_data),
             ingestion_context=str(result.ingestion_context),
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
             deleted_at=result.deleted_at,
         )
 
@@ -63,9 +63,9 @@ class IngestionController:
         )
         return ApiCreateIngestionResponse(id=ingestion_id)
 
-    async def update_ingestion(self, ingestion_id: str, body: ApiUpdateIngestionRequest) -> None:
+    async def change_ingestion(self, ingestion_id: str, body: ApiChangeIngestionRequest) -> None:
         try:
-            await self._command_bus.dispatch(UpdateIngestionCommand(ingestion_id=ingestion_id))
+            await self._command_bus.dispatch(ChangeIngestionCommand(ingestion_id=ingestion_id))
         except HTTPException:
             raise
         except Exception as exc:

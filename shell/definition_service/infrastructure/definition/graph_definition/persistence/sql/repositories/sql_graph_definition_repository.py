@@ -8,9 +8,9 @@ from shell.definition_service.domain.definition.aggregates.graph_definition.repo
     GraphDefinitionRepository,
 )
 from shell.definition_service.infrastructure.definition.graph_definition.persistence.sql.mappers import (
+    graph_definition_change_model,
     graph_definition_entity_to_model,
     graph_definition_model_to_entity,
-    graph_definition_update_model,
 )
 
 from ..models import GraphDefinitionModel
@@ -45,7 +45,7 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
             model = graph_definition_entity_to_model(graph_definition)
             self._session.add(model)
         else:
-            graph_definition_update_model(model, graph_definition)
+            graph_definition_change_model(model, graph_definition)
 
     async def list_all(self) -> list[GraphDefinition]:
         query = self._base_query()

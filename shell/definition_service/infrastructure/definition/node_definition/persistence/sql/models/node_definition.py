@@ -16,6 +16,8 @@ class NodeDefinitionModel(DefinitionSqlAlchemyModelBase, VersionedMixin):
     id: Mapped[str] = mapped_column(primary_key=True)
     node_type: Mapped[str] = mapped_column(nullable=False)
     max_step: Mapped[int | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]

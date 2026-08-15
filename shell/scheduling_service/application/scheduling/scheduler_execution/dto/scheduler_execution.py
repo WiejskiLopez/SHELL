@@ -17,4 +17,4 @@ class SchedulerExecutionDto:
     error: str | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

@@ -8,20 +8,23 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.models.page import Page
 from shell.platform.framework.api.principal import Principal, PrincipalKind
+from shell.session_service.application.session.session.commands.change_session_command import (
+    ChangeSessionCommand,
+)
 from shell.session_service.application.session.session.commands.delete_session_command import (
     DeleteSessionCommand,
 )
 from shell.session_service.application.session.session.commands.open_session_command import (
     OpenSessionCommand,
 )
-from shell.session_service.application.session.session.commands.update_session_command import (
-    UpdateSessionCommand,
-)
 from shell.session_service.application.session.session.queries.get_session_by_id_query import (
     GetSessionByIdQuery,
 )
 from shell.session_service.application.session.session.queries.list_sessions_query import (
     ListSessionsQuery,
+)
+from shell.session_service.framework.session.session.api.change_session_request import (
+    ChangeSessionRequest as ApiChangeSessionRequest,
 )
 from shell.session_service.framework.session.session.api.create_session_request import (
     CreateSessionRequest as ApiCreateSessionRequest,
@@ -31,9 +34,6 @@ from shell.session_service.framework.session.session.api.create_session_response
 )
 from shell.session_service.framework.session.session.api.session_response import (
     SessionResponse as ApiSessionResponse,
-)
-from shell.session_service.framework.session.session.api.update_session_request import (
-    UpdateSessionRequest as ApiUpdateSessionRequest,
 )
 
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ def _to_response(dto: SessionDto) -> ApiSessionResponse:
         opened_at=dto.opened_at,
         closed_at=dto.closed_at,
         created_at=dto.created_at,
-        updated_at=dto.updated_at,
+        changed_at=dto.changed_at,
         deleted_at=dto.deleted_at,
     )
 
@@ -101,15 +101,15 @@ class SessionController:
         )
         return ApiCreateSessionResponse(id=str(session_id))
 
-    async def update_session(
-        self, session_id: str, body: ApiUpdateSessionRequest, principal: Principal
+    async def change_session(
+        self, session_id: str, body: ApiChangeSessionRequest, principal: Principal
     ) -> None:
         try:
             session = await self._query_bus.dispatch(GetSessionByIdQuery(session_id=session_id))
             if session is None:
                 raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
             self._require_owner(session.user_id, principal, session_id)
-            await self._command_bus.dispatch(UpdateSessionCommand(session_id=session_id))
+            await self._command_bus.dispatch(ChangeSessionCommand(session_id=session_id))
         except HTTPException:
             raise
         except Exception as exc:

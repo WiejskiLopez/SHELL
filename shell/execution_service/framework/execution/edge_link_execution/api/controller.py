@@ -46,7 +46,7 @@ class EdgeLinkExecutionController:
             node_execution_id=result.node_execution_id,
             edge_execution_id=result.edge_execution_id,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
             deleted_at=result.deleted_at,
         )
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.session_service.application.session.session.exceptions.session_not_found import (
     SessionNotFound,
 )
@@ -32,5 +32,5 @@ class CloseSessionHandler:
             )
             if session is None:
                 raise SessionNotFound(f"Session not found: {command.session_id}")
-            session.close(UpdatedAt.from_datetime(self._clock.now()))
+            session.close(ChangedAt.from_datetime(self._clock.now()))
             await unit_of_work.save(SessionRepository, session)

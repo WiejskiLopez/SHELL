@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.dependencies import get_command_bus, get_query_bus
+from shell.scheduling_service.framework.scheduling.scheduler_definition.api.change_scheduler_definition_request import (
+    ChangeSchedulerDefinitionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+)
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.controller import (
     SchedulerDefinitionController,
 )
@@ -16,9 +19,6 @@ from shell.scheduling_service.framework.scheduling.scheduler_definition.api.crea
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.scheduler_definition_response import (
     SchedulerDefinitionResponse,
-)
-from shell.scheduling_service.framework.scheduling.scheduler_definition.api.update_scheduler_definition_request import (
-    UpdateSchedulerDefinitionRequest,  # noqa: TC001 -- used at runtime for FastAPI
 )
 
 router = APIRouter(prefix="/scheduler-definitions", tags=["SchedulerDefinitions"])
@@ -48,12 +48,12 @@ async def create_scheduler_definition(
 
 
 @router.put("/{scheduler_definition_id}", status_code=204)
-async def update_scheduler_definition(
+async def change_scheduler_definition(
     scheduler_definition_id: str,
-    body: UpdateSchedulerDefinitionRequest,
+    body: ChangeSchedulerDefinitionRequest,
     controller: SchedulerDefinitionController = Depends(get_controller),
 ) -> None:
-    await controller.update_scheduler_definition(scheduler_definition_id, body)
+    await controller.change_scheduler_definition(scheduler_definition_id, body)
 
 
 @router.delete("/{scheduler_definition_id}", status_code=204)

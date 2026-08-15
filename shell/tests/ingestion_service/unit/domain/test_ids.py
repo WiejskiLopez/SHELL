@@ -11,6 +11,7 @@ from shell.execution_service.domain.execution.aggregates.workflow.value_objects.
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_id import (
     IngestionId,
 )
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 class TestIds:
@@ -21,7 +22,7 @@ class TestIds:
         assert len(t1.value) == 36
 
     def test_task_execution_id_empty_raises(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             TaskExecutionId("")
 
     def test_workflow_id_generate(self) -> None:

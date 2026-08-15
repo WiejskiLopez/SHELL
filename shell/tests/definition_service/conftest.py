@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -10,8 +11,18 @@ import pytest
 from shell.definition_service.infrastructure.definition.persistence.memory.unit_of_work import (
     InMemoryDefinitionUnitOfWork,
 )
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
+from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
+    SqlAlchemyRunnerConfigUnitOfWork,
+)
 from shell.definition_service.migrations.baseline import run_definition_baseline
-from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
+from shell.platform.infrastructure.persistence.memory import (
+    FakeClock,
+    FakeEventPublisher,
+    FakeIdGenerator,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.tests.shared.test_db import build_db_url as test_db_url
 
@@ -56,5 +67,22 @@ async def session_factory(
 
 
 @pytest.fixture()
+def sql_uow(
+    session_factory: async_sessionmaker,
+) -> SqlAlchemyRunnerConfigUnitOfWork:
+    return SqlAlchemyRunnerConfigUnitOfWork(session_factory, models=PERSISTENCE_DELIVERY_MODELS)
+
+
+@pytest.fixture()
 def events() -> FakeEventPublisher:
     return FakeEventPublisher()
+
+
+@pytest.fixture()
+def clock() -> FakeClock:
+    return FakeClock(datetime(2024, 1, 1, tzinfo=UTC))
+
+
+@pytest.fixture()
+def id_generator() -> FakeIdGenerator:
+    return FakeIdGenerator()

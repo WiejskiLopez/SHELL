@@ -6,10 +6,13 @@ from typing import Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
+from shell.session_service.domain.session.aggregates.session.events.session_changed_event import (
+    SessionChangedEvent,
+)
 from shell.session_service.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
@@ -18,9 +21,6 @@ from shell.session_service.domain.session.aggregates.session.events.session_dele
 )
 from shell.session_service.domain.session.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
-)
-from shell.session_service.domain.session.aggregates.session.events.session_updated_event import (
-    SessionUpdatedEvent,
 )
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
     SessionId,
@@ -34,7 +34,7 @@ class Session(AggregateRoot[SessionId]):
 
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_id",
         "_status",
@@ -45,9 +45,9 @@ class Session(AggregateRoot[SessionId]):
     _user_id: UserIdRef
     _status: SessionStatus
     _opened_at: CreatedAt
-    _closed_at: UpdatedAt
+    _closed_at: ChangedAt
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
     _deleted_at: DeletedAt
 
     def __init__(
@@ -57,7 +57,7 @@ class Session(AggregateRoot[SessionId]):
         user_id: UserIdRef,
         status: SessionStatus,
         opened_at: CreatedAt,
-        closed_at: UpdatedAt = NONE_UPDATED_AT,
+        closed_at: ChangedAt = NONE_CHANGED_AT,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
@@ -65,7 +65,7 @@ class Session(AggregateRoot[SessionId]):
         self._opened_at = opened_at
         self._closed_at = closed_at
         self._created_at = opened_at
-        self._updated_at = NONE_UPDATED_AT
+        self._changed_at = NONE_CHANGED_AT
         self._deleted_at = NONE_DELETED_AT
 
     @classmethod
@@ -93,29 +93,24 @@ class Session(AggregateRoot[SessionId]):
 
     # --- Methods ---
 
-    def close(self, now: UpdatedAt) -> None:
+    def close(self, now: ChangedAt) -> None:
         if self._status != SessionStatus.OPEN:
             raise DomainError(f"Cannot close session in status {self._status!r}")
         self._status = SessionStatus.CLOSED
         self._closed_at = now
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(SessionClosedEvent.now(self._id, now=OccurredAt.from_datetime(now.value)))
 
-    def update(self, now: UpdatedAt) -> None:
+    def change(self, now: OccurredAt) -> None:
         if self._status != SessionStatus.OPEN:
-            raise DomainError(f"Cannot update session in status {self._status!r}")
-        self._updated_at = now
-        self.append_event(
-            SessionUpdatedEvent.now(
-                session_id=self._id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+            raise DomainError(f"Cannot change session in status {self._status!r}")
+        self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Session already deleted")
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             SessionDeletedEvent.now(
                 session_id=self._id,
@@ -123,10 +118,10 @@ class Session(AggregateRoot[SessionId]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            SessionUpdatedEvent.now(
+            SessionChangedEvent.now(
                 session_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -134,7 +129,7 @@ class Session(AggregateRoot[SessionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             SessionDeletedEvent.now(
                 session_id=self._id,
@@ -148,10 +143,10 @@ class Session(AggregateRoot[SessionId]):
         *,
         id: SessionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         opened_at: CreatedAt,
-        closed_at: UpdatedAt = NONE_UPDATED_AT,
+        closed_at: ChangedAt = NONE_CHANGED_AT,
         user_id: UserIdRef,
         status: SessionStatus,
     ) -> Self:
@@ -163,7 +158,7 @@ class Session(AggregateRoot[SessionId]):
             closed_at=closed_at,
         )
         session._created_at = created_at
-        session._updated_at = updated_at
+        session._changed_at = changed_at
         session._deleted_at = deleted_at
         return session
 
@@ -180,7 +175,7 @@ class Session(AggregateRoot[SessionId]):
         return self._opened_at
 
     @property
-    def closed_at(self) -> UpdatedAt:
+    def closed_at(self) -> ChangedAt:
         return self._closed_at
 
     @property
@@ -188,8 +183,8 @@ class Session(AggregateRoot[SessionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:

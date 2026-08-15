@@ -56,7 +56,7 @@ class InMemorySessionQueryService:
                 opened_at=session.opened_at.value,
                 closed_at=session.closed_at.value if session.closed_at else None,
                 created_at=session.created_at.value,
-                updated_at=session.updated_at.value if session.updated_at else None,
+                changed_at=session.changed_at.value if session.changed_at else None,
                 deleted_at=session.deleted_at.value if session.deleted_at else None,
             )
             for session in sessions

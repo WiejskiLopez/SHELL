@@ -1,7 +1,7 @@
 """Architecture tests: __slots__ and method parameter ordering conventions.
 
 Requires: slot-ordering skill — fields in __slots__ and method params must follow
-the order: temporal (_created_at/_occurred_at → _updated_at → _deleted_at) → business.
+the order: temporal (_created_at/_occurred_at → _changed_at → _deleted_at) → business.
 """
 
 from __future__ import annotations
@@ -15,11 +15,11 @@ from _arch_helpers import (
     find_classes,
     get_slots,
     has_slots,
-    iter_py_files,
+    iter_domain_files,
     parse_file,
 )
 
-_TEMPORAL_ORDER = ("_created_at", "_occurred_at", "_updated_at", "_deleted_at")
+_TEMPORAL_ORDER = ("_created_at", "_occurred_at", "_changed_at", "_deleted_at")
 
 _ENTITY_OR_AGGREGATE = AGGREGATE_BASES | {"Entity"}
 
@@ -36,7 +36,7 @@ def _temporal_rank(field: str) -> int:
 
 def test_slots_temporal_fields_first() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -64,13 +64,13 @@ def test_slots_temporal_fields_first() -> None:
             temporal_order = [t for t in slots if _temporal_rank(t) >= 0]
             ranked = [_temporal_rank(t) for t in temporal_order]
             if ranked != sorted(ranked):
-                key = f"{path.relative_to(BASE)}:{node.lineno} {node.name} — zła kolejność temporalnych: {temporal_order} (oczekiwana: _created_at/_occurred_at → _updated_at → _deleted_at)"
+                key = f"{path.relative_to(BASE)}:{node.lineno} {node.name} — zła kolejność temporalnych: {temporal_order} (oczekiwana: _created_at/_occurred_at → _changed_at → _deleted_at)"
                 if key not in _KNOWN_SLOT_ORDER_VIOLATIONS:
                     violations.append(key)
     assert not violations, "Naruszenia kolejności __slots__:\n" + "\n".join(violations)
 
 
-_DOMAIN_METHODS = frozenset({"__init__", "create", "restore", "_new", "_update", "_delete"})
+_DOMAIN_METHODS = frozenset({"__init__", "create", "restore", "_new", "_change", "_delete"})
 
 
 def _param_name(param: ast.arg) -> str:
@@ -91,7 +91,7 @@ def _all_param_names(stmt: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
     return result
 
 
-_TEMPORAL_PARAM_NAMES = frozenset({"created_at", "occurred_at", "updated_at", "deleted_at", "now"})
+_TEMPORAL_PARAM_NAMES = frozenset({"created_at", "occurred_at", "changed_at", "deleted_at", "now"})
 
 
 def _is_temporal_param(name: str) -> bool:
@@ -100,7 +100,7 @@ def _is_temporal_param(name: str) -> bool:
 
 def test_method_params_temporal_first() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue

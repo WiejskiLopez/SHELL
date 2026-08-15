@@ -11,7 +11,14 @@ from __future__ import annotations
 import ast
 from typing import TYPE_CHECKING
 
-from _arch_helpers import BASE, extends_base, find_classes, iter_py_files, parse_file
+from _arch_helpers import (
+    BASE,
+    extends_base,
+    find_classes,
+    iter_domain_files,
+    iter_py_files,
+    parse_file,
+)
 
 if TYPE_CHECKING:
     import pathlib
@@ -119,7 +126,7 @@ def test_integration_events_are_frozen_slots_dataclass() -> None:
 
 def test_no_domain_integration_events() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue

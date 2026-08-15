@@ -1,0 +1,50 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.platform.domain.exceptions import DomainError
+from shell.platform.domain.value_objects.changed_at import ChangedAt
+from shell.project_service.domain.project.aggregates.project.repositories.project_repository import (
+    ProjectRepository,
+)
+from shell.project_service.domain.project.aggregates.project.value_objects.project_id import (
+    ProjectId,
+)
+from shell.project_service.domain.project.aggregates.project.value_objects.project_name import (
+    ProjectName,
+)
+from shell.project_service.domain.project.aggregates.project.value_objects.repo_url import RepoUrl
+
+if TYPE_CHECKING:
+    from shell.platform.application.ports.ports import Clock, UnitOfWork
+    from shell.project_service.application.project.project.commands.change_project_command import (
+        ChangeProjectCommand,
+    )
+
+
+class ProjectNotFoundError(DomainError):
+    def __init__(self, project_id: str) -> None:
+        super().__init__(f"Project not found: {project_id}")
+
+
+class ChangeProjectHandler:
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock) -> None:
+        self._unit_of_work = unit_of_work
+        self._clock = clock
+
+    async def handle(self, command: ChangeProjectCommand) -> None:
+        async with self._unit_of_work as unit_of_work:
+            project = await unit_of_work.repository(ProjectRepository).get_by_id(
+                ProjectId(command.project_id)
+            )
+            if project is None:
+                raise ProjectNotFoundError(command.project_id)
+            now = ChangedAt.from_datetime(self._clock.now())
+            project.change(
+                name=ProjectName(command.name) if command.name else project.name,
+                repo_url=RepoUrl(command.repo_url)
+                if command.repo_url is not None
+                else project.repository_url,
+                now=now,
+            )
+            await unit_of_work.save(ProjectRepository, project)

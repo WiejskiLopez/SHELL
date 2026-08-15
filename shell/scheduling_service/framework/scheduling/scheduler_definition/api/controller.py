@@ -4,17 +4,20 @@ from fastapi import HTTPException
 
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.scheduling_service.application.scheduling.scheduler_definition.commands.change_scheduler_definition_command import (
+    ChangeSchedulerDefinitionCommand,
+)
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.create_scheduler_definition_command import (
     CreateSchedulerDefinitionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
     DeleteSchedulerDefinitionCommand,
 )
-from shell.scheduling_service.application.scheduling.scheduler_definition.commands.update_scheduler_definition_command import (
-    UpdateSchedulerDefinitionCommand,
-)
 from shell.scheduling_service.application.scheduling.scheduler_definition.queries.get_scheduler_definition_by_id_query import (
     GetSchedulerDefinitionByIdQuery,
+)
+from shell.scheduling_service.framework.scheduling.scheduler_definition.api.change_scheduler_definition_request import (
+    ChangeSchedulerDefinitionRequest as ApiChangeRequest,
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.create_scheduler_definition_request import (
     CreateSchedulerDefinitionRequest as ApiCreateRequest,
@@ -24,9 +27,6 @@ from shell.scheduling_service.framework.scheduling.scheduler_definition.api.crea
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.scheduler_definition_response import (
     SchedulerDefinitionResponse as ApiSchedulerDefinitionResponse,
-)
-from shell.scheduling_service.framework.scheduling.scheduler_definition.api.update_scheduler_definition_request import (
-    UpdateSchedulerDefinitionRequest as ApiUpdateRequest,
 )
 
 
@@ -58,7 +58,7 @@ class SchedulerDefinitionController:
             description=result.description,
             enabled=result.enabled,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
         )
 
     async def create_scheduler_definition(self, body: ApiCreateRequest) -> ApiCreateResponse:
@@ -74,12 +74,12 @@ class SchedulerDefinitionController:
         )
         return ApiCreateResponse(id=definition_id)
 
-    async def update_scheduler_definition(
-        self, scheduler_definition_id: str, body: ApiUpdateRequest
+    async def change_scheduler_definition(
+        self, scheduler_definition_id: str, body: ApiChangeRequest
     ) -> None:
         try:
             await self._command_bus.dispatch(
-                UpdateSchedulerDefinitionCommand(scheduler_definition_id=scheduler_definition_id)
+                ChangeSchedulerDefinitionCommand(scheduler_definition_id=scheduler_definition_id)
             )
         except HTTPException:
             raise

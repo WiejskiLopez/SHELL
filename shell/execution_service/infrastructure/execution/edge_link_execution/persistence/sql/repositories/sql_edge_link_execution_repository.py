@@ -9,9 +9,9 @@ from shell.execution_service.domain.execution.aggregates.edge_link_execution.rep
     EdgeLinkExecutionRepository,
 )
 from shell.execution_service.infrastructure.execution.edge_link_execution.persistence.sql.mappers import (
+    edge_link_execution_change_model,
     edge_link_execution_entity_to_model,
     edge_link_execution_model_to_entity,
-    edge_link_execution_update_model,
 )
 from shell.execution_service.infrastructure.execution.edge_link_execution.persistence.sql.models.edge_link_execution import (
     EdgeLinkExecutionModel,
@@ -47,7 +47,7 @@ class SqlEdgeLinkExecutionRepository(EdgeLinkExecutionRepository):
         _now = datetime.now(tz=UTC)
         model = await self._session.get(EdgeLinkExecutionModel, link.id.value)
         if model is not None:
-            edge_link_execution_update_model(model, link, _now)
+            edge_link_execution_change_model(model, link, _now)
             return
         model = edge_link_execution_entity_to_model(link, _now)
         self._session.add(model)

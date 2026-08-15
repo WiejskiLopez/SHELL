@@ -23,13 +23,13 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="AgentConfigExecutionUpdatedIntegrationEvent",
+        type_name="AgentConfigExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="AgentConfigUpdatedIntegrationEvent",
+        type_name="AgentConfigChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -47,7 +47,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="AgentExecutionUpdatedIntegrationEvent",
+        type_name="AgentExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -65,7 +65,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="AgentSkillExecutionUpdatedIntegrationEvent",
+        type_name="AgentSkillExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -83,7 +83,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="EdgeExecutionUpdatedIntegrationEvent",
+        type_name="EdgeExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -101,7 +101,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="EdgeLinkExecutionUpdatedIntegrationEvent",
+        type_name="EdgeLinkExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -131,13 +131,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="GraphExecutionStateUpdatedIntegrationEvent",
-        owner=OWNER,
-        supported_schema_versions=frozenset({1}),
-        producers=(OWNER,),
-    ),
-    ContractEntry(
-        type_name="GraphExecutionUpdatedIntegrationEvent",
+        type_name="GraphExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -167,13 +161,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="NodeExecutionStateUpdatedIntegrationEvent",
-        owner=OWNER,
-        supported_schema_versions=frozenset({1}),
-        producers=(OWNER,),
-    ),
-    ContractEntry(
-        type_name="NodeExecutionUpdatedIntegrationEvent",
+        type_name="NodeExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -191,7 +179,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="NodeLinkExecutionUpdatedIntegrationEvent",
+        type_name="NodeLinkExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -221,13 +209,13 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="SessionExecutionStateUpdatedIntegrationEvent",
+        type_name="SessionExecutionStateChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="SessionExecutionUpdatedIntegrationEvent",
+        type_name="SessionExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -257,13 +245,13 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="TaskExecutionStateUpdatedIntegrationEvent",
+        type_name="TaskExecutionStateChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="TaskExecutionUpdatedIntegrationEvent",
+        type_name="TaskExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -293,13 +281,13 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="UserExecutionStateUpdatedIntegrationEvent",
+        type_name="UserExecutionStateChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="UserExecutionUpdatedIntegrationEvent",
+        type_name="UserExecutionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -329,13 +317,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="WorkflowStateUpdatedIntegrationEvent",
-        owner=OWNER,
-        supported_schema_versions=frozenset({1}),
-        producers=(OWNER,),
-    ),
-    ContractEntry(
-        type_name="WorkflowUpdatedIntegrationEvent",
+        type_name="WorkflowChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),

@@ -18,9 +18,6 @@ from typing import TYPE_CHECKING, Any
 import pytest
 from sqlalchemy import delete, select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -34,6 +31,9 @@ from shell.platform.infrastructure.messaging.event.processor.event_inbox_process
 )
 from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import InboxClaimService
 from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

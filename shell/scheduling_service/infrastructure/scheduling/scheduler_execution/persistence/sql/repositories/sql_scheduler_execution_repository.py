@@ -10,9 +10,9 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.r
     SchedulerExecutionRepository,
 )
 from shell.scheduling_service.infrastructure.scheduling.scheduler_execution.persistence.sql.mappers import (
+    scheduler_execution_change_model,
     scheduler_execution_entity_to_model,
     scheduler_execution_model_to_entity,
-    scheduler_execution_update_model,
 )
 from shell.scheduling_service.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
@@ -56,7 +56,7 @@ class SqlSchedulerExecutionRepository(SchedulerExecutionRepository):
             model = scheduler_execution_entity_to_model(execution)
             self._session.add(model)
         else:
-            scheduler_execution_update_model(model, execution)
+            scheduler_execution_change_model(model, execution)
 
     async def delete(self, id: SchedulerExecutionId) -> None:
         model = await self._session.get(SchedulerExecutionModel, id.value)

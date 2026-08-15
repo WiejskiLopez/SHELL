@@ -33,7 +33,7 @@ class TestEdgeExecutionEndpoints:
             resp = await client.post("/api/v1/edge-executions", json={}, headers=headers)
         assert resp.status_code == 422
 
-    async def test_update_edge_execution_not_found(self, tmp_path: pathlib.Path) -> None:
+    async def test_change_edge_execution_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await make_execution_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         payload = {"target_node_execution_id": "node-2"}
@@ -52,7 +52,7 @@ class TestEdgeExecutionEndpoints:
             resp = await client.delete("/api/v1/edge-executions/nonexistent", headers=headers)
         assert resp.status_code == 404
 
-    async def test_create_update_delete_edge_execution_flow(
+    async def test_create_change_delete_edge_execution_flow(
         self,
         tmp_path: pathlib.Path,
     ) -> None:
@@ -71,14 +71,14 @@ class TestEdgeExecutionEndpoints:
         assert create_resp.status_code == 201
         edge_id = create_resp.json()["id"]
 
-        update_payload = {"target_node_execution_id": "node-20"}
+        change_payload = {"target_node_execution_id": "node-20"}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            update_resp = await client.put(
+            change_resp = await client.put(
                 f"/api/v1/edge-executions/{edge_id}",
-                json=update_payload,
+                json=change_payload,
                 headers=headers,
             )
-        assert update_resp.status_code == 200
+        assert change_resp.status_code == 200
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             delete_resp = await client.delete(

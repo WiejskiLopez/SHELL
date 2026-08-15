@@ -18,5 +18,5 @@ class ProjectModel(ProjectSqlAlchemyModelBase):
     repo_url: Mapped[str | None] = mapped_column(nullable=True, default=None)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

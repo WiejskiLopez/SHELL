@@ -6,12 +6,8 @@ from shell.execution_service.application.execution.workflow_state.integration_ev
 from shell.execution_service.application.execution.workflow_state.integration_events.workflow_state_deleted_integration_event import (
     WorkflowStateDeletedIntegrationEvent,
 )
-from shell.execution_service.application.execution.workflow_state.integration_events.workflow_state_updated_integration_event import (
-    WorkflowStateUpdatedIntegrationEvent,
-)
 
 __all__ = [
     "WorkflowStateChangedIntegrationEvent",
     "WorkflowStateDeletedIntegrationEvent",
-    "WorkflowStateUpdatedIntegrationEvent",
 ]

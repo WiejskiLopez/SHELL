@@ -5,11 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, cast
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.infrastructure.messaging.inbox import InboxMetricsService
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

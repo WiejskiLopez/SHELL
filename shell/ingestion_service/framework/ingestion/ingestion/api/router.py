@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
+from shell.ingestion_service.framework.ingestion.ingestion.api.change_ingestion_request import (
+    ChangeIngestionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+)
 from shell.ingestion_service.framework.ingestion.ingestion.api.controller import (
     IngestionController,
 )
@@ -13,9 +16,6 @@ from shell.ingestion_service.framework.ingestion.ingestion.api.create_ingestion_
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.ingestion_response import (
     IngestionResponse,  # noqa: TC001 -- used at runtime for FastAPI
-)
-from shell.ingestion_service.framework.ingestion.ingestion.api.update_ingestion_request import (
-    UpdateIngestionRequest,  # noqa: TC001 -- used at runtime for FastAPI
 )
 from shell.platform.application.bus.command_bus import (
     CommandBus,  # noqa: TC001 -- used at runtime for FastAPI
@@ -50,12 +50,12 @@ async def create_ingestion(
 
 
 @router.put("/{ingestion_id}", status_code=204)
-async def update_ingestion(
+async def change_ingestion(
     ingestion_id: str,
-    body: UpdateIngestionRequest,
+    body: ChangeIngestionRequest,
     controller: IngestionController = Depends(get_ingestion_controller),
 ) -> None:
-    await controller.update_ingestion(ingestion_id, body)
+    await controller.change_ingestion(ingestion_id, body)
 
 
 @router.delete("/{ingestion_id}", status_code=204)

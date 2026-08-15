@@ -29,7 +29,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="SessionUpdatedIntegrationEvent",
+        type_name="SessionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -42,12 +42,6 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
     ),
     ContractEntry(
         type_name="SessionStateChangedIntegrationEvent",
-        owner=OWNER,
-        supported_schema_versions=frozenset({1}),
-        producers=(OWNER,),
-    ),
-    ContractEntry(
-        type_name="SessionStateUpdatedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),

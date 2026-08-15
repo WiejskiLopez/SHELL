@@ -24,7 +24,7 @@ def _dto_to_response(dto: TaskExecutionDto) -> ApiTaskExecutionResponse:
         work_dir=dto.work_dir,
         workflow_id=dto.workflow_id,
         created_at=dto.created_at,
-        updated_at=dto.updated_at,
+        changed_at=dto.changed_at,
         deleted_at=dto.deleted_at,
     )
 

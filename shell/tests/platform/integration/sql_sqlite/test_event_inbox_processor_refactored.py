@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import insert, select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -29,6 +26,9 @@ from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
 )
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

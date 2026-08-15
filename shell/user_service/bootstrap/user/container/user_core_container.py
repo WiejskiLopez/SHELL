@@ -52,18 +52,18 @@ from shell.user_service.application.user.auth_session.queries.get_current_auth_s
 from shell.user_service.application.user.auth_session.query_handlers.get_current_auth_session_handler import (
     GetCurrentAuthSessionHandler,
 )
+from shell.user_service.application.user.user.command_handlers.change_user_handler import (
+    ChangeUserHandler,
+)
 from shell.user_service.application.user.user.command_handlers.create_user_handler import (
     CreateUserHandler,
 )
 from shell.user_service.application.user.user.command_handlers.delete_user_handler import (
     DeleteUserHandler,
 )
-from shell.user_service.application.user.user.command_handlers.update_user_handler import (
-    UpdateUserHandler,
-)
+from shell.user_service.application.user.user.commands.change_user_command import ChangeUserCommand
 from shell.user_service.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.user_service.application.user.user.commands.delete_user_command import DeleteUserCommand
-from shell.user_service.application.user.user.commands.update_user_command import UpdateUserCommand
 from shell.user_service.application.user.user.queries.get_user_by_email_query import (
     GetUserByEmailQuery,
 )
@@ -199,8 +199,8 @@ class UserCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_user_handler_factory = providers.Factory(
-        UpdateUserHandler,
+    change_user_handler_factory = providers.Factory(
+        ChangeUserHandler,
         unit_of_work=unit_of_work_factory,
         clock=clock_factory,
     )
@@ -280,7 +280,7 @@ def configure_user_container(container: UserCoreContainer) -> None:
     query_bus = container.query_bus()
 
     command_bus.register(CreateUserCommand, container.create_user_handler_factory)
-    command_bus.register(UpdateUserCommand, container.update_user_handler_factory)
+    command_bus.register(ChangeUserCommand, container.change_user_handler_factory)
     command_bus.register(DeleteUserCommand, container.delete_user_handler_factory)
     command_bus.register(
         LoginAuthSessionCommand,

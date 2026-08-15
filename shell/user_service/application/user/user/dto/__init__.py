@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from shell.user_service.application.user.user.dto.user import (
+    ChangeUserRequest,
     CreateUserRequest,
     CreateUserResponse,
-    UpdateUserRequest,
     UserDto,
 )
 
-__all__ = ["UserDto", "CreateUserRequest", "CreateUserResponse", "UpdateUserRequest"]
+__all__ = ["UserDto", "CreateUserRequest", "CreateUserResponse", "ChangeUserRequest"]

@@ -24,4 +24,4 @@ class SchedulerDefinitionDto:
     action_config: ActionConfigDto | None = None
     execution_policy: ExecutionPolicyDto | None = None
     enabled: bool = True
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

@@ -19,5 +19,5 @@ class AuthSessionModel(UserSqlAlchemyModelBase):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     expires_at: Mapped[datetime] = mapped_column(nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
-    updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

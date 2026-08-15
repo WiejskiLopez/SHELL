@@ -21,5 +21,5 @@ class ProjectSkillModel(ProjectSqlAlchemyModelBase):
     )
     skill_data: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

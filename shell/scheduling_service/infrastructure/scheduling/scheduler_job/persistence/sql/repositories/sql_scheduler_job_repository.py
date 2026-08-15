@@ -9,9 +9,9 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.reposit
     SchedulerJobRepository,
 )
 from shell.scheduling_service.infrastructure.scheduling.scheduler_job.persistence.sql.mappers import (
+    scheduler_job_change_model,
     scheduler_job_entity_to_model,
     scheduler_job_model_to_entity,
-    scheduler_job_update_model,
 )
 from shell.scheduling_service.infrastructure.scheduling.scheduler_job.persistence.sql.models.scheduler_job import (
     SchedulerJobModel,
@@ -43,7 +43,7 @@ class SqlSchedulerJobRepository(SchedulerJobRepository):
             model = scheduler_job_entity_to_model(job)
             self._session.add(model)
         else:
-            scheduler_job_update_model(model, job)
+            scheduler_job_change_model(model, job)
 
     async def delete(self, id: SchedulerJobId) -> None:
         model = await self._session.get(SchedulerJobModel, id.value)

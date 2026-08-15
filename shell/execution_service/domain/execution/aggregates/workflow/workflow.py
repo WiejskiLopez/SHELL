@@ -4,24 +4,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.workflow.events.workflow_changed_event import (
+    WorkflowChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.workflow.events.workflow_created_event import (
     WorkflowCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.workflow.events.workflow_deleted_event import (
     WorkflowDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.workflow.events.workflow_updated_event import (
-    WorkflowUpdatedEvent,
-)
 from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_status import (
     WorkflowStatus,
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
 class Workflow(AggregateRoot["WorkflowId"]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_session_id",
         "_project_id",
@@ -53,13 +53,14 @@ class Workflow(AggregateRoot["WorkflowId"]):
     _project_id: ProjectIdRef
     _status: WorkflowStatus
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
 
     def __init__(
         self,
         *,
         id: WorkflowId,
         created_at: CreatedAt,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         session_id: SessionIdRef,
         project_id: ProjectIdRef,
@@ -70,7 +71,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._project_id = project_id
         self._status = status
         self._created_at = created_at
-        self._updated_at = NONE_UPDATED_AT
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -158,22 +159,16 @@ class Workflow(AggregateRoot["WorkflowId"]):
             raise DomainError(f"resume requires status=PAUSED, got {self._status.value!r}")
         self._status = WorkflowStatus.ACTIVE
 
-    def update(self, now: UpdatedAt) -> None:
+    def change(self, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Workflow already deleted")
-        self._updated_at = now
-        self.append_event(
-            WorkflowUpdatedEvent.now(
-                workflow_id=self._id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+        self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Workflow already deleted")
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             WorkflowDeletedEvent.now(
                 workflow_id=self._id,
@@ -188,7 +183,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         id: WorkflowId,
         created_at: CreatedAt,
         deleted_at: DeletedAt = NONE_DELETED_AT,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         session_id: SessionIdRef,
         project_id: ProjectIdRef,
         status: WorkflowStatus,
@@ -201,15 +196,15 @@ class Workflow(AggregateRoot["WorkflowId"]):
             created_at=created_at,
             deleted_at=deleted_at,
         )
-        workflow._updated_at = updated_at
+        workflow._changed_at = changed_at
         return workflow
 
     # --- Properties ---
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            WorkflowUpdatedEvent.now(
+            WorkflowChangedEvent.now(
                 workflow_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -217,7 +212,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             WorkflowDeletedEvent.now(
                 workflow_id=self._id,
@@ -240,6 +235,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
+
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:

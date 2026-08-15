@@ -30,14 +30,17 @@ from shell.platform.infrastructure.serialization.command_registry import (
 )
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.platform.infrastructure.time.system_clock import SystemClock
+from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.change_scheduler_definition_handler import (
+    ChangeSchedulerDefinitionHandler,
+)
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
     CreateSchedulerDefinitionHandler,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
     DeleteSchedulerDefinitionHandler,
 )
-from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
-    UpdateSchedulerDefinitionHandler,
+from shell.scheduling_service.application.scheduling.scheduler_definition.commands.change_scheduler_definition_command import (
+    ChangeSchedulerDefinitionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.create_scheduler_definition_command import (
     CreateSchedulerDefinitionCommand,
@@ -45,14 +48,14 @@ from shell.scheduling_service.application.scheduling.scheduler_definition.comman
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
     DeleteSchedulerDefinitionCommand,
 )
-from shell.scheduling_service.application.scheduling.scheduler_definition.commands.update_scheduler_definition_command import (
-    UpdateSchedulerDefinitionCommand,
-)
 from shell.scheduling_service.application.scheduling.scheduler_definition.queries.get_scheduler_definition_by_id_query import (
     GetSchedulerDefinitionByIdQuery,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.query_handlers.get_scheduler_definition_by_id_handler import (
     GetSchedulerDefinitionByIdHandler,
+)
+from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.change_scheduler_execution_handler import (
+    ChangeSchedulerExecutionHandler,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
     CreateSchedulerExecutionHandler,
@@ -60,17 +63,14 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.command
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
     DeleteSchedulerExecutionHandler,
 )
-from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
-    UpdateSchedulerExecutionHandler,
+from shell.scheduling_service.application.scheduling.scheduler_execution.commands.change_scheduler_execution_command import (
+    ChangeSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
     CreateSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
     DeleteSchedulerExecutionCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_execution.commands.update_scheduler_execution_command import (
-    UpdateSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.queries.get_scheduler_execution_by_id_query import (
     GetSchedulerExecutionByIdQuery,
@@ -84,23 +84,23 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.query_h
 from shell.scheduling_service.application.scheduling.scheduler_execution.query_handlers.list_scheduler_executions_handler import (
     ListSchedulerExecutionsHandler,
 )
+from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.change_scheduler_job_handler import (
+    ChangeSchedulerJobHandler,
+)
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
     CreateSchedulerJobHandler,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
     DeleteSchedulerJobHandler,
 )
-from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
-    UpdateSchedulerJobHandler,
+from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
+    ChangeSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
     CreateSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
     DeleteSchedulerJobCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_job.commands.update_scheduler_job_command import (
-    UpdateSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.queries.get_scheduler_job_by_id_query import (
     GetSchedulerJobByIdQuery,
@@ -244,8 +244,8 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_scheduler_definition_handler_factory = providers.Factory(
-        UpdateSchedulerDefinitionHandler,
+    change_scheduler_definition_handler_factory = providers.Factory(
+        ChangeSchedulerDefinitionHandler,
         unit_of_work=scheduler_definition_uow_factory,
         clock=clock_factory,
     )
@@ -260,8 +260,8 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_scheduler_execution_handler_factory = providers.Factory(
-        UpdateSchedulerExecutionHandler,
+    change_scheduler_execution_handler_factory = providers.Factory(
+        ChangeSchedulerExecutionHandler,
         unit_of_work=scheduler_execution_uow_factory,
         clock=clock_factory,
     )
@@ -276,8 +276,8 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_scheduler_job_handler_factory = providers.Factory(
-        UpdateSchedulerJobHandler, unit_of_work=scheduler_job_uow_factory, clock=clock_factory
+    change_scheduler_job_handler_factory = providers.Factory(
+        ChangeSchedulerJobHandler, unit_of_work=scheduler_job_uow_factory, clock=clock_factory
     )
     delete_scheduler_job_handler_factory = providers.Factory(
         DeleteSchedulerJobHandler, unit_of_work=scheduler_job_uow_factory, clock=clock_factory
@@ -304,13 +304,13 @@ def configure_scheduling_container(container: SchedulingCoreContainer) -> None:
     query_bus = container.query_bus()
     for command, factory in (
         (CreateSchedulerDefinitionCommand, container.create_scheduler_definition_handler_factory),
-        (UpdateSchedulerDefinitionCommand, container.update_scheduler_definition_handler_factory),
+        (ChangeSchedulerDefinitionCommand, container.change_scheduler_definition_handler_factory),
         (DeleteSchedulerDefinitionCommand, container.delete_scheduler_definition_handler_factory),
         (CreateSchedulerExecutionCommand, container.create_scheduler_execution_handler_factory),
-        (UpdateSchedulerExecutionCommand, container.update_scheduler_execution_handler_factory),
+        (ChangeSchedulerExecutionCommand, container.change_scheduler_execution_handler_factory),
         (DeleteSchedulerExecutionCommand, container.delete_scheduler_execution_handler_factory),
         (CreateSchedulerJobCommand, container.create_scheduler_job_handler_factory),
-        (UpdateSchedulerJobCommand, container.update_scheduler_job_handler_factory),
+        (ChangeSchedulerJobCommand, container.change_scheduler_job_handler_factory),
         (DeleteSchedulerJobCommand, container.delete_scheduler_job_handler_factory),
     ):
         command_bus.register(command, factory)

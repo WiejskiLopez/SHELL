@@ -2,22 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.node_link_execution.events.node_link_execution_changed_event import (
+    NodeLinkExecutionChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.node_link_execution.events.node_link_execution_created_event import (
     NodeLinkExecutionCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.node_link_execution.events.node_link_execution_deleted_event import (
     NodeLinkExecutionDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.node_link_execution.events.node_link_execution_updated_event import (
-    NodeLinkExecutionUpdatedEvent,
-)
 from shell.execution_service.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_graph_execution_id",
         "_node_execution_id",
@@ -43,7 +43,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         *,
         id: NodeLinkExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
     ) -> None:
@@ -51,7 +51,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         self._graph_execution_id = graph_execution_id
         self._node_execution_id = node_execution_id
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
 
     @classmethod
     def _new(
@@ -98,7 +98,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         *,
         id: NodeLinkExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
     ) -> Self:
@@ -107,12 +107,12 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
             graph_execution_id=graph_execution_id,
             node_execution_id=node_execution_id,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
         )
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             NodeLinkExecutionDeletedEvent.now(
                 node_link_execution_id=self._id,
@@ -120,10 +120,10 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            NodeLinkExecutionUpdatedEvent.now(
+            NodeLinkExecutionChangedEvent.now(
                 node_link_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -142,5 +142,5 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at

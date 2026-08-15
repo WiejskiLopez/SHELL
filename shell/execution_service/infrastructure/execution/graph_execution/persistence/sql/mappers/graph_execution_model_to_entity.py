@@ -20,9 +20,9 @@ from shell.execution_service.domain.execution.aggregates.graph_execution.value_o
 from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
     ensure_utc as _ensure_utc,
 )
@@ -48,6 +48,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         if graph_execution_model.graph_definition_id
         else None,
         created_at=CreatedAt.from_datetime(_ensure_utc(graph_execution_model.created_at)),
-        updated_at=UpdatedAt.from_datetime(_ensure_utc(graph_execution_model.updated_at)),
+        changed_at=ChangedAt.from_datetime(_ensure_utc(graph_execution_model.changed_at)),
         deleted_at=(DeletedAt.from_datetime(graph_execution_model.deleted_at)),
     )

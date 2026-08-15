@@ -8,9 +8,9 @@ from shell.execution_service.domain.execution.aggregates.graph_execution.reposit
     GraphExecutionRepository,
 )
 from shell.execution_service.infrastructure.execution.graph_execution.persistence.sql.mappers import (
+    graph_execution_change_model,
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
-    graph_execution_update_model,
 )
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
@@ -70,7 +70,7 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
             graph_execution_model = graph_execution_entity_to_model(graph_execution)
             self._session.add(graph_execution_model)
         else:
-            graph_execution_update_model(graph_execution_model, graph_execution)
+            graph_execution_change_model(graph_execution_model, graph_execution)
 
     async def delete(self, id: GraphExecutionId) -> None:
         model = await self._session.get(GraphExecutionModel, id.value)

@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.node_execution.events.node_execution_changed_event import (
+    NodeExecutionChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.node_execution.events.node_execution_created_event import (
     NodeExecutionCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.node_execution.events.node_execution_deleted_event import (
     NodeExecutionDeletedEvent,
-)
-from shell.execution_service.domain.execution.aggregates.node_execution.events.node_execution_updated_event import (
-    NodeExecutionUpdatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.node_execution.exceptions.invalid_node_state_error import (
     InvalidNodeStateError,
@@ -22,10 +22,10 @@ from shell.execution_service.domain.execution.aggregates.node_execution.value_ob
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 class NodeExecution(AggregateRoot[NodeExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_node_definition_id",
         "_order",
@@ -60,7 +60,9 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     def __init__(
         self,
         id: NodeExecutionId,
+        *,
         created_at: CreatedAt,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         node_type: NodeType,
         order: NodeOrder,
         status: NodeExecutionStatus,
@@ -72,6 +74,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         self._node_type = node_type
         self._status = status
         self._created_at = created_at
+        self._changed_at = changed_at
 
     @classmethod
     def new(
@@ -84,23 +87,14 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         order: NodeOrder,
         now: CreatedAt,
     ) -> NodeExecution:
-        instance = cls(
+        return cls._new(
             id=id,
             node_type=node_type,
-            order=order,
-            status=NodeExecutionStatus.PENDING,
+            graph_execution_id=graph_execution_id,
             node_definition_id=node_definition_id,
-            created_at=CreatedAt.from_datetime(now.value),
+            order=order,
+            now=OccurredAt.from_datetime(now.value),
         )
-        instance.append_event(
-            NodeExecutionCreatedEvent.now(
-                node_execution_id=id,
-                node_definition_id=node_definition_id,
-                graph_execution_id=graph_execution_id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
-        return instance
 
     # --- V3 FSM ---
 
@@ -136,10 +130,10 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
 
     # --- Properties ---
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            NodeExecutionUpdatedEvent.now(
+            NodeExecutionChangedEvent.now(
                 node_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -147,7 +141,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             NodeExecutionDeletedEvent.now(
                 node_execution_id=self._id,
@@ -175,11 +169,17 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     def created_at(self) -> CreatedAt:
         return self._created_at
 
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
+
     @classmethod
     def restore(
         cls,
         id: NodeExecutionId,
+        *,
         created_at: CreatedAt,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         node_type: NodeType,
         order: NodeOrder,
         status: NodeExecutionStatus,
@@ -191,6 +191,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             order=order,
             status=status,
             created_at=created_at,
+            changed_at=changed_at,
             node_definition_id=node_definition_id,
         )
 

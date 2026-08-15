@@ -9,24 +9,24 @@ OUTPUT state represents data produced during user operations.
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 from shell.platform.types import JsonStr
 from shell.user_service.domain.user.aggregates.user_state.events.user_state_changed_event import (
     UserStateChangedEvent,
 )
+from shell.user_service.domain.user.aggregates.user_state.events.user_state_created_event import (
+    UserStateCreatedEvent,
+)
 from shell.user_service.domain.user.aggregates.user_state.events.user_state_deleted_event import (
     UserStateDeletedEvent,
-)
-from shell.user_service.domain.user.aggregates.user_state.events.user_state_updated_event import (
-    UserStateUpdatedEvent,
 )
 from shell.user_service.domain.user.aggregates.user_state.value_objects.user_state_id import (
     UserStateId,
@@ -40,7 +40,7 @@ if TYPE_CHECKING:
 class UserState(AggregateRoot[UserStateId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_id",
         "_direction",
@@ -56,7 +56,7 @@ class UserState(AggregateRoot[UserStateId]):
         *,
         id: UserStateId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         direction: StateDirection,
@@ -67,7 +67,7 @@ class UserState(AggregateRoot[UserStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -79,61 +79,20 @@ class UserState(AggregateRoot[UserStateId]):
         user_id: UserId,
         direction: StateDirection,
     ) -> UserState:
-        return cls(
-            id=id_,
+        return cls._new(
+            id_=id_,
             user_id=user_id,
             direction=direction,
-            state_data=StateData(JsonStr("{}")),
-            created_at=CreatedAt.from_datetime(now.value),
+            now=OccurredAt.from_datetime(now.value),
         )
 
     # ------------------------------------------------------------------ mutations
 
-    def set_key(self, key: str, value: object) -> None:
-        new_data = json.loads(self._state_data.value.value)
-        new_data[key] = value
-        self._state_data = StateData(JsonStr(json.dumps(new_data)))
-        self.append_event(
-            UserStateChangedEvent.now(
-                user_id=self._user_id,
-                user_state_id=self.id,
-                now=OccurredAt.from_datetime(self._created_at.value),
-            )
-        )
-
-    def get(self, key: str) -> object | None:
-        result: object | None = json.loads(self._state_data.value.value).get(key)
-        return result
-
-    def remove_key(self, key: str) -> None:
-        if json.loads(self._state_data.value.value).get(key) is not None:
-            new_data = json.loads(self._state_data.value.value)
-            new_data.pop(key, None)
-            self._state_data = StateData(JsonStr(json.dumps(new_data)))
-            self.append_event(
-                UserStateChangedEvent.now(
-                    user_id=self._user_id,
-                    user_state_id=self.id,
-                    now=OccurredAt.from_datetime(self._created_at.value),
-                )
-            )
-
-    def patch(self, data: JsonStr) -> None:
-        parsed = json.loads(data.value)
-        for key, value in parsed.items():
-            self.set_key(key, value)
-
-    def clear(self) -> None:
-        current = json.loads(self._state_data.value.value)
-        for key in list(current.keys()):
-            self.remove_key(key)
-
-    def merge(self, other: UserState) -> None:
-        other_data = json.loads(other._state_data.value.value)
-        current = json.loads(self._state_data.value.value)
-        for key, value in other_data.items():
-            if key not in current:
-                self.set_key(key, value)
+    def change_state(self, state_data: StateData) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Cannot change state of a deleted user state")
+        self._state_data = state_data
+        self._change(now=OccurredAt.from_datetime(self._created_at.value))
 
     def snapshot(self) -> StateData:
         return self._state_data
@@ -144,7 +103,7 @@ class UserState(AggregateRoot[UserStateId]):
         *,
         id: UserStateId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         direction: StateDirection,
@@ -156,26 +115,27 @@ class UserState(AggregateRoot[UserStateId]):
             direction=direction,
             state_data=state_data,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
 
-    # ------------------------------------------------------------------ properties
+    # ------------------------------------------------------------------ private transitions
 
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            UserStateDeletedEvent.now(
-                user_state_id=self._id,
+            UserStateChangedEvent.now(
+                user_id=self._user_id,
+                user_state_id=self.id,
                 now=OccurredAt.from_datetime(now.value),
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            UserStateUpdatedEvent.now(
+            UserStateDeletedEvent.now(
                 user_state_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -198,8 +158,8 @@ class UserState(AggregateRoot[UserStateId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:
@@ -216,10 +176,18 @@ class UserState(AggregateRoot[UserStateId]):
         user_id: UserId,
         direction: StateDirection,
     ) -> UserState:
-        return cls(
+        instance = cls(
             id=id_,
             user_id=user_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
             created_at=CreatedAt.from_datetime(now.value),
         )
+        instance.append_event(
+            UserStateCreatedEvent.now(
+                user_id=user_id,
+                user_state_id=id_,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
+        return instance

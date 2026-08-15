@@ -11,4 +11,4 @@ class SchedulerDefinitionResponse(BaseModel):
     description: str | None = None
     enabled: bool = True
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.hash import Hash
 
 
@@ -17,9 +18,9 @@ class TestHash:
         assert Hash.of("abc") != Hash.of("xyz")
 
     def test_invalid_length(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             Hash("short")
 
     def test_invalid_hex(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             Hash("z" * 64)

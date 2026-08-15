@@ -10,4 +10,4 @@ class AgentConfigExecutionDto:
     agent_execution_id: str
     created_at: datetime
     config_data: str = ""
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

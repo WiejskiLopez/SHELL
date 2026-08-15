@@ -10,5 +10,5 @@ class EdgeLinkExecutionResponse(BaseModel):
     node_execution_id: str | None = None
     edge_execution_id: str | None = None
     created_at: datetime | None = None
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

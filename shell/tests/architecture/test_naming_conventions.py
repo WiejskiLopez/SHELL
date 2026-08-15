@@ -8,6 +8,7 @@ from _arch_helpers import (
     find_classes,
     has_abbreviation,
     is_magic,
+    iter_domain_files,
     iter_py_files,
     parse_file,
     to_snake_case,
@@ -275,7 +276,7 @@ _ENTITY_SUFFIXES = frozenset(
 
 def test_domain_entity_no_suffix_overload() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue

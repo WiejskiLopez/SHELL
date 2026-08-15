@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, cast
 
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
@@ -73,5 +73,5 @@ def scheduler_definition_model_to_entity(
         execution_policy=policy,
         enabled=Enabled(model.enabled),
         created_at=CreatedAt.from_datetime(model.created_at),
-        updated_at=UpdatedAt.from_datetime(model.updated_at),
+        changed_at=ChangedAt.from_datetime(model.changed_at),
     )

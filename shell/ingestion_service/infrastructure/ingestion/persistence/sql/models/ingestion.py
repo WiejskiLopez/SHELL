@@ -22,5 +22,5 @@ class IngestionModel(IngestionSqlAlchemyModelBase):
         JsonStrType, nullable=False, default=lambda: JsonStr("{}")
     )
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

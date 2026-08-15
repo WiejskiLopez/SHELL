@@ -10,9 +10,9 @@ from shell.user_service.domain.user.aggregates.user.repositories.user_repository
     UserRepository,
 )
 from shell.user_service.infrastructure.user.user.persistence.sql.mappers import (
+    user_change_model,
     user_entity_to_model,
     user_model_to_entity,
-    user_update_model,
 )
 
 from ..models import UserModel
@@ -39,7 +39,7 @@ class SqlUserRepository(UserRepository):
             model = user_entity_to_model(user)
             self._session.add(model)
         else:
-            user_update_model(model, user)
+            user_change_model(model, user)
 
     async def delete(self, id: UserId, now: datetime | None = None) -> None:
         if now is None:

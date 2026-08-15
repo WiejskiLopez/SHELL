@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.session_service.domain.session.aggregates.session import Session
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
     SessionId,
@@ -26,8 +26,8 @@ def session_model_to_entity(session_model: SessionModel) -> Session:
         user_id=UserIdRef(session_model.user_id),
         status=SessionStatus(session_model.status),
         opened_at=CreatedAt.from_datetime(session_model.opened_at),
-        closed_at=UpdatedAt.from_datetime(session_model.closed_at),
+        closed_at=ChangedAt.from_datetime(session_model.closed_at),
         created_at=CreatedAt.from_datetime(session_model.created_at),
-        updated_at=UpdatedAt.from_datetime(session_model.updated_at),
+        changed_at=ChangedAt.from_datetime(session_model.changed_at),
         deleted_at=DeletedAt.from_datetime(session_model.deleted_at),
     )

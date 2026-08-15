@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pathlib
+    from collections.abc import Iterator
 
 from _arch_helpers import (
     BASE,
@@ -42,7 +43,7 @@ def _is_strenum(node: ast.ClassDef) -> bool:
 
 def test_value_objects_are_frozen_dataclass_with_slots() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -65,7 +66,7 @@ def test_value_objects_are_frozen_dataclass_with_slots() -> None:
 
 def test_entities_are_not_dataclass() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -98,7 +99,7 @@ def _has_dataclass_decorator(node: ast.ClassDef) -> bool:
 
 def test_entities_have_slots() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -117,7 +118,7 @@ def test_entities_have_slots() -> None:
 
 def test_no_public_setters() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -139,7 +140,7 @@ _KNOWN_PUBLIC_INIT_ATTRS: frozenset[str] = frozenset({})
 
 def test_entity_init_uses_private_attrs() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -171,7 +172,7 @@ _KNOWN_NON_EVENT_DOMAIN_CLASSES: frozenset[str] = frozenset({})
 
 def test_domain_events_are_frozen_dataclass() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -198,7 +199,7 @@ _EVENT_FIELD_ALLOWLIST: frozenset[str] = frozenset(
 def test_domain_event_fields_are_ids_only() -> None:
     """Domain events may contain only IDs and the timestamp field."""
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -227,30 +228,33 @@ def test_domain_event_fields_are_ids_only() -> None:
 
 # ── 7. Mutating methods in aggregates append_event() ──────────────
 
+# Public mutating methods either call append_event() directly or delegate to a
+# private transition method (_change/_delete/_new) which emits the event.
+# Methods that mutate state WITHOUT emitting an event are listed here explicitly.
 _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
     {
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
+        "TaskExecution.rename",
         # Methods intentionally stripped of event emission (events removed in cleanup)
-        "domain/user/aggregates/user/user.py: User.enable",
-        "domain/user/aggregates/user/user.py: User.disable",
-        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.start",
-        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.complete",
-        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.fail",
-        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.retry",
-        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.timeout",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.start",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.complete",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.fail",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.timeout",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.exhaust",
-        "domain/execution/aggregates/workflow/workflow.py: Workflow.start_at",
-        "domain/execution/aggregates/workflow/workflow.py: Workflow.finish",
-        "domain/execution/aggregates/workflow/workflow.py: Workflow.fail",
-        "domain/execution/aggregates/workflow/workflow.py: Workflow.abort",
-        "domain/execution/aggregates/workflow/workflow.py: Workflow.pause",
-        "domain/execution/aggregates/workflow/workflow.py: Workflow.resume",
+        "User.enable",
+        "User.disable",
+        "NodeExecution.start",
+        "NodeExecution.complete",
+        "NodeExecution.fail",
+        "NodeExecution.retry",
+        "NodeExecution.timeout",
+        "TaskExecution.start",
+        "TaskExecution.complete",
+        "TaskExecution.fail",
+        "TaskExecution.timeout",
+        "TaskExecution.exhaust",
+        "Workflow.start_at",
+        "Workflow.finish",
+        "Workflow.fail",
+        "Workflow.abort",
+        "Workflow.pause",
+        "Workflow.resume",
         # Delegates to _delete() which calls append_event()
-        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.mark_deleted",
+        "NodeExecution.mark_deleted",
     }
 )
 
@@ -261,6 +265,16 @@ def _is_property(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
             return True
         if isinstance(dec, ast.Name) and dec.id == "property":
             return True
+    return False
+
+
+def _delegates_to_emitting_transition(stmt: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """Public mutating methods may delegate to _change()/_delete()/_new() which emit events."""
+    for call in ast.walk(stmt):
+        if isinstance(call, ast.Call):
+            func_src = ast.unparse(call.func)
+            if func_src in ("self._change", "self._delete", "self._new"):
+                return True
     return False
 
 
@@ -279,10 +293,6 @@ def test_mutating_methods_emit_events() -> None:
             # State aggregates: read-only accessors
             "get",
             "snapshot",
-            # State aggregates: delegate to update/delete/set_key/remove_key which emit events
-            "patch",
-            "clear",
-            "merge",
             # Factory classmethods that create new instances (not mutations on existing aggregates)
             "create_main_round",
             "create_sub_graph",
@@ -291,7 +301,7 @@ def test_mutating_methods_emit_events() -> None:
             "open",
         }
     )
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -308,12 +318,17 @@ def test_mutating_methods_emit_events() -> None:
                 if _is_property(stmt):
                     continue
                 source = ast.unparse(stmt)
-                if "append_event(" not in source:
-                    key = f"{path.relative_to(BASE).as_posix()}: {node.name}.{stmt.name}"
+                emits_directly = "append_event(" in source
+                delegates = _delegates_to_emitting_transition(stmt)
+                if not (emits_directly or delegates):
+                    key = f"{node.name}.{stmt.name}"
                     if key not in _KNOWN_NO_EVENT_EMIT:
-                        violations.append(f"{key} does not call append_event()")
+                        violations.append(
+                            f"{key} does not emit an event (no append_event/_change/_delete)"
+                        )
     assert not violations, (
-        "Public mutating methods in aggregates must call append_event():\n" + "\n".join(violations)
+        "Public mutating methods in aggregates must emit an event (append_event or delegate to _change/_delete):\n"
+        + "\n".join(violations)
     )
 
 
@@ -321,21 +336,9 @@ def test_mutating_methods_emit_events() -> None:
 
 _KNOWN_NO_GUARD: frozenset[str] = frozenset(
     {
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.update",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.delete",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.update",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.delete",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.update",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.delete",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.update",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.delete",
-        "domain/user/aggregates/user_state/user_state.py: UserState.set_key",
-        "domain/user/aggregates/user_state/user_state.py: UserState.remove_key",
-        "domain/project/aggregates/project/project.py: Project.update",
-        "domain/project/aggregates/project/project.py: Project.delete",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.set_key",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.remove_key",
+        "TaskExecution.rename",
+        "Project.change",
+        "Project.delete",
     }
 )
 
@@ -356,10 +359,6 @@ def test_mutating_methods_have_guard() -> None:
             # State aggregates: read-only accessors
             "get",
             "snapshot",
-            # State aggregates: delegate to update/delete/set_key/remove_key which have guards
-            "patch",
-            "clear",
-            "merge",
             # Factory classmethods that create new instances (not mutations on existing aggregates)
             "create_main_round",
             "create_sub_graph",
@@ -368,7 +367,7 @@ def test_mutating_methods_have_guard() -> None:
             "open",
         }
     )
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -391,7 +390,7 @@ def test_mutating_methods_have_guard() -> None:
                         has_guard = True
                         break
                 if not has_guard:
-                    key = f"{path.relative_to(BASE).as_posix()}: {node.name}.{stmt.name}"
+                    key = f"{node.name}.{stmt.name}"
                     if key not in _KNOWN_NO_GUARD:
                         violations.append(key)
     assert not violations, (
@@ -418,7 +417,7 @@ def test_domain_event_past_tense_naming() -> None:
         r".*(ed|ted|led|ned|ged|ked|zed|hed|ped|bed|ved|wed|ched|gged|pped|tted|lled|rred|nned|mmed)$",
         re.IGNORECASE,
     )
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -444,7 +443,7 @@ def test_domain_event_past_tense_naming() -> None:
 
 def test_specifications_extend_specification() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -463,7 +462,7 @@ _KNOWN_COLLECTION_RETURN_ISSUES: frozenset[str] = frozenset({})
 
 def test_collections_returned_as_copies() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -509,7 +508,7 @@ _KNOWN_SVC_STATEFUL: frozenset[str] = frozenset({})
 
 def test_domain_services_are_stateless() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -573,7 +572,7 @@ def test_aggregate_references_by_id_only() -> None:
         {"Workflow", "TaskExecution", "GraphExecution", "NodeExecution", "WorkflowState"}
     )
     _KNOWN_INTERNAL_ENTITY_PREFIXES: set[str] = set()
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -725,7 +724,7 @@ _KNOWN_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
 
 def test_entity_aggregate_fields_have_domain_types() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -760,7 +759,7 @@ _KNOWN_INIT_PARAM_VIOLATIONS: frozenset[str] = frozenset({})
 
 def test_entity_aggregate_init_params_have_domain_types() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -799,7 +798,7 @@ _KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
 
 def test_domain_event_fields_have_domain_types() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -947,7 +946,7 @@ _KNOWN_ID_NOT_ENTITY_ID: frozenset[str] = frozenset({})
 
 def test_id_classes_inherit_entity_id() -> None:
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         rel = path.relative_to(BASE).as_posix()
         tree = parse_file(path)
         if tree is None:
@@ -986,7 +985,7 @@ def _extract_bc(path: pathlib.Path) -> str | None:
 def test_cross_bc_id_refs_use_idref_suffix() -> None:
     violations: list[str] = []
     id_classes_by_stem: dict[str, list[tuple[str, str]]] = {}
-    for path in iter_py_files(BASE / "domain"):
+    for path in _iter_domain_files():
         bc = _extract_bc(path)
         if bc is None or bc == "platform":
             continue
@@ -1017,5 +1016,120 @@ def test_cross_bc_id_refs_use_idref_suffix() -> None:
             )
     assert not violations, (
         "Duplicate *Id class names across Bounded Contexts — use IdRef suffix for cross-BC references:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 21. Aggregate factory (create/new) delegates to _new, _new emits Created ──
+
+# Factory methods (classmethods) that create a new aggregate. Every aggregate that
+# exposes one of these MUST delegate to _new(), and _new() MUST emit a *CreatedEvent.
+# No exceptions are allowed — this is the dominant pattern in the codebase.
+
+_AGGREGATE_FACTORY_METHODS = frozenset({"create", "new"})
+
+# Aggregates that intentionally do not expose a create/new factory (they have other
+# creation entry points such as open(), initialize(), create_main_round()). These are
+# exempt from the create/new → _new rule, but if they do define _new it must still emit.
+_NON_FACTORY_AGGREGATES: frozenset[str] = frozenset(
+    {
+        # "GraphExecution",  # uses initialize()/create_main_round()/create_sub_graph()
+    }
+)
+
+
+def _iter_domain_files() -> Iterator[pathlib.Path]:
+    """Iterate all real domain directories across bounded contexts and platform.
+
+    After the monolith split, domain code lives per-service (shell/<svc>/domain) plus
+    shell/platform/domain, not shell/domain. Using _iter_domain_files()
+    would silently match nothing and disable every domain architecture test.
+    """
+    for service_dir in (BASE / "platform", *BASE.glob("*_service")):
+        domain_dir = service_dir / "domain"
+        yield from iter_py_files(domain_dir)
+
+
+def _classmethod_source(node: ast.ClassDef, method_name: str) -> ast.FunctionDef | None:
+    for stmt in node.body:
+        if (
+            isinstance(stmt, ast.FunctionDef)
+            and stmt.name == method_name
+            and any(
+                isinstance(dec, ast.Name) and dec.id == "classmethod" for dec in stmt.decorator_list
+            )
+        ):
+            return stmt
+    return None
+
+
+def _calls_new(stmt: ast.FunctionDef) -> bool:
+    for call in ast.walk(stmt):
+        if isinstance(call, ast.Call):
+            func_src = ast.unparse(call.func)
+            if func_src in ("_new", "cls._new", "cls.new") or func_src.endswith("._new"):
+                return True
+    return False
+
+
+def _emits_created_event(stmt: ast.FunctionDef) -> bool:
+    for call in ast.walk(stmt):
+        if isinstance(call, ast.Call):
+            func_src = ast.unparse(call.func)
+            if func_src == "append_event" or func_src.endswith(".append_event"):
+                if len(call.args) > 0 and "CreatedEvent" in ast.unparse(call.args[0]):
+                    return True
+                if call.keywords and any(
+                    "CreatedEvent" in ast.unparse(kw.value) for kw in call.keywords
+                ):
+                    return True
+    return False
+
+
+def test_aggregate_factory_delegates_to_new_and_emits_created() -> None:
+    violations: list[str] = []
+    for path in _iter_domain_files():
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            if not _inherits_any(node, _AGGREGATE_BASES):
+                continue
+            rel = path.relative_to(BASE).as_posix()
+            if node.name in _NON_FACTORY_AGGREGATES:
+                continue
+
+            factory = next(
+                (
+                    _classmethod_source(node, name)
+                    for name in _AGGREGATE_FACTORY_METHODS
+                    if _classmethod_source(node, name) is not None
+                ),
+                None,
+            )
+            if factory is None:
+                continue
+
+            factory_name = factory.name
+            private_new = _classmethod_source(node, "_new")
+
+            if private_new is None:
+                violations.append(
+                    f"{rel}: {node.name}.{factory_name}() — aggregate factory must delegate to _new(), "
+                    f"but _new() is missing"
+                )
+                continue
+
+            if not _calls_new(factory):
+                violations.append(
+                    f"{rel}: {node.name}.{factory_name}() — factory must delegate to _new()"
+                )
+
+            if not _emits_created_event(private_new):
+                violations.append(
+                    f"{rel}: {node.name}._new() — must call append_event(*CreatedEvent)"
+                )
+    assert not violations, (
+        "Aggregate factories must delegate to _new(), and _new() must emit a *CreatedEvent:\n"
         + "\n".join(violations)
     )

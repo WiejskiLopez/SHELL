@@ -139,21 +139,21 @@ class TestUserEndpoints:
             )
         assert resp.status_code == 404
 
-    async def test_update_user(self, tmp_path: pathlib.Path) -> None:
+    async def test_change_user(self, tmp_path: pathlib.Path) -> None:
         app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
                 "/api/v1/users/",
-                json={"email": "update_me@example.com"},
+                json={"email": "change_me@example.com"},
                 headers=headers,
             )
         assert create_resp.status_code == 201
         user_id = create_resp.json()["id"]
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            update_resp = await client.put(
+            change_resp = await client.put(
                 f"/api/v1/users/{user_id}",
-                json={"email": "updated@example.com"},
+                json={"email": "changed@example.com"},
                 headers=headers,
             )
-        assert update_resp.status_code == 204
+        assert change_resp.status_code == 204

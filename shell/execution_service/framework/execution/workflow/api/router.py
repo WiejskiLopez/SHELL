@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
+from shell.execution_service.framework.execution.workflow.api.change_workflow_request import (
+    ChangeWorkflowRequest,
+)
 from shell.execution_service.framework.execution.workflow.api.controller import WorkflowController
 from shell.execution_service.framework.execution.workflow.api.create_workflow_request import (
     CreateWorkflowRequest,
 )
 from shell.execution_service.framework.execution.workflow.api.create_workflow_response import (
     CreateWorkflowResponse,
-)
-from shell.execution_service.framework.execution.workflow.api.update_workflow_request import (
-    UpdateWorkflowRequest,
 )
 from shell.execution_service.framework.execution.workflow.api.workflow_response import (
     WorkflowResponse,
@@ -62,12 +62,12 @@ async def create_workflow(
 
 
 @router.put("/{workflow_id}", status_code=204)
-async def update_workflow(
+async def change_workflow(
     workflow_id: str,
-    body: UpdateWorkflowRequest,
+    body: ChangeWorkflowRequest,
     controller: WorkflowController = Depends(get_workflow_controller),
 ) -> None:
-    await controller.update_workflow(workflow_id, body)
+    await controller.change_workflow(workflow_id, body)
 
 
 @router.delete("/{workflow_id}", status_code=204)

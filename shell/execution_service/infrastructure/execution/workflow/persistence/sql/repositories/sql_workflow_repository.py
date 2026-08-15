@@ -9,9 +9,9 @@ from shell.execution_service.domain.execution.aggregates.workflow.repositories.w
     WorkflowRepository,
 )
 from shell.execution_service.infrastructure.execution.workflow.persistence.sql.mappers import (
+    workflow_change_model,
     workflow_entity_to_model,
     workflow_model_to_entity,
-    workflow_update_model,
 )
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
@@ -49,7 +49,7 @@ class SqlWorkflowRepository(WorkflowRepository):
             model = workflow_entity_to_model(workflow)
             self._session.add(model)
         else:
-            workflow_update_model(model, workflow)
+            workflow_change_model(model, workflow)
 
     async def delete(self, id: WorkflowId) -> None:
         model = await self._session.get(WorkflowModel, id.value)

@@ -8,6 +8,9 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.dependencies import get_core_container
 from shell.platform.framework.api.models.page import Page
+from shell.project_service.framework.project.project.api.change_project_request import (
+    ChangeProjectRequest,
+)
 from shell.project_service.framework.project.project.api.controller import ProjectController
 from shell.project_service.framework.project.project.api.create_project_request import (
     CreateProjectRequest,
@@ -17,9 +20,6 @@ from shell.project_service.framework.project.project.api.create_project_response
 )
 from shell.project_service.framework.project.project.api.project_response import (
     ProjectResponse,
-)
-from shell.project_service.framework.project.project.api.update_project_request import (
-    UpdateProjectRequest,
 )
 
 if TYPE_CHECKING:
@@ -66,12 +66,12 @@ async def create_project(
 
 
 @router.put("/{project_id}", status_code=204)
-async def update_project(
+async def change_project(
     project_id: str,
-    body: UpdateProjectRequest,
+    body: ChangeProjectRequest,
     controller: ProjectController = Depends(get_project_controller),
 ) -> None:
-    await controller.update_project(project_id, body)
+    await controller.change_project(project_id, body)
 
 
 @router.delete("/{project_id}", status_code=204)

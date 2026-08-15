@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from fastapi import HTTPException
 
+from shell.execution_service.application.execution.workflow.commands.change_workflow_command import (
+    ChangeWorkflowCommand,
+)
 from shell.execution_service.application.execution.workflow.commands.create_workflow_command import (
     CreateWorkflowCommand,
 )
 from shell.execution_service.application.execution.workflow.commands.delete_workflow_command import (
     DeleteWorkflowCommand,
-)
-from shell.execution_service.application.execution.workflow.commands.update_workflow_command import (
-    UpdateWorkflowCommand,
 )
 from shell.execution_service.application.execution.workflow.queries.get_workflow_by_id_query import (
     GetWorkflowByIdQuery,
@@ -17,14 +17,14 @@ from shell.execution_service.application.execution.workflow.queries.get_workflow
 from shell.execution_service.application.execution.workflow.queries.list_workflows_query import (
     ListWorkflowsQuery,
 )
+from shell.execution_service.framework.execution.workflow.api.change_workflow_request import (
+    ChangeWorkflowRequest as ApiChangeWorkflowRequest,
+)
 from shell.execution_service.framework.execution.workflow.api.create_workflow_request import (
     CreateWorkflowRequest as ApiCreateWorkflowRequest,
 )
 from shell.execution_service.framework.execution.workflow.api.create_workflow_response import (
     CreateWorkflowResponse as ApiCreateWorkflowResponse,
-)
-from shell.execution_service.framework.execution.workflow.api.update_workflow_request import (
-    UpdateWorkflowRequest as ApiUpdateWorkflowRequest,
 )
 from shell.execution_service.framework.execution.workflow.api.workflow_response import (
     WorkflowResponse as ApiWorkflowResponse,
@@ -54,7 +54,7 @@ class WorkflowController:
                 session_id=d.session_id,
                 project_id=d.project_id,
                 created_at=d.created_at,
-                updated_at=d.updated_at,
+                changed_at=d.changed_at,
                 deleted_at=d.deleted_at,
             )
             for d in dtos
@@ -78,7 +78,7 @@ class WorkflowController:
             session_id=result.session_id,
             project_id=result.project_id,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
             deleted_at=result.deleted_at,
         )
 
@@ -88,9 +88,9 @@ class WorkflowController:
         )
         return ApiCreateWorkflowResponse(id=workflow_id)
 
-    async def update_workflow(self, workflow_id: str, body: ApiUpdateWorkflowRequest) -> None:
+    async def change_workflow(self, workflow_id: str, body: ApiChangeWorkflowRequest) -> None:
         try:
-            await self._command_bus.dispatch(UpdateWorkflowCommand(workflow_id=workflow_id))
+            await self._command_bus.dispatch(ChangeWorkflowCommand(workflow_id=workflow_id))
         except HTTPException:
             raise
         except Exception as exc:

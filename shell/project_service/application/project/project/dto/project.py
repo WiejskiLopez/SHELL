@@ -11,5 +11,5 @@ class ProjectDto:
     created_at: datetime
     status: str
     repo_url: str | None = None
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

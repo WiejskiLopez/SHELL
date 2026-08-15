@@ -9,9 +9,9 @@ from shell.user_service.application.user.auth_session.commands.logout_auth_sessi
 from shell.user_service.application.user.auth_session.queries.get_current_auth_session_query import (
     GetCurrentAuthSessionQuery,
 )
+from shell.user_service.application.user.user.commands.change_user_command import ChangeUserCommand
 from shell.user_service.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.user_service.application.user.user.commands.delete_user_command import DeleteUserCommand
-from shell.user_service.application.user.user.commands.update_user_command import UpdateUserCommand
 from shell.user_service.application.user.user.queries.get_user_by_email_query import (
     GetUserByEmailQuery,
 )
@@ -37,7 +37,7 @@ def test_user_core_container_registers_only_user_handlers() -> None:
 
     assert set(container.command_bus()._handler_factories) == {
         CreateUserCommand,
-        UpdateUserCommand,
+        ChangeUserCommand,
         DeleteUserCommand,
         LoginAuthSessionCommand,
         LogoutAuthSessionCommand,

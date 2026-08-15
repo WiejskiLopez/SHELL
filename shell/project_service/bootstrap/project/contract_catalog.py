@@ -41,7 +41,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="ProjectSkillUpdatedIntegrationEvent",
+        type_name="ProjectSkillChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -59,13 +59,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="ProjectStateUpdatedIntegrationEvent",
-        owner=OWNER,
-        supported_schema_versions=frozenset({1}),
-        producers=(OWNER,),
-    ),
-    ContractEntry(
-        type_name="ProjectUpdatedIntegrationEvent",
+        type_name="ProjectChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),

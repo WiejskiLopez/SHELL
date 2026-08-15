@@ -93,9 +93,9 @@ from shell.execution_service.infrastructure.execution.workflow.persistence.sql.m
 from shell.execution_service.infrastructure.execution.workflow.persistence.sql.models import (
     WorkflowModel,
 )
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.timestamp import Timestamp
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.session_service.domain.session.aggregates.session import Session
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
     SessionId,
@@ -338,7 +338,7 @@ class TestSessionMapper:
             user_id=UserIdRef("user-2"),
             status=SessionStatus.CLOSED,
             opened_at=CreatedAt.from_datetime(_NOW),
-            closed_at=UpdatedAt.from_datetime(_NOW),
+            closed_at=ChangedAt.from_datetime(_NOW),
         )
         model = session_entity_to_model(original)
 

@@ -17,5 +17,5 @@ class UserModel(UserSqlAlchemyModelBase):
     email: Mapped[str] = mapped_column(nullable=False, unique=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(nullable=True)
+    changed_at: Mapped[datetime] = mapped_column(nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

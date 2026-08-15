@@ -10,7 +10,7 @@ class UserDto:
     email: str
     status: str
     created_at: datetime
-    updated_at: datetime
+    changed_at: datetime
     deleted_at: datetime | None = None
 
 
@@ -25,5 +25,5 @@ class CreateUserResponse:
 
 
 @dataclass(frozen=True, slots=True)
-class UpdateUserRequest:
+class ChangeUserRequest:
     email: str

@@ -41,13 +41,13 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="GraphDefinitionEmbeddingUpdatedIntegrationEvent",
+        type_name="GraphDefinitionEmbeddingChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="GraphDefinitionUpdatedIntegrationEvent",
+        type_name="GraphDefinitionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -65,7 +65,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="NodeDefinitionUpdatedIntegrationEvent",
+        type_name="NodeDefinitionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -83,7 +83,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="NodeLinkDefinitionUpdatedIntegrationEvent",
+        type_name="NodeLinkDefinitionChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
@@ -101,7 +101,7 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
-        type_name="RunnerConfigUpdatedIntegrationEvent",
+        type_name="RunnerConfigChangedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),

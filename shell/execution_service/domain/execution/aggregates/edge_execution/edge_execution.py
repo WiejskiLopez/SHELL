@@ -17,23 +17,23 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+from shell.execution_service.domain.execution.aggregates.edge_execution.events.edge_execution_changed_event import (
+    EdgeExecutionChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.edge_execution.events.edge_execution_created_event import (
     EdgeExecutionCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.edge_execution.events.edge_execution_deleted_event import (
     EdgeExecutionDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.edge_execution.events.edge_execution_updated_event import (
-    EdgeExecutionUpdatedEvent,
-)
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 
 class EdgeExecution(AggregateRoot[EdgeExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_edge_definition_id",
         "_source_node_execution_id",
@@ -45,7 +45,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         *,
         id_: EdgeExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
@@ -56,7 +56,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self._source_node_execution_id = source_node_execution_id
         self._target_node_execution_id = target_node_execution_id
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -83,7 +83,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         *,
         id_: EdgeExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
@@ -95,7 +95,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
             source_node_execution_id=source_node_execution_id,
             target_node_execution_id=target_node_execution_id,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
 
@@ -130,23 +130,17 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
     def change_target(
         self,
         target_node_execution_id: NodeExecutionId | None,
-        now: UpdatedAt,
+        now: OccurredAt,
     ) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Cannot change target on a deleted edge")
         self._target_node_execution_id = target_node_execution_id
-        self._updated_at = now
-        self.append_event(
-            EdgeExecutionUpdatedEvent.now(
-                edge_execution_id=self._id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+        self._change(now=now)
 
-    def _update(self, now: CreatedAt) -> None:
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            EdgeExecutionUpdatedEvent.now(
+            EdgeExecutionChangedEvent.now(
                 edge_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -154,7 +148,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             EdgeExecutionDeletedEvent.now(
                 edge_execution_id=self._id,
@@ -166,7 +160,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         if self._deleted_at.value is not None:
             raise DomainError("Edge already deleted")
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             EdgeExecutionDeletedEvent.now(
                 edge_execution_id=self._id,

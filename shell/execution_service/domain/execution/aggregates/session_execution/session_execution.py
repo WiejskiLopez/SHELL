@@ -2,14 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.session_execution.events.session_execution_changed_event import (
+    SessionExecutionChangedEvent,
+)
+from shell.execution_service.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
+    SessionExecutionCreatedEvent,
+)
+from shell.execution_service.domain.execution.aggregates.session_execution.events.session_execution_deleted_event import (
+    SessionExecutionDeletedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
@@ -20,21 +29,10 @@ if TYPE_CHECKING:
     )
 
 
-from shell.execution_service.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
-    SessionExecutionCreatedEvent,
-)
-from shell.execution_service.domain.execution.aggregates.session_execution.events.session_execution_deleted_event import (
-    SessionExecutionDeletedEvent,
-)
-from shell.execution_service.domain.execution.aggregates.session_execution.events.session_execution_updated_event import (
-    SessionExecutionUpdatedEvent,
-)
-
-
 class SessionExecution(AggregateRoot[SessionExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_execution_id",
         "_session_id",
@@ -43,7 +41,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
     _user_execution_id: UserExecutionId | None
     _session_id: SessionIdRef | None
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
     _deleted_at: DeletedAt
 
     def __init__(
@@ -59,7 +57,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         self._session_id = session_id
         if created_at is not None:
             self._created_at = created_at
-        self._updated_at = NONE_UPDATED_AT
+        self._changed_at = NONE_CHANGED_AT
         self._deleted_at = NONE_DELETED_AT
 
     @classmethod
@@ -88,10 +86,10 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
             created_at=created_at,
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            SessionExecutionUpdatedEvent.now(
+            SessionExecutionChangedEvent.now(
                 session_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -99,7 +97,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             SessionExecutionDeletedEvent.now(
                 session_execution_id=self._id,
@@ -118,6 +116,10 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
+
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @classmethod
     def _new(

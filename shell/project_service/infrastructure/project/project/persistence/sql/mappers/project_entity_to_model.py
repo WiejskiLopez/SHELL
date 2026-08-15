@@ -19,6 +19,6 @@ def project_entity_to_model(entity: Project) -> ProjectModel:
         repo_url=entity.repository_url.value,
         status=entity.status.value,
         created_at=entity.created_at.value if entity.created_at else None,
-        updated_at=entity.updated_at.value,
+        changed_at=entity.changed_at.value,
         deleted_at=entity.deleted_at.value,
     )

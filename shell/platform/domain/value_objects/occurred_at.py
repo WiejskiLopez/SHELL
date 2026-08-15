@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
@@ -13,7 +14,7 @@ class OccurredAt(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value.tzinfo is None:
-            raise ValueError("OccurredAt must be timezone-aware (UTC)")
+            raise DomainError("OccurredAt must be timezone-aware (UTC)")
 
     def __str__(self) -> str:
         return self.value.isoformat()
@@ -25,7 +26,7 @@ class OccurredAt(ValueObject):
     @classmethod
     def from_datetime(cls, dt: datetime | None) -> OccurredAt:
         if dt is None:
-            raise ValueError("OccurredAt value cannot be None")
+            raise DomainError("OccurredAt value cannot be None")
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)
         return cls(dt)

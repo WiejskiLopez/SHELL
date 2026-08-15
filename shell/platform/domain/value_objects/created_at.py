@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
@@ -15,7 +16,7 @@ class CreatedAt(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value.tzinfo is None:
-            raise ValueError("CreatedAt must be timezone-aware (UTC)")
+            raise DomainError("CreatedAt must be timezone-aware (UTC)")
 
     def __str__(self) -> str:
         return self.value.isoformat()
@@ -27,7 +28,7 @@ class CreatedAt(ValueObject):
     @classmethod
     def from_datetime(cls, dt: datetime | None) -> CreatedAt:
         if dt is None:
-            raise ValueError("CreatedAt cannot be None")
+            raise DomainError("CreatedAt cannot be None")
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)
         return cls(dt)

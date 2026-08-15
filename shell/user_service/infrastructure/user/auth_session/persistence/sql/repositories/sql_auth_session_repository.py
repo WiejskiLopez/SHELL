@@ -10,9 +10,9 @@ from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_se
     AuthSessionRepository,
 )
 from shell.user_service.infrastructure.user.auth_session.persistence.sql.mappers import (
+    auth_session_change_model,
     auth_session_entity_to_model,
     auth_session_model_to_entity,
-    auth_session_update_model,
 )
 
 from ..models import AuthSessionModel
@@ -39,7 +39,7 @@ class SqlAuthSessionRepository(AuthSessionRepository):
             model = auth_session_entity_to_model(auth_session)
             self._session.add(model)
         else:
-            auth_session_update_model(model, auth_session)
+            auth_session_change_model(model, auth_session)
 
     async def get_by_id(self, auth_session_id: AuthSessionId) -> AuthSession | None:
         model = await self._session.get(AuthSessionModel, auth_session_id.value)

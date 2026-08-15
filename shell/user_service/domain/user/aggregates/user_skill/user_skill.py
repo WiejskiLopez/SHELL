@@ -3,19 +3,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+from shell.user_service.domain.user.aggregates.user_skill.events.user_skill_changed_event import (
+    UserSkillChangedEvent,
+)
 from shell.user_service.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
 )
 from shell.user_service.domain.user.aggregates.user_skill.events.user_skill_deleted_event import (
     UserSkillDeletedEvent,
-)
-from shell.user_service.domain.user.aggregates.user_skill.events.user_skill_updated_event import (
-    UserSkillUpdatedEvent,
 )
 from shell.user_service.domain.user.aggregates.user_skill.value_objects.user_skill_id import (
     UserSkillId,
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 class UserSkill(AggregateRoot[UserSkillId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_id",
         "_skill_data",
@@ -43,7 +43,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
         *,
         id: UserSkillId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         skill_data: SkillData,
@@ -52,7 +52,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
         self._user_id = user_id
         self._skill_data = skill_data
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -61,7 +61,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
         *,
         id: UserSkillId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         skill_data: SkillData,
@@ -71,7 +71,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
             user_id=user_id,
             skill_data=skill_data,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
 
@@ -100,7 +100,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             UserSkillDeletedEvent.now(
                 user_skill_id=self._id,
@@ -108,10 +108,10 @@ class UserSkill(AggregateRoot[UserSkillId]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            UserSkillUpdatedEvent.now(
+            UserSkillChangedEvent.now(
                 user_skill_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -130,8 +130,8 @@ class UserSkill(AggregateRoot[UserSkillId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:

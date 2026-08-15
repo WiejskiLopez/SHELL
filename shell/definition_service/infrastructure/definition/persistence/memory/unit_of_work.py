@@ -97,8 +97,9 @@ class InMemoryDefinitionUnitOfWork(UnitOfWork):
         )
         await self.repository(InMemoryGraphDefinitionRepository).save(graph)
 
-        link = NodeLinkDefinition(
+        link = NodeLinkDefinition.restore(
             id=NodeLinkDefinitionId.generate(),
+            created_at=now,
             graph_definition_id=graph_id,
             node_definition_id=node_id,
         )

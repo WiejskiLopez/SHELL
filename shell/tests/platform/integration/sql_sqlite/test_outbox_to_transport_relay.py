@@ -9,9 +9,6 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -24,6 +21,9 @@ from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher im
 )
 from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from shell.platform.application.ports.delivery_transport import DeliveryEnvelope

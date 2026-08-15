@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_changed_integration_event import (
+    SchedulerExecutionChangedIntegrationEvent,
+)
 from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_completed_integration_event import (
     SchedulerExecutionCompletedIntegrationEvent,
 )
@@ -15,9 +18,6 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.integra
 from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_started_integration_event import (
     SchedulerExecutionStartedIntegrationEvent,
 )
-from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_updated_integration_event import (
-    SchedulerExecutionUpdatedIntegrationEvent,
-)
 
 __all__ = [
     "SchedulerExecutionCompletedIntegrationEvent",
@@ -25,5 +25,5 @@ __all__ = [
     "SchedulerExecutionFailedIntegrationEvent",
     "SchedulerExecutionSkippedIntegrationEvent",
     "SchedulerExecutionStartedIntegrationEvent",
-    "SchedulerExecutionUpdatedIntegrationEvent",
+    "SchedulerExecutionChangedIntegrationEvent",
 ]

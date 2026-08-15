@@ -5,6 +5,9 @@ from __future__ import annotations
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.events.scheduler_execution_completed_event import (
     SchedulerExecutionCompletedEvent,
 )
+from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.events.scheduler_execution_created_event import (
+    SchedulerExecutionCreatedEvent,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.events.scheduler_execution_failed_event import (
     SchedulerExecutionFailedEvent,
 )
@@ -16,6 +19,7 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.e
 )
 
 __all__ = [
+    "SchedulerExecutionCreatedEvent",
     "SchedulerExecutionStartedEvent",
     "SchedulerExecutionCompletedEvent",
     "SchedulerExecutionFailedEvent",

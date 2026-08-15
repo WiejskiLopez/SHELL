@@ -7,10 +7,6 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-    PERSISTENCE_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -22,6 +18,10 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+    PERSISTENCE_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

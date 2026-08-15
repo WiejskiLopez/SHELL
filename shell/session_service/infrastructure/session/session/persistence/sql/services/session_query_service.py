@@ -33,7 +33,7 @@ class SessionQueryService:
                 opened_at=session_model.opened_at,
                 closed_at=session_model.closed_at,
                 created_at=session_model.created_at,
-                updated_at=session_model.updated_at,
+                changed_at=session_model.changed_at,
                 deleted_at=session_model.deleted_at,
             )
 
@@ -66,7 +66,7 @@ class SessionQueryService:
                     opened_at=row.opened_at,
                     closed_at=row.closed_at,
                     created_at=row.created_at,
-                    updated_at=row.updated_at,
+                    changed_at=row.changed_at,
                     deleted_at=row.deleted_at,
                 )
                 for row in rows

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.hash import Hash
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_session_repository import (
     AuthSessionRepository,
 )
@@ -34,5 +34,5 @@ class LogoutAuthSessionHandler:
             if auth_session.revoked_at.value is not None:
                 return
 
-            auth_session.revoke(UpdatedAt.from_datetime(self._clock.now()))
+            auth_session.revoke(OccurredAt.from_datetime(self._clock.now()))
             await unit_of_work.save(AuthSessionRepository, auth_session)

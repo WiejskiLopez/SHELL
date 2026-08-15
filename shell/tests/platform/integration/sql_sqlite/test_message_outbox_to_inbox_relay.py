@@ -15,9 +15,6 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.inge
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
-from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
-    MESSAGE_DELIVERY_MODELS,
-)
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.message.message_outbox_to_inbox_relay import (
     MessageOutboxToInboxRelay,
@@ -30,6 +27,9 @@ from shell.platform.infrastructure.persistence.memory.fake_message_publisher imp
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.types import JsonStr
+from shell.tests.platform.integration.platform_delivery_models import (
+    MESSAGE_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

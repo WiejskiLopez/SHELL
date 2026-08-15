@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.session_service.domain.session.aggregates.session import Session
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
     SessionId,
@@ -28,7 +28,7 @@ class SessionManagementService:
         existing: Session | None,
     ) -> Session:
         if existing is not None:
-            existing.update(UpdatedAt.from_datetime(now_dt))
+            existing.change(OccurredAt.from_datetime(now_dt))
             return existing
         session_id = self._id_generator_.new_id(SessionId)
         return Session.open(

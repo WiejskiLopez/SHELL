@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-)
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.infrastructure.messaging.inbox import InboxClaimService
+from shell.tests.platform.integration.platform_delivery_models import (
+    EVENT_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

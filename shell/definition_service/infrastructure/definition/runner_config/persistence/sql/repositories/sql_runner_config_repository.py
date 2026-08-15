@@ -8,9 +8,9 @@ from shell.definition_service.domain.definition.aggregates.runner_config.reposit
     RunnerConfigRepository,
 )
 from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.mappers import (
+    runner_config_change_model,
     runner_config_entity_to_model,
     runner_config_model_to_entity,
-    runner_config_update_model,
 )
 
 from ..models import RunnerConfigModel
@@ -41,4 +41,4 @@ class SqlRunnerConfigRepository(RunnerConfigRepository):
             model = runner_config_entity_to_model(config)
             self._session.add(model)
         else:
-            runner_config_update_model(model, config)
+            runner_config_change_model(model, config)

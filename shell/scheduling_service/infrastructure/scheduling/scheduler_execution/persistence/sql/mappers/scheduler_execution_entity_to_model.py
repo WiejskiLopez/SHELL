@@ -41,5 +41,5 @@ def scheduler_execution_entity_to_model(entity: SchedulerExecution) -> Scheduler
         started_at=entity.started_at.value if entity.started_at else None,
         completed_at=entity.completed_at.value if entity.completed_at else None,
         created_at=entity.created_at.value,
-        updated_at=entity.updated_at.value,
+        changed_at=entity.changed_at.value,
     )

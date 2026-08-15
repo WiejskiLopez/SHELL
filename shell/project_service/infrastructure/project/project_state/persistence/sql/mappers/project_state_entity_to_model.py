@@ -21,6 +21,6 @@ def project_state_entity_to_model(entity: ProjectState) -> ProjectStateModel:
         direction=entity.direction.value,
         state_data=entity.snapshot(),
         created_at=entity.created_at.value if entity.created_at else None,
-        updated_at=entity.updated_at.value,
+        changed_at=entity.changed_at.value,
         deleted_at=entity.deleted_at.value,
     )

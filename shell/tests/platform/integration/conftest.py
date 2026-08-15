@@ -7,16 +7,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    EVENT_DELIVERY_MODELS,
-    PERSISTENCE_DELIVERY_MODELS,
-)
-from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
-    SqlAlchemyRunnerConfigUnitOfWork,
-)
-from shell.definition_service.migrations.baseline import run_definition_baseline
 from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.tests.platform.integration.platform_delivery_models import PERSISTENCE_DELIVERY_MODELS
 from shell.tests.shared.test_db import build_db_url as test_db_url
 
 if TYPE_CHECKING:
@@ -62,12 +55,11 @@ async def session_factory(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> async_sessionmaker:
     url = test_db_url(tmp_path_factory, subdir="sqlite", db_name="test.db")
-    await run_definition_baseline(url)
     from sqlalchemy.ext.asyncio import create_async_engine
 
     engine = create_async_engine(url)
     async with engine.begin() as connection:
-        await connection.run_sync(EVENT_DELIVERY_MODELS.outbox.metadata.create_all)
+        await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.events.inbox.metadata.create_all)
     await engine.dispose()
     return build_session_factory(url)
 
@@ -75,14 +67,6 @@ async def session_factory(
 @pytest.fixture()
 def events() -> FakeEventPublisher:
     return FakeEventPublisher()
-
-
-@pytest.fixture()
-def sql_uow(
-    session_factory: async_sessionmaker,
-    events: FakeEventPublisher,
-) -> SqlAlchemyRunnerConfigUnitOfWork:
-    return SqlAlchemyRunnerConfigUnitOfWork(session_factory, models=PERSISTENCE_DELIVERY_MODELS)
 
 
 @pytest.fixture(scope="function")
@@ -97,6 +81,6 @@ async def pg_session_factory() -> async_sessionmaker:
 
     engine = create_async_engine(POSTGRES_URL)
     async with engine.begin() as connection:
-        await connection.run_sync(EVENT_DELIVERY_MODELS.outbox.metadata.create_all)
+        await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.events.inbox.metadata.create_all)
     await engine.dispose()
     return build_session_factory(POSTGRES_URL)

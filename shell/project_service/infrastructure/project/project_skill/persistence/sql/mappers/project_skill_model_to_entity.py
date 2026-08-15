@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
     ensure_utc as _ensure_utc,
 )
@@ -37,6 +37,6 @@ def project_skill_model_to_entity(model: ProjectSkillModel) -> ProjectSkill:
         if model.skill_data
         else ProjectSkillData(JsonStr(json.dumps({}))),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
-        updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at)),
+        changed_at=ChangedAt.from_datetime(_ensure_utc(model.changed_at)),
         deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at)),
     )

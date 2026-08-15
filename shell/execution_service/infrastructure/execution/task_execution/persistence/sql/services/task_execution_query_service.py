@@ -45,7 +45,7 @@ class TaskExecutionQueryService:
                 created_at=model.created_at,
                 work_dir=model.work_dir,
                 workflow_id=model.workflow_id,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
                 deleted_at=model.deleted_at,
             )
 
@@ -72,7 +72,7 @@ class TaskExecutionQueryService:
                     created_at=r.created_at,
                     work_dir=r.work_dir,
                     workflow_id=r.workflow_id,
-                    updated_at=r.updated_at,
+                    changed_at=r.changed_at,
                     deleted_at=r.deleted_at,
                 )
                 for r in rows

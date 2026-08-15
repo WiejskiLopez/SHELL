@@ -6,6 +6,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.change_scheduler_definition_handler import (
+    ChangeSchedulerDefinitionHandler,
+)
+from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.change_scheduler_definition_handler import (
+    SchedulerDefinitionNotFoundError as SchedulerDefinitionChangeNotFoundError,
+)
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
     CreateSchedulerDefinitionHandler,
 )
@@ -15,20 +21,14 @@ from shell.scheduling_service.application.scheduling.scheduler_definition.comman
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
     SchedulerDefinitionNotFoundError as SchedulerDefinitionDeleteNotFoundError,
 )
-from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
-    SchedulerDefinitionNotFoundError as SchedulerDefinitionUpdateNotFoundError,
-)
-from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
-    UpdateSchedulerDefinitionHandler,
+from shell.scheduling_service.application.scheduling.scheduler_definition.commands.change_scheduler_definition_command import (
+    ChangeSchedulerDefinitionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.create_scheduler_definition_command import (
     CreateSchedulerDefinitionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
     DeleteSchedulerDefinitionCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_definition.commands.update_scheduler_definition_command import (
-    UpdateSchedulerDefinitionCommand,
 )
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
@@ -109,7 +109,7 @@ class TestSchedulerDefinitionHandlers:
         assert definition is not None
         assert definition.name.value == "test-scheduler"
 
-    async def test_update(
+    async def test_change(
         self,
         unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
@@ -128,18 +128,18 @@ class TestSchedulerDefinitionHandlers:
                 execution_policy=execution_policy,
             )
         )
-        await UpdateSchedulerDefinitionHandler(unit_of_work, clock).handle(
-            UpdateSchedulerDefinitionCommand(scheduler_definition_id=definition_id_str)
+        await ChangeSchedulerDefinitionHandler(unit_of_work, clock).handle(
+            ChangeSchedulerDefinitionCommand(scheduler_definition_id=definition_id_str)
         )
 
-    async def test_update_not_found(
+    async def test_change_not_found(
         self,
         unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
     ) -> None:
-        with pytest.raises(SchedulerDefinitionUpdateNotFoundError):
-            await UpdateSchedulerDefinitionHandler(unit_of_work, clock).handle(
-                UpdateSchedulerDefinitionCommand(scheduler_definition_id="no-such-id")
+        with pytest.raises(SchedulerDefinitionChangeNotFoundError):
+            await ChangeSchedulerDefinitionHandler(unit_of_work, clock).handle(
+                ChangeSchedulerDefinitionCommand(scheduler_definition_id="no-such-id")
             )
 
     async def test_delete(

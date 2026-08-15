@@ -14,21 +14,22 @@ from typing import TYPE_CHECKING, Self
 from shell.execution_service.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
+from shell.execution_service.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_created_event import (
+    GraphExecutionStateCreatedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_deleted_event import (
     GraphExecutionStateDeletedEvent,
-)
-from shell.execution_service.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_updated_event import (
-    GraphExecutionStateUpdatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
@@ -43,7 +44,7 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
 
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_graph_execution_id",
         "_direction",
@@ -54,7 +55,7 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
     _deleted_at: DeletedAt
 
     def __init__(
@@ -70,7 +71,7 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = NONE_UPDATED_AT
+        self._changed_at = NONE_CHANGED_AT
         self._deleted_at = NONE_DELETED_AT
 
     @classmethod
@@ -90,6 +91,12 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
         )
 
     # ------------------------------------------------------------------ mutations
+
+    def change_state(self, state_data: StateData) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise DomainError("Cannot change state of a deleted graph execution state")
+        self._state_data = state_data
+        self._change(now=OccurredAt.from_datetime(self._created_at.value))
 
     def snapshot(self) -> StateData:
         return self._state_data
@@ -111,10 +118,11 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
             created_at=created_at,
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            GraphExecutionStateUpdatedEvent.now(
+            GraphExecutionStateChangedEvent.now(
+                graph_execution_id=self._graph_execution_id,
                 graph_execution_state_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -122,7 +130,7 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             GraphExecutionStateDeletedEvent.now(
                 graph_execution_state_id=self._id,
@@ -146,6 +154,10 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
     def created_at(self) -> CreatedAt:
         return self._created_at
 
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
+
     # ------------------------------------------------------------------ factory
 
     @classmethod
@@ -165,7 +177,7 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
             created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
-            GraphExecutionStateChangedEvent.now(
+            GraphExecutionStateCreatedEvent.now(
                 graph_execution_id=graph_execution_id,
                 graph_execution_state_id=instance.id,
                 now=now,

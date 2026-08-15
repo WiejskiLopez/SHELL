@@ -28,7 +28,7 @@ class UserQueryService:
                 email=model.email,
                 status=model.status,
                 created_at=model.created_at,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
                 deleted_at=model.deleted_at,
             )
 
@@ -44,7 +44,7 @@ class UserQueryService:
                 email=model.email,
                 status=model.status,
                 created_at=model.created_at,
-                updated_at=model.updated_at,
+                changed_at=model.changed_at,
                 deleted_at=model.deleted_at,
             )
 
@@ -68,7 +68,7 @@ class UserQueryService:
                     email=r.email,
                     status=r.status,
                     created_at=r.created_at,
-                    updated_at=r.updated_at,
+                    changed_at=r.changed_at,
                     deleted_at=r.deleted_at,
                 )
                 for r in rows

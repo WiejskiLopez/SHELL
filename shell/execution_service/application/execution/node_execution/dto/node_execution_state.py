@@ -9,4 +9,4 @@ class NodeExecutionStateDto:
     node_execution_id: str
     status: str
     step: int
-    updated_at: datetime
+    changed_at: datetime

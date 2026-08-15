@@ -14,7 +14,7 @@ from shell.platform.domain.value_objects.schema_version import SchemaVersion
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DomainMessage:
     message_id: MessageId = field(default_factory=MessageId.generate)
-    aggregate_id: AggregateId = field(default_factory=lambda: AggregateId(""))
+    aggregate_id: AggregateId = field(default_factory=AggregateId.generate)
     aggregate_name: AggregateName = field(default_factory=lambda: AggregateName(""))
     occurred_at: OccurredAt
     schema_version: SchemaVersion = field(default_factory=lambda: SchemaVersion(1))

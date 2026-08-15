@@ -23,5 +23,5 @@ def edge_link_execution_entity_to_model(
         node_execution_id=entity.node_execution_id.value,
         edge_execution_id=entity.edge_execution_id.value,
         created_at=now,
-        updated_at=now,
+        changed_at=now,
     )

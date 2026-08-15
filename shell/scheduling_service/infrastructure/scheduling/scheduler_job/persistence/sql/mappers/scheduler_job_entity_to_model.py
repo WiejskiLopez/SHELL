@@ -24,5 +24,5 @@ def scheduler_job_entity_to_model(entity: SchedulerJob) -> SchedulerJobModel:
         enabled=entity.enabled.value,
         config=json.loads(entity.config.value.value),
         created_at=entity.created_at.value,
-        updated_at=entity.updated_at.value,
+        changed_at=entity.changed_at.value,
     )

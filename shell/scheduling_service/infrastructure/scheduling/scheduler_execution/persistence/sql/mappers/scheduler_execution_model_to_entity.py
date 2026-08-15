@@ -3,11 +3,11 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.timestamp import Timestamp
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
@@ -64,5 +64,5 @@ def scheduler_execution_model_to_entity(model: SchedulerExecutionModel) -> Sched
         started_at=Timestamp.from_datetime(model.started_at) if model.started_at else None,
         completed_at=Timestamp.from_datetime(model.completed_at) if model.completed_at else None,
         created_at=CreatedAt.from_datetime(model.created_at),
-        updated_at=UpdatedAt.from_datetime(model.updated_at),
+        changed_at=ChangedAt.from_datetime(model.changed_at),
     )

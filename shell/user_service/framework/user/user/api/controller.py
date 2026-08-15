@@ -8,14 +8,17 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.models.page import Page
 from shell.platform.framework.api.principal import Principal, PrincipalKind
+from shell.user_service.application.user.user.commands.change_user_command import ChangeUserCommand
 from shell.user_service.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.user_service.application.user.user.commands.delete_user_command import DeleteUserCommand
-from shell.user_service.application.user.user.commands.update_user_command import UpdateUserCommand
 from shell.user_service.application.user.user.queries.get_user_by_email_query import (
     GetUserByEmailQuery,
 )
 from shell.user_service.application.user.user.queries.get_user_by_id_query import GetUserByIdQuery
 from shell.user_service.application.user.user.queries.list_users_query import ListUsersQuery
+from shell.user_service.framework.user.user.api.change_user_request import (
+    ChangeUserRequest as ApiChangeUserRequest,
+)
 from shell.user_service.framework.user.user.api.create_user_request import (
     CreateUserRequest as ApiCreateUserRequest,
 )
@@ -24,9 +27,6 @@ from shell.user_service.framework.user.user.api.create_user_response import (
 )
 from shell.user_service.framework.user.user.api.login_response import (
     LoginResponse as ApiLoginResponse,
-)
-from shell.user_service.framework.user.user.api.update_user_request import (
-    UpdateUserRequest as ApiUpdateUserRequest,
 )
 from shell.user_service.framework.user.user.api.user_response import UserResponse as ApiUserResponse
 
@@ -40,7 +40,7 @@ def _dto_to_response(dto: UserDto) -> ApiUserResponse:
         email=dto.email,
         status=dto.status,
         created_at=dto.created_at,
-        updated_at=dto.updated_at,
+        changed_at=dto.changed_at,
         deleted_at=dto.deleted_at,
     )
 
@@ -89,12 +89,12 @@ class UserController:
             raise HTTPException(status_code=404, detail=f"User with email '{email}' not found")
         return ApiLoginResponse(id=result.id)
 
-    async def update_user(
-        self, user_id: str, body: ApiUpdateUserRequest, principal: Principal
+    async def change_user(
+        self, user_id: str, body: ApiChangeUserRequest, principal: Principal
     ) -> None:
         try:
             self._require_access(user_id, principal)
-            await self._command_bus.dispatch(UpdateUserCommand(user_id=user_id, email=body.email))
+            await self._command_bus.dispatch(ChangeUserCommand(user_id=user_id, email=body.email))
         except HTTPException:
             raise
         except Exception as exc:

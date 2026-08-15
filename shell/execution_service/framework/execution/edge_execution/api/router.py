@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 
+from shell.execution_service.framework.execution.edge_execution.api.change_edge_execution_request import (
+    ChangeEdgeExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+)
 from shell.execution_service.framework.execution.edge_execution.api.controller import (
     EdgeExecutionController,
 )
@@ -14,9 +17,6 @@ from shell.execution_service.framework.execution.edge_execution.api.create_edge_
 )
 from shell.execution_service.framework.execution.edge_execution.api.edge_execution_response import (
     EdgeExecutionResponse,
-)
-from shell.execution_service.framework.execution.edge_execution.api.update_edge_execution_request import (
-    UpdateEdgeExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
 )
 from shell.platform.framework.api.dependencies import get_core_container
 
@@ -55,12 +55,12 @@ async def create_edge_execution(
 
 
 @router.put("/{edge_execution_id}", status_code=200)
-async def update_edge_execution(
+async def change_edge_execution(
     edge_execution_id: str,
-    body: UpdateEdgeExecutionRequest,
+    body: ChangeEdgeExecutionRequest,
     controller: EdgeExecutionController = Depends(get_edge_execution_controller),
 ) -> None:
-    return await controller.update_edge_execution(edge_execution_id, body)
+    return await controller.change_edge_execution(edge_execution_id, body)
 
 
 @router.delete("/{edge_execution_id}", status_code=204)

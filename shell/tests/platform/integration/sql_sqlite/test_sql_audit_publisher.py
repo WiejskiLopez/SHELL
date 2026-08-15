@@ -5,9 +5,6 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
 
-from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
-    PERSISTENCE_DELIVERY_MODELS,
-)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -16,6 +13,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
+from shell.tests.platform.integration.platform_delivery_models import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

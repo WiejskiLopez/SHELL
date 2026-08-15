@@ -64,7 +64,7 @@ class SqlProjectStateRepository(ProjectStateRepository):
         else:
             model.direction = state.direction.value
             model.state_data = state.snapshot()  # type: ignore[assignment]
-            model.updated_at = state.updated_at.value
+            model.changed_at = state.changed_at.value
 
     async def delete(self, id: ProjectStateId) -> None:
         model = await self._session.get(ProjectStateModel, id.value)

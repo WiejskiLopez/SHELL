@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Self
 
 from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,7 +16,7 @@ class EntityId(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError(f"{type(self).__name__} cannot be empty")
+            raise DomainError(f"{type(self).__name__} cannot be empty")
 
     def __str__(self) -> str:
         return self.value

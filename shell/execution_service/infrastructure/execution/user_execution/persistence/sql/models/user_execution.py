@@ -16,4 +16,4 @@ class UserExecutionModel(ExecutionSqlAlchemyModelBase):
     user_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
-    updated_at: Mapped[datetime] = mapped_column(nullable=True)
+    changed_at: Mapped[datetime] = mapped_column(nullable=True)

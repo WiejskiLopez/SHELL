@@ -30,23 +30,23 @@ from shell.platform.infrastructure.serialization.command_registry import (
 )
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.platform.infrastructure.time.system_clock import SystemClock
+from shell.project_service.application.project.project.command_handlers.change_project_handler import (
+    ChangeProjectHandler,
+)
 from shell.project_service.application.project.project.command_handlers.create_project_handler import (
     CreateProjectHandler,
 )
 from shell.project_service.application.project.project.command_handlers.delete_project_handler import (
     DeleteProjectHandler,
 )
-from shell.project_service.application.project.project.command_handlers.update_project_handler import (
-    UpdateProjectHandler,
+from shell.project_service.application.project.project.commands.change_project_command import (
+    ChangeProjectCommand,
 )
 from shell.project_service.application.project.project.commands.create_project_command import (
     CreateProjectCommand,
 )
 from shell.project_service.application.project.project.commands.delete_project_command import (
     DeleteProjectCommand,
-)
-from shell.project_service.application.project.project.commands.update_project_command import (
-    UpdateProjectCommand,
 )
 from shell.project_service.application.project.project.queries.get_project_by_id_query import (
     GetProjectByIdQuery,
@@ -170,8 +170,8 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_project_handler_factory = providers.Factory(
-        UpdateProjectHandler, unit_of_work=unit_of_work_factory, clock=clock_factory
+    change_project_handler_factory = providers.Factory(
+        ChangeProjectHandler, unit_of_work=unit_of_work_factory, clock=clock_factory
     )
     delete_project_handler_factory = providers.Factory(
         DeleteProjectHandler, unit_of_work=unit_of_work_factory, clock=clock_factory
@@ -186,7 +186,7 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
 
 def configure_project_container(container: ProjectCoreContainer) -> None:
     container.command_bus().register(CreateProjectCommand, container.create_project_handler_factory)
-    container.command_bus().register(UpdateProjectCommand, container.update_project_handler_factory)
+    container.command_bus().register(ChangeProjectCommand, container.change_project_handler_factory)
     container.command_bus().register(DeleteProjectCommand, container.delete_project_handler_factory)
     container.query_bus().register(GetProjectByIdQuery, container.get_project_by_id_handler_factory)
     container.query_bus().register(ListProjectsQuery, container.list_projects_handler_factory)

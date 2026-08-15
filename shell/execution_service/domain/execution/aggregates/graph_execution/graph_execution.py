@@ -29,22 +29,22 @@ if TYPE_CHECKING:
     )
 
 
+from shell.execution_service.domain.execution.aggregates.graph_execution.events.graph_execution_changed_event import (
+    GraphExecutionChangedEvent,
+)
 from shell.execution_service.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
     GraphExecutionCreatedEvent,
 )
 from shell.execution_service.domain.execution.aggregates.graph_execution.events.graph_execution_deleted_event import (
     GraphExecutionDeletedEvent,
 )
-from shell.execution_service.domain.execution.aggregates.graph_execution.events.graph_execution_updated_event import (
-    GraphExecutionUpdatedEvent,
-)
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 
 
 class GraphExecution(AggregateRoot[GraphExecutionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_task_execution_id",
         "_parent_graph_execution_id",
@@ -59,7 +59,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         *,
         id: GraphExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
@@ -79,7 +79,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             else GraphDefinitionIdRef.generate()
         )
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -88,7 +88,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         *,
         id: GraphExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
@@ -104,7 +104,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             max_subgraph_depth=max_subgraph_depth,
             graph_definition_id=graph_definition_id,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
         return instance
@@ -151,17 +151,11 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
         return instance
 
-    def update_status(self, new_status: GraphExecutionStatus, now: UpdatedAt) -> None:
+    def change_status(self, new_status: GraphExecutionStatus, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot update status of a deleted graph execution")
+            raise DomainError("Cannot change status of a deleted graph execution")
         self._execution_status = new_status
-        self._updated_at = now
-        self.append_event(
-            GraphExecutionUpdatedEvent.now(
-                graph_execution_id=self._id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+        self._change(now=now)
 
     def soft_delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:
@@ -218,7 +212,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             GraphExecutionDeletedEvent.now(
                 graph_execution_id=self._id,
@@ -226,10 +220,10 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             )
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            GraphExecutionUpdatedEvent.now(
+            GraphExecutionChangedEvent.now(
                 graph_execution_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -268,8 +262,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:

@@ -2,23 +2,23 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
+from shell.ingestion_service.application.ingestion.ingestion.command_handlers.change_ingestion_handler import (
+    ChangeIngestionHandler,
+)
 from shell.ingestion_service.application.ingestion.ingestion.command_handlers.create_ingestion_handler import (
     CreateIngestionHandler,
 )
 from shell.ingestion_service.application.ingestion.ingestion.command_handlers.delete_ingestion_handler import (
     DeleteIngestionHandler,
 )
-from shell.ingestion_service.application.ingestion.ingestion.command_handlers.update_ingestion_handler import (
-    UpdateIngestionHandler,
+from shell.ingestion_service.application.ingestion.ingestion.commands.change_ingestion_command import (
+    ChangeIngestionCommand,
 )
 from shell.ingestion_service.application.ingestion.ingestion.commands.create_ingestion_command import (
     CreateIngestionCommand,
 )
 from shell.ingestion_service.application.ingestion.ingestion.commands.delete_ingestion_command import (
     DeleteIngestionCommand,
-)
-from shell.ingestion_service.application.ingestion.ingestion.commands.update_ingestion_command import (
-    UpdateIngestionCommand,
 )
 from shell.ingestion_service.application.ingestion.ingestion.queries.get_ingestion_by_id_query import (
     GetIngestionByIdQuery,
@@ -162,8 +162,8 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_ingestion_handler_factory = providers.Factory(
-        UpdateIngestionHandler, unit_of_work=unit_of_work_factory, clock=clock_factory
+    change_ingestion_handler_factory = providers.Factory(
+        ChangeIngestionHandler, unit_of_work=unit_of_work_factory, clock=clock_factory
     )
     delete_ingestion_handler_factory = providers.Factory(
         DeleteIngestionHandler, unit_of_work=unit_of_work_factory, clock=clock_factory
@@ -178,7 +178,7 @@ def configure_ingestion_container(container: IngestionCoreContainer) -> None:
         CreateIngestionCommand, container.create_ingestion_handler_factory
     )
     container.command_bus().register(
-        UpdateIngestionCommand, container.update_ingestion_handler_factory
+        ChangeIngestionCommand, container.change_ingestion_handler_factory
     )
     container.command_bus().register(
         DeleteIngestionCommand, container.delete_ingestion_handler_factory

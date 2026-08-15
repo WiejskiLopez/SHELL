@@ -14,9 +14,9 @@ from shell.execution_service.domain.execution.aggregates.edge_link_execution.val
 from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
     ensure_utc as _ensure_utc,
 )
@@ -33,6 +33,6 @@ def edge_link_execution_model_to_entity(model: EdgeLinkExecutionModel) -> EdgeLi
         node_execution_id=NodeExecutionId(model.node_execution_id),
         edge_execution_id=EdgeExecutionId(model.edge_execution_id),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
-        updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at)),
+        changed_at=ChangedAt.from_datetime(_ensure_utc(model.changed_at)),
         deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at)),
     )

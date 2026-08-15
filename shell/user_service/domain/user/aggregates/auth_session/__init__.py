@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from shell.user_service.domain.user.aggregates.auth_session.auth_session import AuthSession
 from shell.user_service.domain.user.aggregates.auth_session.events import (
+    AuthSessionChangedEvent,
     AuthSessionCreatedEvent,
     AuthSessionDeletedEvent,
     AuthSessionRevokedEvent,
-    AuthSessionUpdatedEvent,
 )
 from shell.user_service.domain.user.aggregates.auth_session.ports.token_generator import (
     TokenGenerator,
@@ -27,7 +27,7 @@ __all__ = [
     "TokenGenerator",
     "UserQueryProvider",
     "AuthSessionCreatedEvent",
-    "AuthSessionUpdatedEvent",
+    "AuthSessionChangedEvent",
     "AuthSessionRevokedEvent",
     "AuthSessionDeletedEvent",
 ]

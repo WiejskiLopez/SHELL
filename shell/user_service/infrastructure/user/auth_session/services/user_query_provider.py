@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.user_service.domain.user.aggregates.auth_session.ports.user_query_provider import (
     UserQueryProvider,
 )
@@ -30,7 +30,7 @@ class SqlUserQueryProvider(UserQueryProvider):
         return User.restore(
             id=UserId(user_dto.id),
             created_at=CreatedAt.from_datetime(user_dto.created_at),
-            updated_at=UpdatedAt.from_datetime(user_dto.updated_at),
+            changed_at=ChangedAt.from_datetime(user_dto.changed_at),
             deleted_at=DeletedAt.from_datetime(user_dto.deleted_at),
             email=UserEmail(user_dto.email),
             status=UserStatus(user_dto.status),

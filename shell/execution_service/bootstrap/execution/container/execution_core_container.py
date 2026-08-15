@@ -22,14 +22,14 @@ from shell.execution_service.application.execution.agent_skill_execution.queries
 from shell.execution_service.application.execution.agent_skill_execution.query_handlers.get_agent_skill_execution_by_id_handler import (
     GetAgentSkillExecutionByIdHandler,
 )
+from shell.execution_service.application.execution.edge_execution.command_handlers.change_edge_execution_handler import (
+    ChangeEdgeExecutionHandler,
+)
 from shell.execution_service.application.execution.edge_execution.command_handlers.create_edge_execution_handler import (
     CreateEdgeExecutionHandler,
 )
 from shell.execution_service.application.execution.edge_execution.command_handlers.delete_edge_execution_handler import (
     DeleteEdgeExecutionHandler,
-)
-from shell.execution_service.application.execution.edge_execution.command_handlers.update_edge_execution_handler import (
-    UpdateEdgeExecutionHandler,
 )
 from shell.execution_service.application.execution.edge_execution.queries.get_edge_execution_by_id_query import (
     GetEdgeExecutionByIdQuery,
@@ -37,14 +37,14 @@ from shell.execution_service.application.execution.edge_execution.queries.get_ed
 from shell.execution_service.application.execution.edge_execution.query_handlers.get_edge_execution_by_id_handler import (
     GetEdgeExecutionByIdHandler,
 )
+from shell.execution_service.application.execution.edge_link_execution.command_handlers.change_edge_link_execution_handler import (
+    ChangeEdgeLinkExecutionHandler,
+)
 from shell.execution_service.application.execution.edge_link_execution.command_handlers.create_edge_link_execution_handler import (
     CreateEdgeLinkExecutionHandler,
 )
 from shell.execution_service.application.execution.edge_link_execution.command_handlers.delete_edge_link_execution_handler import (
     DeleteEdgeLinkExecutionHandler,
-)
-from shell.execution_service.application.execution.edge_link_execution.command_handlers.update_edge_link_execution_handler import (
-    UpdateEdgeLinkExecutionHandler,
 )
 from shell.execution_service.application.execution.edge_link_execution.queries.get_edge_link_execution_by_id_query import (
     GetEdgeLinkExecutionByIdQuery,
@@ -115,23 +115,23 @@ from shell.execution_service.application.execution.user_execution.queries.get_us
 from shell.execution_service.application.execution.user_execution.query_handlers.get_user_execution_by_id_handler import (
     GetUserExecutionByIdHandler,
 )
+from shell.execution_service.application.execution.workflow.command_handlers.change_workflow_handler import (
+    ChangeWorkflowHandler,
+)
 from shell.execution_service.application.execution.workflow.command_handlers.create_workflow_handler import (
     CreateWorkflowHandler,
 )
 from shell.execution_service.application.execution.workflow.command_handlers.delete_workflow_handler import (
     DeleteWorkflowHandler,
 )
-from shell.execution_service.application.execution.workflow.command_handlers.update_workflow_handler import (
-    UpdateWorkflowHandler,
+from shell.execution_service.application.execution.workflow.commands.change_workflow_command import (
+    ChangeWorkflowCommand,
 )
 from shell.execution_service.application.execution.workflow.commands.create_workflow_command import (
     CreateWorkflowCommand,
 )
 from shell.execution_service.application.execution.workflow.commands.delete_workflow_command import (
     DeleteWorkflowCommand,
-)
-from shell.execution_service.application.execution.workflow.commands.update_workflow_command import (
-    UpdateWorkflowCommand,
 )
 from shell.execution_service.application.execution.workflow.queries.get_workflow_by_id_query import (
     GetWorkflowByIdQuery,
@@ -366,8 +366,8 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
-    update_workflow_handler_factory = providers.Factory(
-        UpdateWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory
+    change_workflow_handler_factory = providers.Factory(
+        ChangeWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory
     )
     delete_workflow_handler_factory = providers.Factory(
         DeleteWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory
@@ -470,8 +470,8 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         identity=id_generator_factory,
         time=clock_factory,
     )
-    update_edge_execution_handler_factory = providers.Factory(
-        UpdateEdgeExecutionHandler,
+    change_edge_execution_handler_factory = providers.Factory(
+        ChangeEdgeExecutionHandler,
         unit_of_work=edge_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
@@ -494,8 +494,8 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         time=clock_factory,
         logger=stdlib_logger,
     )
-    update_edge_link_execution_handler_factory = providers.Factory(
-        UpdateEdgeLinkExecutionHandler,
+    change_edge_link_execution_handler_factory = providers.Factory(
+        ChangeEdgeLinkExecutionHandler,
         unit_of_work=edge_link_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
@@ -503,23 +503,23 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
 
 
 def configure_execution_container(container: ExecutionCoreContainer) -> None:
+    from shell.execution_service.application.execution.edge_execution.commands.change_edge_execution_command import (
+        ChangeEdgeExecutionCommand,
+    )
     from shell.execution_service.application.execution.edge_execution.commands.create_edge_execution_command import (
         CreateEdgeExecutionCommand,
     )
     from shell.execution_service.application.execution.edge_execution.commands.delete_edge_execution_command import (
         DeleteEdgeExecutionCommand,
     )
-    from shell.execution_service.application.execution.edge_execution.commands.update_edge_execution_command import (
-        UpdateEdgeExecutionCommand,
+    from shell.execution_service.application.execution.edge_link_execution.commands.change_edge_link_execution_command import (
+        ChangeEdgeLinkExecutionCommand,
     )
     from shell.execution_service.application.execution.edge_link_execution.commands.create_edge_link_execution_command import (
         CreateEdgeLinkExecutionCommand,
     )
     from shell.execution_service.application.execution.edge_link_execution.commands.delete_edge_link_execution_command import (
         DeleteEdgeLinkExecutionCommand,
-    )
-    from shell.execution_service.application.execution.edge_link_execution.commands.update_edge_link_execution_command import (
-        UpdateEdgeLinkExecutionCommand,
     )
     from shell.execution_service.application.execution.node_execution.commands.create_node_execution_command import (
         CreateNodeExecutionCommand,
@@ -529,14 +529,14 @@ def configure_execution_container(container: ExecutionCoreContainer) -> None:
     query_bus = container.query_bus()
     for command, factory in (
         (CreateEdgeExecutionCommand, container.create_edge_execution_handler_factory),
-        (UpdateEdgeExecutionCommand, container.update_edge_execution_handler_factory),
+        (ChangeEdgeExecutionCommand, container.change_edge_execution_handler_factory),
         (DeleteEdgeExecutionCommand, container.delete_edge_execution_handler_factory),
         (CreateEdgeLinkExecutionCommand, container.create_edge_link_execution_handler_factory),
         (DeleteEdgeLinkExecutionCommand, container.delete_edge_link_execution_handler_factory),
-        (UpdateEdgeLinkExecutionCommand, container.update_edge_link_execution_handler_factory),
+        (ChangeEdgeLinkExecutionCommand, container.change_edge_link_execution_handler_factory),
         (CreateNodeExecutionCommand, container.create_node_execution_handler_factory),
         (CreateWorkflowCommand, container.create_workflow_handler_factory),
-        (UpdateWorkflowCommand, container.update_workflow_handler_factory),
+        (ChangeWorkflowCommand, container.change_workflow_handler_factory),
         (DeleteWorkflowCommand, container.delete_workflow_handler_factory),
     ):
         command_bus.register(command, factory)

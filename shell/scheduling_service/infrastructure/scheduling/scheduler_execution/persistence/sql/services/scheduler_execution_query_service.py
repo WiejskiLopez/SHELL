@@ -32,7 +32,7 @@ class SchedulerExecutionQueryService:
             started_at=model.started_at,
             completed_at=model.completed_at,
             created_at=model.created_at,
-            updated_at=model.updated_at,
+            changed_at=model.changed_at,
         )
 
     async def get_by_id(self, scheduler_execution_id: str) -> SchedulerExecutionDto | None:

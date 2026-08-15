@@ -12,4 +12,4 @@ class UserSkillDto:
     user_id: str
     skill_data: JsonStr
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None

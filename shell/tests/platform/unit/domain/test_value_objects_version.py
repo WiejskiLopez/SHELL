@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.version import Version
 
 
@@ -33,7 +34,7 @@ class TestVersion:
 
     @pytest.mark.parametrize("invalid", [0, -1, -100])
     def test_value_below_one_is_rejected(self, invalid: int) -> None:
-        with pytest.raises(ValueError, match="Version must be >= 1"):
+        with pytest.raises(DomainError, match="Version must be >= 1"):
             Version(invalid)
 
     def test_is_frozen(self) -> None:

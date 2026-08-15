@@ -1,23 +1,23 @@
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 from shell.session_service.domain.session.aggregates.session_state.events.session_state_changed_event import (
     SessionStateChangedEvent,
 )
+from shell.session_service.domain.session.aggregates.session_state.events.session_state_created_event import (
+    SessionStateCreatedEvent,
+)
 from shell.session_service.domain.session.aggregates.session_state.events.session_state_deleted_event import (
     SessionStateDeletedEvent,
-)
-from shell.session_service.domain.session.aggregates.session_state.events.session_state_updated_event import (
-    SessionStateUpdatedEvent,
 )
 from shell.session_service.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 class SessionState(AggregateRoot[SessionStateId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_session_id",
         "_direction",
@@ -44,13 +44,14 @@ class SessionState(AggregateRoot[SessionStateId]):
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
+    _changed_at: ChangedAt
 
     def __init__(
         self,
         *,
         id: SessionStateId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         session_id: SessionId,
         direction: StateDirection,
@@ -61,7 +62,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -73,52 +74,18 @@ class SessionState(AggregateRoot[SessionStateId]):
         session_id: SessionId,
         direction: StateDirection,
     ) -> SessionState:
-        instance = cls(
-            id=id_,
+        return cls._new(
+            id_=id_,
             session_id=session_id,
             direction=direction,
-            state_data=StateData(JsonStr("{}")),
-            created_at=CreatedAt.from_datetime(now.value),
-        )
-        return instance
-
-    def update(self, key: str, value: object) -> None:
-        new_data = json.loads(self._state_data.value.value)
-        new_data[key] = value
-        self._state_data = StateData(JsonStr(json.dumps(new_data)))
-        self.append_event(
-            SessionStateChangedEvent.now(
-                session_id=self._session_id,
-                session_state_id=self.id,
-                now=OccurredAt.from_datetime(self._created_at.value),
-            )
+            now=OccurredAt.from_datetime(now.value),
         )
 
-    def get(self, key: str) -> object | None:
-        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
-
-    def _remove_key(self, key: str) -> None:
-        if json.loads(self._state_data.value.value).get(key) is not None:
-            new_data = json.loads(self._state_data.value.value)
-            new_data.pop(key, None)
-            self._state_data = StateData(JsonStr(json.dumps(new_data)))
-            self.append_event(
-                SessionStateChangedEvent.now(
-                    session_id=self._session_id,
-                    session_state_id=self.id,
-                    now=OccurredAt.from_datetime(self._created_at.value),
-                )
-            )
-
-    def patch(self, data: JsonStr) -> None:
-        parsed = json.loads(data.value)
-        for key, value in parsed.items():
-            self.update(key, value)
-
-    def clear(self) -> None:
-        current = json.loads(self._state_data.value.value)
-        for key in list(current.keys()):
-            self._remove_key(key)
+    def change_state(self, state_data: StateData) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Cannot change state of a deleted session state")
+        self._state_data = state_data
+        self._change(now=OccurredAt.from_datetime(self._created_at.value))
 
     def snapshot(self) -> StateData:
         return self._state_data
@@ -129,7 +96,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         *,
         id: SessionStateId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         session_id: SessionId,
         direction: StateDirection,
@@ -141,14 +108,15 @@ class SessionState(AggregateRoot[SessionStateId]):
             direction=direction,
             state_data=state_data,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            SessionStateUpdatedEvent.now(
+            SessionStateChangedEvent.now(
+                session_id=self._session_id,
                 session_state_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -156,7 +124,7 @@ class SessionState(AggregateRoot[SessionStateId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             SessionStateDeletedEvent.now(
                 session_state_id=self._id,
@@ -180,6 +148,10 @@ class SessionState(AggregateRoot[SessionStateId]):
     def created_at(self) -> CreatedAt:
         return self._created_at
 
+    @property
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
+
     @classmethod
     def _new(
         cls,
@@ -195,5 +167,12 @@ class SessionState(AggregateRoot[SessionStateId]):
             direction=direction,
             state_data=StateData(JsonStr("{}")),
             created_at=CreatedAt.from_datetime(now.value),
+        )
+        instance.append_event(
+            SessionStateCreatedEvent.now(
+                session_id=session_id,
+                session_state_id=id_,
+                now=OccurredAt.from_datetime(now.value),
+            )
         )
         return instance

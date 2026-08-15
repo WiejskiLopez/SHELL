@@ -10,5 +10,5 @@ class IngestionResponse(BaseModel):
     ingestion_data: str
     ingestion_context: str
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

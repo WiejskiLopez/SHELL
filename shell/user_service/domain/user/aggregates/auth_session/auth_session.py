@@ -10,10 +10,13 @@ from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
+from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_changed_event import (
+    AuthSessionChangedEvent,
+)
 from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_created_event import (
     AuthSessionCreatedEvent,
 )
@@ -22,9 +25,6 @@ from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_
 )
 from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_revoked_event import (
     AuthSessionRevokedEvent,
-)
-from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_updated_event import (
-    AuthSessionUpdatedEvent,
 )
 from shell.user_service.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
     AuthSessionId,
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 class AuthSession(AggregateRoot[AuthSessionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_user_id",
         "_token_hash",
@@ -58,7 +58,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
     _expires_at: ExpiresAt
     _revoked_at: RevokedAt
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _changed_at: ChangedAt
     _deleted_at: DeletedAt
 
     def __init__(
@@ -66,7 +66,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         *,
         id: AuthSessionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         token_hash: Hash,
@@ -79,7 +79,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         self._expires_at = expires_at
         self._revoked_at = revoked_at
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -132,7 +132,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         *,
         id: AuthSessionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        changed_at: ChangedAt = NONE_CHANGED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         token_hash: Hash,
@@ -146,14 +146,14 @@ class AuthSession(AggregateRoot[AuthSessionId]):
             expires_at=expires_at,
             revoked_at=revoked_at,
             created_at=created_at,
-            updated_at=updated_at,
+            changed_at=changed_at,
             deleted_at=deleted_at,
         )
 
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _change(self, now: OccurredAt) -> None:
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
-            AuthSessionUpdatedEvent.now(
+            AuthSessionChangedEvent.now(
                 auth_session_id=self._id,
                 user_id=self._user_id,
                 now=OccurredAt.from_datetime(now.value),
@@ -162,7 +162,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             AuthSessionDeletedEvent.now(
                 auth_session_id=self._id,
@@ -171,23 +171,16 @@ class AuthSession(AggregateRoot[AuthSessionId]):
             )
         )
 
-    def update(self, now: UpdatedAt) -> None:
+    def change(self, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot update a deleted auth session")
-        self._updated_at = now
-        self.append_event(
-            AuthSessionUpdatedEvent.now(
-                auth_session_id=self._id,
-                user_id=self._user_id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+            raise DomainError("Cannot change a deleted auth session")
+        self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Auth session already deleted")
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             AuthSessionDeletedEvent.now(
                 auth_session_id=self._id,
@@ -196,28 +189,21 @@ class AuthSession(AggregateRoot[AuthSessionId]):
             )
         )
 
-    def renew_token(self, token_hash: Hash, now: UpdatedAt) -> None:
+    def renew_token(self, token_hash: Hash, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Cannot renew token of a deleted auth session")
         if self._revoked_at.value is not None:
             raise DomainError("Cannot renew token of a revoked auth session")
         self._token_hash = token_hash
-        self._updated_at = now
-        self.append_event(
-            AuthSessionUpdatedEvent.now(
-                auth_session_id=self._id,
-                user_id=self._user_id,
-                now=OccurredAt.from_datetime(now.value),
-            )
-        )
+        self._change(now=now)
 
-    def revoke(self, now: UpdatedAt) -> None:
+    def revoke(self, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Cannot revoke a deleted auth session")
         if self._revoked_at.value is not None:
             raise DomainError("Auth session already revoked")
         self._revoked_at = RevokedAt.from_datetime(now.value)
-        self._updated_at = now
+        self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
             AuthSessionRevokedEvent.now(
                 auth_session_id=self._id,
@@ -247,8 +233,8 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at
+    def changed_at(self) -> ChangedAt:
+        return self._changed_at
 
     @property
     def deleted_at(self) -> DeletedAt:

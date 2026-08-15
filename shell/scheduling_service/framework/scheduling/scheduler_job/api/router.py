@@ -52,11 +52,11 @@ async def create_scheduler_job(
 
 
 @router.put("/{scheduler_job_id}", status_code=204)
-async def update_scheduler_job(
+async def change_scheduler_job(
     scheduler_job_id: str,
     controller: SchedulerJobController = Depends(get_controller),
 ) -> None:
-    await controller.update_scheduler_job(scheduler_job_id)
+    await controller.change_scheduler_job(scheduler_job_id)
 
 
 @router.delete("/{scheduler_job_id}", status_code=204)

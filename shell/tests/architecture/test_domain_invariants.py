@@ -10,7 +10,7 @@ from _arch_helpers import (
     extends_any_base,
     find_classes,
     has_slots,
-    iter_py_files,
+    iter_domain_files,
     parse_file,
 )
 
@@ -33,7 +33,7 @@ def _check_method_signature(
 def test_created_at_is_never_nullable() -> None:
     """created_at must NEVER be nullable — in params, properties, or slot type annotations."""
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -93,7 +93,7 @@ _KNOWN_STUB_NEW: frozenset[str] = frozenset({})
 def test_aggregate_new_is_implemented() -> None:
     """_new() must NOT raise NotImplementedError — every aggregate needs real creation logic."""
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue
@@ -143,7 +143,7 @@ def _check_function_for_bare_exceptions(
 def test_no_bare_exceptions_in_domain() -> None:
     """Domain code must use custom exception classes, not bare ValueError/TypeError/AssertionError."""
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         rel = path.relative_to(BASE).as_posix()
         tree = parse_file(path)
         if tree is None:
@@ -185,7 +185,7 @@ def _extract_id_type_name(base: ast.expr) -> str | None:
 def test_aggregate_id_matches_aggregate_name() -> None:
     """Every aggregate's ID must be {AggregateName}Id. E.g. User -> UserId, UserSkill -> UserSkillId."""
     violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
+    for path in iter_domain_files():
         tree = parse_file(path)
         if tree is None:
             continue

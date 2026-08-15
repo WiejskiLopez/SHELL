@@ -11,11 +11,11 @@ from shell.platform.framework.api.principal import (
     get_principal,
     require_system_principal,
 )
+from shell.user_service.framework.user.user.api.change_user_request import ChangeUserRequest
 from shell.user_service.framework.user.user.api.controller import UserController
 from shell.user_service.framework.user.user.api.create_user_request import CreateUserRequest
 from shell.user_service.framework.user.user.api.create_user_response import CreateUserResponse
 from shell.user_service.framework.user.user.api.login_response import LoginResponse
-from shell.user_service.framework.user.user.api.update_user_request import UpdateUserRequest
 from shell.user_service.framework.user.user.api.user_response import UserResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -66,13 +66,13 @@ async def create_user(
 
 
 @router.put("/{user_id}", status_code=204)
-async def update_user(
+async def change_user(
     user_id: str,
-    body: UpdateUserRequest,
+    body: ChangeUserRequest,
     principal: Principal = Depends(get_principal),
     controller: UserController = Depends(get_user_controller),
 ) -> None:
-    await controller.update_user(user_id, body, principal=principal)
+    await controller.change_user(user_id, body, principal=principal)
 
 
 @router.delete("/{user_id}", status_code=204)

@@ -10,5 +10,5 @@ class EdgeLinkExecutionDto:
     node_execution_id: str
     edge_execution_id: str
     created_at: datetime
-    updated_at: datetime | None = None
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

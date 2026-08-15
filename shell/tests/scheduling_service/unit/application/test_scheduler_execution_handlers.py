@@ -6,6 +6,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.change_scheduler_execution_handler import (
+    ChangeSchedulerExecutionHandler,
+)
+from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.change_scheduler_execution_handler import (
+    SchedulerExecutionNotFoundError as SchedulerExecutionChangeNotFoundError,
+)
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
     CreateSchedulerExecutionHandler,
 )
@@ -15,20 +21,14 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.command
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
     SchedulerExecutionNotFoundError as SchedulerExecutionDeleteNotFoundError,
 )
-from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
-    SchedulerExecutionNotFoundError as SchedulerExecutionUpdateNotFoundError,
-)
-from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
-    UpdateSchedulerExecutionHandler,
+from shell.scheduling_service.application.scheduling.scheduler_execution.commands.change_scheduler_execution_command import (
+    ChangeSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
     CreateSchedulerExecutionCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
     DeleteSchedulerExecutionCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_execution.commands.update_scheduler_execution_command import (
-    UpdateSchedulerExecutionCommand,
 )
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
@@ -77,7 +77,7 @@ class TestSchedulerExecutionHandlers:
         assert execution is not None
         assert execution.scheduler_definition_id.value == "def-1"
 
-    async def test_update(
+    async def test_change(
         self,
         unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
@@ -86,18 +86,18 @@ class TestSchedulerExecutionHandlers:
         execution_id_str = await CreateSchedulerExecutionHandler(
             unit_of_work, clock, id_generator
         ).handle(CreateSchedulerExecutionCommand(scheduler_definition_id="def-1"))
-        await UpdateSchedulerExecutionHandler(unit_of_work, clock).handle(
-            UpdateSchedulerExecutionCommand(scheduler_execution_id=execution_id_str)
+        await ChangeSchedulerExecutionHandler(unit_of_work, clock).handle(
+            ChangeSchedulerExecutionCommand(scheduler_execution_id=execution_id_str)
         )
 
-    async def test_update_not_found(
+    async def test_change_not_found(
         self,
         unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
     ) -> None:
-        with pytest.raises(SchedulerExecutionUpdateNotFoundError):
-            await UpdateSchedulerExecutionHandler(unit_of_work, clock).handle(
-                UpdateSchedulerExecutionCommand(scheduler_execution_id="no-such-id")
+        with pytest.raises(SchedulerExecutionChangeNotFoundError):
+            await ChangeSchedulerExecutionHandler(unit_of_work, clock).handle(
+                ChangeSchedulerExecutionCommand(scheduler_execution_id="no-such-id")
             )
 
     async def test_delete(

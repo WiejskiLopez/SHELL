@@ -32,7 +32,7 @@ class SchedulerJobQueryService:
             enabled=model.enabled,
             config=JsonStr(json.dumps(dict(model.config))),
             created_at=model.created_at,
-            updated_at=model.updated_at,
+            changed_at=model.changed_at,
         )
 
     async def get_by_id(self, scheduler_job_id: str) -> SchedulerJobDto | None:

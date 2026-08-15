@@ -11,6 +11,9 @@ from shell.platform.framework.api.principal import (
     get_principal,
     require_user_principal,
 )
+from shell.session_service.framework.session.session.api.change_session_request import (
+    ChangeSessionRequest,
+)
 from shell.session_service.framework.session.session.api.controller import SessionController
 from shell.session_service.framework.session.session.api.create_session_request import (
     CreateSessionRequest,
@@ -20,9 +23,6 @@ from shell.session_service.framework.session.session.api.create_session_response
 )
 from shell.session_service.framework.session.session.api.session_response import (
     SessionResponse,
-)
-from shell.session_service.framework.session.session.api.update_session_request import (
-    UpdateSessionRequest,
 )
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
@@ -70,13 +70,13 @@ async def create_session(
 
 
 @router.put("/{session_id}", status_code=204)
-async def update_session(
+async def change_session(
     session_id: str,
-    body: UpdateSessionRequest,
+    body: ChangeSessionRequest,
     principal: Principal = Depends(get_principal),
     controller: SessionController = Depends(get_session_controller),
 ) -> None:
-    await controller.update_session(session_id, body, principal=principal)
+    await controller.change_session(session_id, body, principal=principal)
 
 
 @router.delete("/{session_id}", status_code=204)

@@ -4,14 +4,14 @@ from fastapi import HTTPException
 
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
+    ChangeSchedulerJobCommand,
+)
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
     CreateSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
     DeleteSchedulerJobCommand,
-)
-from shell.scheduling_service.application.scheduling.scheduler_job.commands.update_scheduler_job_command import (
-    UpdateSchedulerJobCommand,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.queries.get_scheduler_job_by_id_query import (
     GetSchedulerJobByIdQuery,
@@ -58,7 +58,7 @@ class SchedulerJobController:
             batch_size=result.batch_size,
             enabled=result.enabled,
             created_at=result.created_at,
-            updated_at=result.updated_at,
+            changed_at=result.changed_at,
         )
 
     async def list_scheduler_jobs(
@@ -78,7 +78,7 @@ class SchedulerJobController:
                 batch_size=d.batch_size,
                 enabled=d.enabled,
                 created_at=d.created_at,
-                updated_at=d.updated_at,
+                changed_at=d.changed_at,
             )
             for d in dtos
         ]
@@ -96,10 +96,10 @@ class SchedulerJobController:
         )
         return ApiCreateResponse(id=job_id)
 
-    async def update_scheduler_job(self, scheduler_job_id: str) -> None:
+    async def change_scheduler_job(self, scheduler_job_id: str) -> None:
         try:
             await self._command_bus.dispatch(
-                UpdateSchedulerJobCommand(scheduler_job_id=scheduler_job_id)
+                ChangeSchedulerJobCommand(scheduler_job_id=scheduler_job_id)
             )
         except HTTPException:
             raise

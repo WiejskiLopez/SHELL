@@ -14,6 +14,7 @@ from shell.definition_service.infrastructure.definition.node_definition.persiste
 from shell.definition_service.infrastructure.definition.node_link_definition.persistence.sql.models import (
     NodeLinkDefinitionModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
@@ -78,7 +79,7 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
             model = self._entity_to_model(node_definition)
             self._session.add(model)
         else:
-            self._update_model(model, node_definition)
+            self._change_model(model, node_definition)
 
     async def delete(self, id: NodeDefinitionId, now: datetime | None = None) -> None:
         if now is None:
@@ -97,6 +98,7 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
     ) -> NodeDefinition:
         return NodeDefinition(
             id=NodeDefinitionId(model.id),
+            created_at=CreatedAt.now(),
             node_type=NodeType(model.node_type),
             max_step=MaxStep(model.max_step) if model.max_step is not None else None,
         )
@@ -108,6 +110,6 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
             max_step=entity.max_step.value if entity.max_step is not None else None,
         )
 
-    def _update_model(self, model: NodeDefinitionModel, entity: NodeDefinition) -> None:
+    def _change_model(self, model: NodeDefinitionModel, entity: NodeDefinition) -> None:
         model.node_type = entity.node_type.value
         model.max_step = entity.max_step.value if entity.max_step is not None else None
