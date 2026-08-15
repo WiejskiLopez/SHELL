@@ -31,8 +31,12 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 def get_project_controller(
     container: ContainerProtocol = Depends(get_core_container),
 ) -> ProjectController:
-    command_bus: CommandBus = container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
-    query_bus: QueryBus = container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    command_bus: CommandBus = (
+        container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
+    )
+    query_bus: QueryBus = (
+        container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    )
     return ProjectController(command_bus, query_bus)
 
 

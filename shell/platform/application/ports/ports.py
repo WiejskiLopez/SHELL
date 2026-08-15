@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from shell.platform.application.ports.delivery_transport import (
+    DeliveryEnvelope,
+    DeliveryTransport,
+)
 from shell.platform.application.ports.messaging import EventPublisher
 from shell.platform.application.ports.unit_of_work import UnitOfWork
 from shell.platform.domain.ports.identity import IdGenerator
@@ -19,6 +23,8 @@ class Logger(Protocol):
 
 __all__ = [
     "Clock",
+    "DeliveryEnvelope",
+    "DeliveryTransport",
     "EventPublisher",
     "IdGenerator",
     "Logger",

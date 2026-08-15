@@ -1008,25 +1008,23 @@ def _seed_projects(session: Session) -> None:
 
 
 def _seed_platform_events(session: Session) -> None:
-    from shell.platform.infrastructure.persistence.sql.models.audit_event import (
-        AuditEventModel,
+    from shell.ingestion.infrastructure.ingestion.persistence.sql.models.base import (
+        PERSISTENCE_DELIVERY_MODELS,
     )
-    from shell.platform.infrastructure.persistence.sql.models.event.inbox_event import (
-        InboxEventModel,
-    )
-    from shell.platform.infrastructure.persistence.sql.models.event.outbox_event import (
-        OutboxEventModel,
-    )
+
+    _AUDIT_MODEL: Any = PERSISTENCE_DELIVERY_MODELS.audit
+    _INBOX_MODEL: Any = PERSISTENCE_DELIVERY_MODELS.events.inbox
+    _OUTBOX_MODEL: Any = PERSISTENCE_DELIVERY_MODELS.events.outbox
 
     # Audit events
     audit_events = [
-        AuditEventModel(
+        _AUDIT_MODEL(
             id=f"{_DEV_ID_PREFIX}-audit-1",
             event_type="user.login",
             occurred_at=_NOW,
             payload={"user_id": f"{_DEV_ID_PREFIX}-user-alice", "ip": "192.168.1.10"},
         ),
-        AuditEventModel(
+        _AUDIT_MODEL(
             id=f"{_DEV_ID_PREFIX}-audit-2",
             event_type="workflow.created",
             occurred_at=_NOW,
@@ -1035,19 +1033,19 @@ def _seed_platform_events(session: Session) -> None:
                 "session_id": f"{_DEV_ID_PREFIX}-session-alice-1",
             },
         ),
-        AuditEventModel(
+        _AUDIT_MODEL(
             id=f"{_DEV_ID_PREFIX}-audit-3",
             event_type="task.completed",
             occurred_at=_NOW,
             payload={"task_id": f"{_DEV_ID_PREFIX}-task-simple-1", "status": "completed"},
         ),
-        AuditEventModel(
+        _AUDIT_MODEL(
             id=f"{_DEV_ID_PREFIX}-audit-4",
             event_type="scheduler.triggered",
             occurred_at=_NOW,
             payload={"scheduler_id": f"{_DEV_ID_PREFIX}-scheduler-outbox-relay", "action": "relay"},
         ),
-        AuditEventModel(
+        _AUDIT_MODEL(
             id=f"{_DEV_ID_PREFIX}-audit-5",
             event_type="project.archived",
             occurred_at=_NOW,
@@ -1056,14 +1054,14 @@ def _seed_platform_events(session: Session) -> None:
     ]
     for evt in audit_events:
         existing = session.execute(
-            select(AuditEventModel).where(AuditEventModel.id == evt.id)
+            select(_AUDIT_MODEL).where(_AUDIT_MODEL.id == evt.id)
         ).scalar_one_or_none()
         if existing is None:
             session.add(evt)
 
     # Outbox events
     outbox_events = [
-        OutboxEventModel(
+        _OUTBOX_MODEL(
             id=f"{_DEV_ID_PREFIX}-outbox-1",
             event_type="workflow.completed",
             occurred_at=_NOW,
@@ -1072,7 +1070,7 @@ def _seed_platform_events(session: Session) -> None:
             causation_id="cause-outbox-1",
             published_at=None,
         ),
-        OutboxEventModel(
+        _OUTBOX_MODEL(
             id=f"{_DEV_ID_PREFIX}-outbox-2",
             event_type="task.created",
             occurred_at=_NOW,
@@ -1081,7 +1079,7 @@ def _seed_platform_events(session: Session) -> None:
             causation_id="cause-outbox-2",
             published_at=None,
         ),
-        OutboxEventModel(
+        _OUTBOX_MODEL(
             id=f"{_DEV_ID_PREFIX}-outbox-3",
             event_type="workflow.started",
             occurred_at=_NOW,
@@ -1093,14 +1091,14 @@ def _seed_platform_events(session: Session) -> None:
     ]
     for outbox_evt in outbox_events:
         outbox_existing = session.execute(
-            select(OutboxEventModel).where(OutboxEventModel.id == outbox_evt.id)
+            select(_OUTBOX_MODEL).where(_OUTBOX_MODEL.id == outbox_evt.id)
         ).scalar_one_or_none()
         if outbox_existing is None:
             session.add(outbox_evt)
 
     # Inbox events
     inbox_events = [
-        InboxEventModel(
+        _INBOX_MODEL(
             id=f"{_DEV_ID_PREFIX}-inbox-1",
             event_type="workflow.completed",
             occurred_at=_NOW,
@@ -1110,7 +1108,7 @@ def _seed_platform_events(session: Session) -> None:
             received_at=_NOW,
             processed_at=None,
         ),
-        InboxEventModel(
+        _INBOX_MODEL(
             id=f"{_DEV_ID_PREFIX}-inbox-2",
             event_type="task.created",
             occurred_at=_NOW,
@@ -1120,7 +1118,7 @@ def _seed_platform_events(session: Session) -> None:
             received_at=_NOW,
             processed_at=_NOW,
         ),
-        InboxEventModel(
+        _INBOX_MODEL(
             id=f"{_DEV_ID_PREFIX}-inbox-3",
             event_type="scheduler.ready",
             occurred_at=_NOW,
@@ -1133,7 +1131,7 @@ def _seed_platform_events(session: Session) -> None:
     ]
     for inbox_evt in inbox_events:
         inbox_existing = session.execute(
-            select(InboxEventModel).where(InboxEventModel.id == inbox_evt.id)
+            select(_INBOX_MODEL).where(_INBOX_MODEL.id == inbox_evt.id)
         ).scalar_one_or_none()
         if inbox_existing is None:
             session.add(inbox_evt)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from shell.scheduling.infrastructure.scheduling.scheduler_job.persistence.sql.models.scheduler_job import (
     SchedulerJobModel,
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 def scheduler_job_entity_to_model(entity: SchedulerExecution) -> SchedulerJobModel:
-    def _state_to_dict(state: object | None) -> dict | None:
+    def _state_to_dict(state: object | None) -> dict[str, object] | None:
         if state is None:
             return None
         raw: str = (
@@ -23,7 +23,7 @@ def scheduler_job_entity_to_model(entity: SchedulerExecution) -> SchedulerJobMod
             else str(state)
         )
         try:
-            return json.loads(raw)
+            return cast("dict[str, object] | None", json.loads(raw))
         except (json.JSONDecodeError, TypeError):
             return None
 

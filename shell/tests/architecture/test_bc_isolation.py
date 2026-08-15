@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from _arch_helpers import BASE, get_imports, iter_py_files
+
+if TYPE_CHECKING:
+    import pathlib
 
 # Bounded contexts in the project
 # Known violations are listed in _CROSS_BC_KNOWN_VIOLATIONS.
@@ -16,6 +21,7 @@ _ALLOWED_CROSS_BC = frozenset(
         "shell.platform.application",
         # Source-owned integration events — designed to be consumed cross-BC
         "shell.user.application.user.user.integration_events",
+        "shell.user.application.user.auth_session.integration_events",
     }
 )
 
@@ -30,6 +36,7 @@ def _is_cross_bc_import(imp: str, source_bc: str) -> str | None:
             f"shell.application.{bc}",
             f"shell.{bc}.domain.{bc}",
             f"shell.{bc}.application.{bc}",
+            f"shell.{bc}.",
         )
         if imp.startswith(prefixes):
             return bc
@@ -46,26 +53,34 @@ def _is_allowed_cross_bc(imp: str) -> bool:
 _CROSS_BC_KNOWN_VIOLATIONS: list[str] = []
 
 
-def test_no_direct_cross_bc_imports() -> None:
+def _bc_source_path(bc: str) -> pathlib.Path:
+    """Return the source tree owned by a bounded context."""
+    return BASE / bc
+
+
+def _cross_bc_violations() -> list[str]:
     violations: list[str] = []
-    for bc in _BCS:
-        for layer in ["domain", "application"]:
-            bc_path = (
-                BASE / "user" / layer / bc
-                if bc == "user"
-                else BASE / layer / bc
-            )
-            if not bc_path.exists():
-                continue
-            for path in iter_py_files(bc_path):
-                for imp in get_imports(path):
-                    target_bc = _is_cross_bc_import(imp, bc)
-                    if target_bc is not None and not _is_allowed_cross_bc(imp):
-                        key = f"{path.relative_to(BASE).as_posix()}: imports {imp!r} (from BC {target_bc})"
-                        if not any(key.startswith(k) for k in _CROSS_BC_KNOWN_VIOLATIONS):
-                            violations.append(key)
+    for source_bc in _BCS:
+        source_path = _bc_source_path(source_bc)
+        if not source_path.exists():
+            continue
+        for path in iter_py_files(source_path):
+            for imp in get_imports(path):
+                target_bc = _is_cross_bc_import(imp, source_bc)
+                if target_bc is None or _is_allowed_cross_bc(imp):
+                    continue
+                key = f"{path.relative_to(BASE).as_posix()}: imports {imp!r} (from BC {target_bc})"
+                if not any(key.startswith(k) for k in _CROSS_BC_KNOWN_VIOLATIONS):
+                    violations.append(key)
+    return violations
+
+
+def test_no_direct_cross_bc_imports() -> None:
+    """No BC may import implementation code from another BC in any layer."""
+    violations = _cross_bc_violations()
     assert not violations, (
-        "Bounded contexts must not import each other directly (use platform contracts/ports):\n"
+        "Bounded contexts must not import each other directly in domain, application, "
+        "process, infrastructure, framework, or per-BC bootstrap (use HTTP/event contracts):\n"
         + "\n".join(violations)
     )
 
@@ -74,25 +89,10 @@ def test_no_direct_cross_bc_imports() -> None:
 
 
 def test_cross_bc_imports_only_in_infrastructure() -> None:
-    violations: list[str] = []
-    for bc in _BCS:
-        for layer in ["domain", "application"]:
-            bc_path = (
-                BASE / "user" / layer / bc
-                if bc == "user"
-                else BASE / layer / bc
-            )
-            if not bc_path.exists():
-                continue
-            for path in iter_py_files(bc_path):
-                for imp in get_imports(path):
-                    target_bc = _is_cross_bc_import(imp, bc)
-                    if target_bc is not None and not _is_allowed_cross_bc(imp):
-                        key = f"{path.relative_to(BASE).as_posix()}: imports {imp!r} (from BC {target_bc})"
-                        if not any(key.startswith(k) for k in _CROSS_BC_KNOWN_VIOLATIONS):
-                            violations.append(key)
+    """Keep the legacy rule name while checking every BC-owned layer."""
+    violations = _cross_bc_violations()
     assert not violations, (
-        "Cross-BC imports should live in infrastructure adapters, not in domain/application:\n"
+        "Cross-BC dependencies must use public HTTP/event contracts, not implementation imports:\n"
         + "\n".join(violations)
     )
 

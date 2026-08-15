@@ -20,6 +20,7 @@ from shell.execution.framework.execution.task_execution.api.router import (
 )
 from shell.execution.framework.execution.workflow.api.router import router as workflows_router
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 
@@ -47,7 +48,8 @@ def create_execution_app(
         app.include_router(node_execution_router, prefix="/api/v1")
 
     @app.get("/health", tags=["Health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    mount_readiness(app, core_container)
     return app

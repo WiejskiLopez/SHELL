@@ -12,13 +12,13 @@ from shell.execution.application.execution.task_execution.query_handlers.get_tas
 )
 
 if TYPE_CHECKING:
-    from shell.platform.infrastructure.persistence.memory import (
-        InMemoryQueryServices,  # noqa: TC002 -- used in TYPE_CHECKING block only, needed for pytest fixture type annotation
+    from shell.execution.infrastructure.execution.persistence.memory.query_services import (
+        InMemoryExecutionQueryService,  # noqa: TC002 -- used in TYPE_CHECKING block only, needed for pytest fixture type annotation
     )
 
 
 class TestTaskExecutionQueryHandler:
-    async def test_get_task_not_found(self, queries: InMemoryQueryServices) -> None:
+    async def test_get_task_not_found(self, queries: InMemoryExecutionQueryService) -> None:
         dto = await GetTaskExecutionCurrentHandler(queries).handle(  # type: ignore[arg-type]
             GetTaskExecutionCurrentQuery("missing")
         )

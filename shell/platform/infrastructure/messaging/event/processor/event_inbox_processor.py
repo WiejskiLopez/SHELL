@@ -1,130 +1,96 @@
-"""EventInboxProcessor — consumes Inbox events and triggers application logic via EventBus.
-
-Guarantees at-least-once delivery:
-  1. Publish event FIRST (within DB transaction)
-  2. Mark processed_at only on success
-  3. On failure: increment retry_count, apply backoff, eventually DLQ
-"""
+"""EventInboxProcessor — consumes inbox events and triggers application logic via EventBus."""
 
 from __future__ import annotations
 
-import logging
-from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
-from sqlalchemy import and_, or_, select
-
-from shell.platform.infrastructure.context import (
-    causation_id_var,
-    correlation_id_var,
+from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
+    InboxProcessorBase,
 )
-from shell.platform.infrastructure.persistence.sql.models import InboxEventModel
 from shell.platform.infrastructure.serialization.event_deserializer import EventDeserializer
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.application.ports.ports import EventPublisher
-    from shell.platform.domain.events import DomainEvent
+    from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
+        EnvelopeValidationPolicy,
+        EnvelopeValidator,
+    )
+    from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import (
+        InboxStateModel,
+    )
+    from shell.platform.infrastructure.persistence.sql.models.event_delivery import (
+        EventDeliveryModels,
+    )
+    from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 
-logger = logging.getLogger(__name__)
+
+class _EventRow(Protocol):
+    event_type: str
+    occurred_at: object
+    payload: dict[str, object]
 
 
-class EventInboxProcessor:
+class EventInboxProcessor(InboxProcessorBase):
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
         event_bus: EventPublisher,
+        models: EventDeliveryModels,
         batch_size: int = 100,
         max_retries: int = 3,
         retry_backoff_seconds: int = 30,
+        max_retry_backoff_seconds: int = 3600,
+        retry_jitter_seconds: float = 0.0,
+        lease_duration_seconds: int = 60,
         registry: dict[str, type] | None = None,
+        worker_id: str | None = None,
+        max_concurrency: int = 1,
+        envelope_validator: EnvelopeValidator | None = None,
+        envelope_policy: EnvelopeValidationPolicy | None = None,
+        processed_delivery_model: type[object] | None = None,
+        consumer_name: str | None = None,
+        heartbeat_interval_seconds: float = 0.0,
+        max_batch_time_seconds: float = 0.0,
+        upcaster: PayloadUpcaster | None = None,
     ) -> None:
-        self._session_factory = session_factory
+        super().__init__(
+            session_factory,
+            cast("type[InboxStateModel]", models.inbox),
+            batch_size=batch_size,
+            max_retries=max_retries,
+            retry_backoff_seconds=retry_backoff_seconds,
+            max_retry_backoff_seconds=max_retry_backoff_seconds,
+            retry_jitter_seconds=retry_jitter_seconds,
+            lease_duration_seconds=lease_duration_seconds,
+            worker_id=worker_id,
+            max_concurrency=max_concurrency,
+            envelope_validator=envelope_validator,
+            envelope_policy=envelope_policy,
+            processed_delivery_model=processed_delivery_model,
+            consumer_name=consumer_name,
+            heartbeat_interval_seconds=heartbeat_interval_seconds,
+            max_batch_time_seconds=max_batch_time_seconds,
+        )
         self._event_bus = event_bus
-        self._batch_size = batch_size
-        self._max_retries = max_retries
-        self._retry_backoff_seconds = retry_backoff_seconds
-        self._deserializer = EventDeserializer(registry=registry)
+        self._deserializer = EventDeserializer(registry=registry, upcaster=upcaster)
 
-        engine = getattr(session_factory, "bind", None)
-        dialect_name: str = engine.dialect.name if engine is not None else "unknown"
-        self._skip_locked: bool = dialect_name not in ("sqlite",)
+    def _deserialize(self, row: object) -> object | None:
+        event_row = cast("_EventRow", row)
+        return self._deserializer.deserialize(
+            event_row.event_type,
+            event_row.occurred_at,  # type: ignore[arg-type]
+            event_row.payload,
+            schema_version=getattr(row, "schema_version", 1),
+        )
 
-    async def run_once(self) -> int:
-        async with self._session_factory() as session:
-            backoff_cutoff = datetime.now(tz=UTC) - timedelta(seconds=self._retry_backoff_seconds)
+    async def _dispatch(self, domain_object: object) -> None:
+        await self._event_bus.publish([domain_object])
 
-            stmt = (
-                select(InboxEventModel)
-                .where(
-                    and_(
-                        InboxEventModel.retry_count < self._max_retries,
-                        InboxEventModel.processed_at.is_(None),
-                        or_(
-                            InboxEventModel.last_attempted_at.is_(None),
-                            InboxEventModel.last_attempted_at < backoff_cutoff,
-                        ),
-                    )
-                )
-                .order_by(InboxEventModel.received_at)
-                .limit(self._batch_size)
-            )
-            if self._skip_locked:
-                stmt = stmt.with_for_update(skip_locked=True)
+    def _causation_value(self, domain_object: object, row: object) -> str:
+        event_id = getattr(domain_object, "event_id", None)
+        return str(getattr(event_id, "value", event_id))
 
-            rows = (await session.execute(stmt)).scalars().all()
-            if not rows:
-                return 0
-
-            now = datetime.now(tz=UTC)
-            processed_count = 0
-
-            for row in rows:
-                domain_event = self._deserializer.deserialize(
-                    row.event_type, row.occurred_at, row.payload
-                )
-
-                if domain_event is None:
-                    row.retry_count += 1
-                    row.last_attempted_at = now
-                    row.error = f"Deserialization failed for type: {row.event_type}"
-                    if row.retry_count >= self._max_retries:
-                        row.processed_at = now
-                        logger.critical(
-                            "Event %s (%s) exceeded max_retries=%s after deserialization failure — DLQ",
-                            row.id,
-                            row.event_type,
-                            self._max_retries,
-                        )
-                    continue
-
-                domain_event = cast("DomainEvent", domain_event)
-                corr_token = correlation_id_var.set(row.correlation_id)
-                caus_token = causation_id_var.set(domain_event.event_id.value)
-                try:
-                    await self._event_bus.publish([domain_event])
-
-                    row.processed_at = now
-                    row.retry_count = 0
-                    row.last_attempted_at = None
-                    row.error = None
-                    processed_count += 1
-                except Exception as exc:
-                    row.retry_count += 1
-                    row.last_attempted_at = now
-                    row.error = f"{type(exc).__name__}: {exc}"
-                    if row.retry_count >= self._max_retries:
-                        row.processed_at = now
-                        logger.critical(
-                            "Event %s (%s) exceeded max_retries=%s — DLQ",
-                            row.id,
-                            row.event_type,
-                            self._max_retries,
-                        )
-                finally:
-                    correlation_id_var.reset(corr_token)
-                    causation_id_var.reset(caus_token)
-
-            await session.commit()
-            return processed_count
+    def _type_name(self, row: object) -> str:
+        return cast("_EventRow", row).event_type

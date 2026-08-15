@@ -12,7 +12,6 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
-from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
@@ -20,12 +19,21 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.infrastructure.persistence.sql.models.event_delivery import (
+        EventDeliveryModels,
+    )
+
 
 class SqlEventOutboxPublisher:
     """Writes domain events to the ``outbox_event`` table (own session per call)."""
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        models: EventDeliveryModels,
+    ) -> None:
         self._session_factory = session_factory
+        self._outbox_model = models.outbox
 
     async def publish(self, events: Sequence[object]) -> None:
         if not events:
@@ -38,7 +46,7 @@ class SqlEventOutboxPublisher:
                 try:
                     payload = serializer.to_payload(event)
                     session.add(
-                        OutboxEventModel(
+                        self._outbox_model(
                             id=str(uuid.uuid4()),
                             event_type=type(event).__name__,
                             occurred_at=event.occurred_at.value,  # type: ignore[attr-defined]

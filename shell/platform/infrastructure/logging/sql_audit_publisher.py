@@ -6,7 +6,6 @@ import logging
 import uuid
 from typing import TYPE_CHECKING
 
-from shell.platform.infrastructure.persistence.sql.models import AuditEventModel
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
@@ -14,12 +13,21 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.infrastructure.persistence.sql.models.persistence_delivery import (
+        PersistenceDeliveryModels,
+    )
+
 
 class SqlAuditPublisher:
     """EventPublisher adapter that writes one row per domain event to ``audit_event``."""
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        models: PersistenceDeliveryModels,
+    ) -> None:
         self._session_factory = session_factory
+        self._audit_model = models.audit
 
     async def publish(self, events: Sequence[object]) -> None:
         if not events:
@@ -30,7 +38,7 @@ class SqlAuditPublisher:
                 try:
                     payload = serializer.to_payload(event)
                     session.add(
-                        AuditEventModel(
+                        self._audit_model(
                             id=str(uuid.uuid4()),
                             event_type=type(event).__name__,
                             occurred_at=event.occurred_at.value,  # type: ignore[attr-defined]

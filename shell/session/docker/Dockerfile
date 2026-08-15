@@ -5,4 +5,4 @@ COPY shell/ ./shell/
 RUN pip install --no-cache-dir -e . && pip install --no-cache-dir uvicorn[standard] aiosqlite
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8003
-CMD ["python", "-m", "shell.session.framework.session.api", "--host", "0.0.0.0", "--port", "8003", "--db-url", "sqlite+aiosqlite:///shell_dev/session.db"]
+CMD ["python", "-m", "shell.session.bootstrap.session.main", "--host", "0.0.0.0", "--port", "8003", "--db-url", "sqlite+aiosqlite:///shell_dev/session.db"]

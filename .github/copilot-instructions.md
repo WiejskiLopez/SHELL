@@ -31,6 +31,12 @@ domain <- application <- process <- infrastructure <- framework <- <bc>/bootstra
 
 `platform/` jest współdzieloną warstwą bazową. Granice bounded contexts są izolowane; importy między kontekstami przechodzą przez dozwolone kontrakty platformowe lub integracyjne.
 
+## Docelowy wzorzec platformy
+
+Wspólny mechanizm techniczny ma jedną implementację w `shell/platform/`. Wszystkie BC importują i używają tych samych klas platformowych, w szczególności modeli i obsługi `inbox`/`outbox`, serializacji, retry, publisherów, processorów i relayów. Nie kopiuj tych implementacji do poszczególnych BC.
+
+Wspólny kod nie oznacza wspólnej bazy danych. Każdy BC uruchamia platformowe mechanizmy z własnym `DATABASE_URL`, własną sesją i własnymi migracjami. Te same nazwy tabel mogą występować w osobnych bazach poszczególnych BC.
+
 ## Nienaruszalne guardraile
 
 - Nie importuj zależności z warstwy zewnętrznej do wewnętrznej wbrew regułom testów architektury.
@@ -40,6 +46,7 @@ domain <- application <- process <- infrastructure <- framework <- <bc>/bootstra
 - Zmiany w modelach persistence, kontraktach portów, eventach lub wejściach systemu wymagają odpowiednich testów i aktualizacji wszystkich powiązanych adapterów.
 - Nie dodawaj wyjątków, `noqa` ani obejść wyciszających aktywne reguły bez wyraźnego uzasadnienia i zgodności z istniejącymi testami.
 - Nie zakładaj, że aspiracyjne lub niezaimplementowane wzorce ze skillów są częścią bieżącego systemu.
+- Docelowy wzorzec wspólnej platformy opisany powyżej jest kierunkiem architektury; przy implementacji sprawdzaj, które elementy są już podłączone w kodzie i testach.
 
 ## Routing do skillów
 

@@ -83,6 +83,8 @@ class LoginAuthSessionHandler:
                     expires_at=ExpiresAt.from_datetime(now.value + self._session_ttl),
                 )
 
+            # UoW.save() maps the aggregate's domain events to integration events
+            # via the injected mapper and stages only those into the outbox.
             await unit_of_work.save(
                 AuthSessionRepository,
                 auth_session,

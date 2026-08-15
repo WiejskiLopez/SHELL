@@ -29,8 +29,9 @@ Write-Host "Project root: $projectRoot" -ForegroundColor Gray
 # spuriously reported as "not installed" after the first incremental build.
 $env:MYPY_NO_INCREMENTAL = "1"
 
-$bcs = @("platform", "definition", "execution", "messaging", "project", "scheduling", "session", "user")
+$bcs = @("platform", "definition", "execution", "ingestion", "project", "scheduling", "session", "user")
 $testRoot = "shell/tests"
+$python = "$projectRoot\.venv\Scripts\python.exe"
 
 function Run-Command {
     param(
@@ -50,13 +51,13 @@ function Run-Command {
 }
 
 # Check if Postgres is available for integration tests
-$pgTestUrl = $env:PG_TEST_URL
+$pgTestUrl = $env:POSTGRES_TEST_URL
 $hasPostgres = -not [string]::IsNullOrEmpty($pgTestUrl)
 
 if ($hasPostgres) {
-    Write-Host "PostgreSQL detected (PG_TEST_URL set)" -ForegroundColor Green
+    Write-Host "PostgreSQL detected (POSTGRES_TEST_URL set)" -ForegroundColor Green
 } else {
-    Write-Host "PostgreSQL not configured (PG_TEST_URL not set) - integration tests will be skipped" -ForegroundColor Yellow
+    Write-Host "PostgreSQL not configured (POSTGRES_TEST_URL not set) - integration tests will be skipped" -ForegroundColor Yellow
 }
 
 # Unit tests — run per BC for clear reporting
@@ -65,13 +66,13 @@ if (-not $IntegrationOnly) {
         $path = "$testRoot/$bc"
         $tests = Get-ChildItem -LiteralPath "$path/unit" -Filter "test_*.py" -Recurse -ErrorAction SilentlyContinue
         if ($tests) {
-            Run-Command "python -m pytest $path/unit -v" "$bc Unit Tests"
+            Run-Command "$python -m pytest $path/unit -v" "$bc Unit Tests"
         } else {
             Write-Host "Skipping $bc (no unit tests)" -ForegroundColor Gray
         }
     }
     # Architecture tests (shared, not BC-specific)
-    Run-Command "python -m pytest $testRoot/architecture -v" "Architecture Tests"
+    Run-Command "$python -m pytest $testRoot/architecture -v" "Architecture Tests"
 }
 
 # E2E tests
@@ -80,7 +81,7 @@ if (-not $IntegrationOnly -and -not $UnitOnly) {
         $path = "$testRoot/$bc"
         $tests = Get-ChildItem -LiteralPath "$path/e2e" -Filter "test_*.py" -Recurse -ErrorAction SilentlyContinue
         if ($tests) {
-            Run-Command "python -m pytest $path/e2e -v" "$bc E2E Tests"
+            Run-Command "$python -m pytest $path/e2e -v" "$bc E2E Tests"
         } else {
             Write-Host "Skipping $bc (no e2e tests)" -ForegroundColor Gray
         }
@@ -93,7 +94,7 @@ if (-not $UnitOnly -and $hasPostgres) {
         $path = "$testRoot/$bc"
         $tests = Get-ChildItem -LiteralPath "$path/integration" -Filter "test_*.py" -Recurse -ErrorAction SilentlyContinue
         if ($tests) {
-            Run-Command "python -m pytest $path/integration -v" "$bc Integration Tests"
+            Run-Command "$python -m pytest $path/integration -v" "$bc Integration Tests"
         } else {
             Write-Host "Skipping $bc (no integration tests)" -ForegroundColor Gray
         }
@@ -101,18 +102,28 @@ if (-not $UnitOnly -and $hasPostgres) {
 }
 elseif (-not $UnitOnly -and -not $hasPostgres) {
     Write-Host "`n--- Integration Tests ---" -ForegroundColor Yellow
-    Write-Host "Skipped: PG_TEST_URL not set" -ForegroundColor Yellow
+    Write-Host "Skipped: POSTGRES_TEST_URL not set" -ForegroundColor Yellow
+}
+
+# Platform delivery integration (SQLite) + system + contracts — ALWAYS run,
+# regardless of Postgres/Rabbit availability. These are the ref2/ref4 critical
+# scenarios (atomicity, heartbeat, claim, legacy migration, readiness,
+# retention, replay, relay, two-BC flow) and must not silently skip.
+if (-not $UnitOnly) {
+    Run-Command "$python -m pytest shell/tests/platform/integration/sql_sqlite -ra" "Platform Delivery SQLite Integration"
+    Run-Command "$python -m pytest shell/tests/system -ra" "System Tests (two-BC flow)"
+    Run-Command "$python -m pytest shell/tests/contracts -ra" "Contract Tests"
 }
 
 # Lint (ruff) - only if not skipped
 if (-not $SkipLint) {
-    Run-Command "python -m ruff check shell shell/tests" "Lint (ruff)"
-    Run-Command "python -m ruff format --check shell shell/tests" "Format Check (ruff)"
+    Run-Command "$python -m ruff check shell shell/tests" "Lint (ruff)"
+    Run-Command "$python -m ruff format --check shell shell/tests" "Format Check (ruff)"
 }
 
 # Type check (mypy) - only if not skipped
 if (-not $SkipTypeCheck) {
-    Run-Command "python -m mypy --no-incremental shell" "Type Check (mypy)"
+    Run-Command "$python -m mypy --no-incremental shell" "Type Check (mypy)"
 }
 
 if (-not $SkipArchCheck) {
@@ -140,7 +151,7 @@ if (-not $SkipSecurity) {
 # Coverage — run unit tests with coverage
 if (-not $UnitOnly -and -not $IntegrationOnly) {
     $coveragePaths = ($bcs | ForEach-Object { $p = "$testRoot/$_/unit"; if (Test-Path $p) { $p } }) -join " "
-    Run-Command "python -m pytest $coveragePaths --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
+    Run-Command "$python -m pytest $coveragePaths --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
 }
 
 Write-Host "`n=== All requested checks completed ===" -ForegroundColor Green

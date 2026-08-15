@@ -45,7 +45,7 @@ def test_mypy_domain_and_application_zero_errors() -> None:
             sys.executable,
             "-m",
             "mypy",
-                "--disable-error-code=type-abstract",
+            "--disable-error-code=type-abstract",
             *[str(path) for path in layer_paths],
         ],
         capture_output=True,

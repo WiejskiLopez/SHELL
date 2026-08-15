@@ -6,7 +6,6 @@ from fastapi import HTTPException
 
 from shell.definition.framework.definition.graph_definition.api.graph_definition_response import (
     GraphDefinitionResponse,
-    NodeDefinitionResponse,
 )
 
 if TYPE_CHECKING:
@@ -22,14 +21,7 @@ if TYPE_CHECKING:
 def _to_response(dto: GraphDefinitionDto) -> GraphDefinitionResponse:
     return GraphDefinitionResponse(
         id=dto.id,
-        node_definitions=[
-            NodeDefinitionResponse(
-                id=nd.id,
-                node_type=nd.node_type,
-                max_step=nd.max_step,
-            )
-            for nd in dto.node_definitions
-        ],
+        created_at=dto.created_at,
     )
 
 

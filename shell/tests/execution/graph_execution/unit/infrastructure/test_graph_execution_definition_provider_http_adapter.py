@@ -8,10 +8,13 @@ import pytest
 from shell.execution.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
     GraphDefinitionSemanticQuery,
 )
-from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_execution_definition import (
-    GraphExecutionDefinition,
+from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
 )
-from shell.execution.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
+from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_definition_reference import (
+    GraphDefinitionReference,
+)
+from shell.execution.infrastructure.execution.graph_execution.http.providers.graph_execution_definition.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
 
@@ -42,25 +45,14 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
     ) -> None:
         response_data = {
             "id": "def-123",
-            "node_definitions": [
-                {
-                    "mode": "agent",
-                    "role": "planner",
-                    "node_type": "agent",
-                    "max_step": 20,
-                }
-            ],
+            "created_at": "2026-08-13T12:00:00+00:00",
         }
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
         result = await adapter.get_graph_definition("def-123")
-        assert isinstance(result, GraphExecutionDefinition)
-        assert result.id == "def-123"
-        assert len(result.node_execution_definitions) == 1
-        node = result.node_execution_definitions[0]
-        assert node.mode == "agent"
-        assert node.max_step == 20
+        assert isinstance(result, GraphDefinitionReference)
+        assert result.graph_definition_id == GraphDefinitionIdRef("def-123")
 
     async def test_get_definition_by_semantic(
         self,
@@ -70,14 +62,14 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         query = GraphDefinitionSemanticQuery(text="find me", purpose="planning")
         response_data: dict[str, Any] = {
             "id": "def-456",
-            "node_definitions": [],
+            "created_at": "2026-08-13T12:00:00+00:00",
         }
         mock_client.post = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
         result = await adapter.get_graph_definition_by_semantic(query)
-        assert isinstance(result, GraphExecutionDefinition)
-        assert result.id == "def-456"
+        assert isinstance(result, GraphDefinitionReference)
+        assert result.graph_definition_id == GraphDefinitionIdRef("def-456")
         mock_client.post.assert_awaited_once_with(
             "/api/v1/graph-definitions/by-semantic",
             json=query.to_payload(),

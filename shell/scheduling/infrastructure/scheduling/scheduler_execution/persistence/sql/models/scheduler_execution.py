@@ -25,7 +25,7 @@ class SchedulerExecutionModel(SchedulingSqlAlchemyModelBase, VersionedMixin):
     interval_seconds: Mapped[float] = mapped_column(nullable=False, default=1.0)
     batch_size: Mapped[int] = mapped_column(nullable=False, default=50)
     enabled: Mapped[bool] = mapped_column(nullable=False, default=True)
-    config: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    config: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
 

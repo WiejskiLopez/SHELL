@@ -29,7 +29,7 @@ def create_edge_link_execution_app(container: ContainerProtocol) -> FastAPI:
     app.include_router(router)
 
     @app.get("/health", tags=["Health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     return app

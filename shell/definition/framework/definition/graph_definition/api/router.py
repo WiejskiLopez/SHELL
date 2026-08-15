@@ -29,7 +29,7 @@ def get_graph_definition_controller(
     query_service = (
         container.infra.graph_definition_query_service_factory()
         if hasattr(container, "app")
-        else container.graph_definition_query_service()
+        else getattr(container, "graph_definition_query_service")()  # noqa: B009 -- atrybut spoza ContainerProtocol, direct access daje mypy attr-defined
     )
     return GraphDefinitionController(query_service)
 

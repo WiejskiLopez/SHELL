@@ -43,8 +43,10 @@ def _get_imports(path: pathlib.Path) -> list[str]:
 
 
 def _iter_platform_core_files() -> Iterator[pathlib.Path]:
-    yield from _iter_python_files("platform/domain")
-    yield BASE / "platform" / "infrastructure" / "serialization" / "type_registry.py"
+    platform_path = BASE / "platform"
+    if not platform_path.exists():
+        return
+    yield from platform_path.rglob("*.py")
 
 
 _KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset({})
@@ -166,17 +168,6 @@ def test_infrastructure_does_not_import_framework() -> None:
 
 def test_platform_core_does_not_import_bounded_contexts() -> None:
     violations: list[str] = []
-    platform_roots = [
-        BASE / "platform" / "domain",
-        BASE / "platform" / "application",
-        BASE / "platform" / "framework",
-        BASE / "platform" / "types",
-        BASE / "platform" / "infrastructure" / "configuration",
-        BASE / "platform" / "infrastructure" / "context",
-        BASE / "platform" / "infrastructure" / "identity",
-        BASE / "platform" / "infrastructure" / "logging",
-        BASE / "platform" / "infrastructure" / "time",
-    ]
     forbidden_prefixes = (
         "shell.definition",
         "shell.execution",
@@ -184,14 +175,13 @@ def test_platform_core_does_not_import_bounded_contexts() -> None:
         "shell.user",
         "shell.project",
         "shell.scheduling",
-        "shell.messaging",
+        "shell.ingestion",
     )
 
-    for root in platform_roots:
-        for path in root.rglob("*.py"):
-            for imp in _get_imports(path):
-                if imp.startswith(forbidden_prefixes):
-                    violations.append(f"{path.relative_to(BASE)}: imports {imp!r}")
+    for path in _iter_platform_core_files():
+        for imp in _get_imports(path):
+            if imp.startswith(forbidden_prefixes):
+                violations.append(f"{path.relative_to(BASE)}: imports {imp!r}")
 
     assert not violations, "Platform core must not depend on bounded contexts:\n" + "\n".join(
         violations
@@ -204,12 +194,14 @@ def test_event_transport_receives_registries_from_composition_root() -> None:
 
 
 def test_message_registry_builder_is_platform_owned() -> None:
-    platform_registry = BASE / "platform" / "infrastructure" / "serialization" / "message_registry.py"
+    platform_registry = (
+        BASE / "platform" / "infrastructure" / "serialization" / "message_registry.py"
+    )
     bc_registry = BASE / "messaging" / "bootstrap" / "messaging" / "message_registry.py"
 
     assert platform_registry.exists(), "Message registry builder must remain in platform"
-    assert not bc_registry.exists(), "Message registry must not be duplicated inside Messaging BC"
-    assert "shell.messaging" not in "\n".join(_get_imports(platform_registry))
+    assert not bc_registry.exists(), "Message registry must not be duplicated inside Ingestion BC"
+    assert "shell.ingestion" not in "\n".join(_get_imports(platform_registry))
 
 
 def test_event_registry_builder_is_platform_owned() -> None:
@@ -254,7 +246,7 @@ def test_platform_does_not_import_bounded_contexts() -> None:
         "shell.user",
         "shell.project",
         "shell.scheduling",
-        "shell.messaging",
+        "shell.ingestion",
     ]
     for path in _iter_platform_core_files():
         for imp in _get_imports(path):
@@ -262,9 +254,7 @@ def test_platform_does_not_import_bounded_contexts() -> None:
                 key = f"{path.relative_to(BASE)}: imports {imp!r}"
                 if key not in _PLATFORM_KNOWN:
                     violations.append(key)
-    assert not violations, "Platform must not import bounded contexts:\n" + "\n".join(
-        violations
-    )
+    assert not violations, "Platform must not import bounded contexts:\n" + "\n".join(violations)
 
 
 def test_domain_does_not_import_datetime() -> None:

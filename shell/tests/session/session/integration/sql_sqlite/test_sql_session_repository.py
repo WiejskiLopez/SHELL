@@ -13,12 +13,12 @@ from shell.session.infrastructure.session.session.persistence.sql.services.sessi
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from shell.platform.infrastructure.persistence import (
-        SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
-    )
     from shell.platform.infrastructure.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
         FakeClock,
         FakeIdGenerator,
+    )
+    from shell.session.infrastructure.session.session.persistence.sql.unit_of_work import (  # noqa: TC002 — używany w sygnaturach fixture'ów pytest
+        SqlAlchemySessionUnitOfWork,
     )
 
 
@@ -43,7 +43,7 @@ from shell.session.application.session.session.query_handlers.get_session_histor
 class TestSqlSessionRepository:
     async def test_open_close_and_history(
         self,
-        sql_uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemySessionUnitOfWork,
         clock: FakeClock,
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,

@@ -22,6 +22,9 @@ from shell.platform.application.context.causation_id import get_causation_id
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.application.events import IntegrationEvent
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.platform.infrastructure.mapping.integration_mapping_error import (
+    IntegrationMappingError,
+)
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
@@ -90,5 +93,20 @@ class TestReflectiveIntegrationMapper:
             aggregate_name = type("n", (), {"value": ""})()
             schema_version = type("v", (), {"value": 1})()
 
-        with pytest.raises(ValueError, match="Cannot find integration event"):
+        with pytest.raises(IntegrationMappingError, match="Cannot find integration event"):
+            self._mapper.map(FakeEvent())
+
+    def test_unknown_event_type_is_still_a_value_error(self) -> None:
+        """IntegrationMappingError must remain catchable as ValueError."""
+
+        class FakeEvent:
+            __module__ = "shell.domain.fake.aggregates.fake.events.fake_event"
+            __name__ = "FakeEvent"
+            event_id = type("id", (), {"value": "x"})()
+            occurred_at = type("oa", (), {"value": datetime(2025, 1, 1, tzinfo=UTC)})()
+            aggregate_id = type("id", (), {"value": ""})()
+            aggregate_name = type("n", (), {"value": ""})()
+            schema_version = type("v", (), {"value": 1})()
+
+        with pytest.raises(ValueError):
             self._mapper.map(FakeEvent())

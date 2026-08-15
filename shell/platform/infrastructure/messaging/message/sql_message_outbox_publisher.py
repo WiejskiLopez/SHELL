@@ -12,7 +12,6 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
-from shell.platform.infrastructure.persistence.sql.models.message import OutboxMessageModel
 from shell.platform.infrastructure.serialization import DomainMessageSerializer
 
 if TYPE_CHECKING:
@@ -20,12 +19,21 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.infrastructure.persistence.sql.models.message_delivery import (
+        MessageDeliveryModels,
+    )
+
 
 class SqlMessageOutboxPublisher:
     """Writes domain messages to the ``outbox_message`` table (own session per call)."""
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        models: MessageDeliveryModels,
+    ) -> None:
         self._session_factory = session_factory
+        self._outbox_model = models.outbox
 
     async def publish(self, messages: Sequence[object]) -> None:
         if not messages:
@@ -38,7 +46,7 @@ class SqlMessageOutboxPublisher:
                 try:
                     payload = serializer.to_payload(message)
                     session.add(
-                        OutboxMessageModel(
+                        self._outbox_model(
                             id=str(uuid.uuid4()),
                             message_type=type(message).__name__,
                             occurred_at=message.occurred_at.value,  # type: ignore[attr-defined]

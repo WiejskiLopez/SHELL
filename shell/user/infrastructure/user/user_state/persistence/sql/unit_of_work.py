@@ -11,7 +11,7 @@ from shell.user.infrastructure.user.user_state.persistence.sql.repositories.sql_
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 _REPO_MAP: dict[type, type] = {
     UserStateRepository: SqlUserStateRepository,
@@ -19,7 +19,9 @@ _REPO_MAP: dict[type, type] = {
 
 
 class SqlAlchemyUserStateUnitOfWork(SqlAlchemyUnitOfWorkBase):
-    def __init__(self, session_factory: async_sessionmaker, mapper: Any | None = None) -> None:
+    def __init__(
+        self, session_factory: async_sessionmaker[AsyncSession], mapper: Any | None = None
+    ) -> None:
         super().__init__(session_factory, mapper=mapper)
 
     def _build_repo_map(self) -> dict[type, type]:

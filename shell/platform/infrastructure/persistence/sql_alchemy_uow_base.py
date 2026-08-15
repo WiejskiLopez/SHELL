@@ -7,7 +7,7 @@ zwracając słownik {DomainPort -> SqlAdapter} dla własnych agregatów.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -15,8 +15,11 @@ from shell.platform.application.ports.unit_of_work import UnitOfWork
 from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
-from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
-from shell.platform.infrastructure.persistence.sql.models import AuditEventModel, OutboxEventModel
+from shell.platform.infrastructure.context import (
+    get_causation_id,
+    get_correlation_id,
+    get_session_scope,
+)
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
@@ -25,8 +28,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.domain.events import DomainEvent
-
-TRepository = TypeVar("TRepository")
+    from shell.platform.infrastructure.persistence.sql.models.persistence_delivery import (
+        PersistenceDeliveryModels,
+    )
 
 
 class SqlAlchemyUnitOfWorkBase(UnitOfWork):
@@ -39,13 +43,18 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
+        models: PersistenceDeliveryModels | None = None,
         mapper: Any | None = None,
     ) -> None:
+        if models is None:
+            raise ValueError("SqlAlchemyUnitOfWorkBase requires a persistence delivery bundle")
         self._factory = session_factory
         self._mapper = mapper
+        self._models = models
         self._staged_events: list[DomainEvent] = []
         self._staged_messages: list[object] = []
         self._committed = False
+        self._deferred_commit = False
         self._session: AsyncSession | None = None
 
     # ------------------------------------------------------------------
@@ -73,11 +82,11 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     def events(self) -> list[DomainEvent]:
         return list(self._staged_events)
 
-    def repository(self, repo_type: type[TRepository]) -> TRepository:
+    def repository(self, repo_type: type[Any]) -> Any:
         repo_map = self._build_repo_map()
         sql_type = repo_map.get(repo_type)
         if sql_type is not None:
-            return sql_type(self._active_session)  # type: ignore[no-any-return]
+            return sql_type(self._active_session)
         msg = f"Unknown repository type for this BC: {repo_type.__name__}"
         raise ValueError(msg)
 
@@ -98,8 +107,16 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             self.stage_events(domain_events)
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWorkBase:
-        self._session = self._factory()
-        await self._session.__aenter__()
+        scope = get_session_scope()
+        if scope is not None:
+            # Delivery processor owns the transaction: reuse its session and
+            # defer the commit so business change + outbox + inbox ack are one.
+            self._session = scope.session
+            self._deferred_commit = True
+        else:
+            self._session = self._factory()
+            await self._session.__aenter__()
+            self._deferred_commit = False
         self._committed = False
         return self
 
@@ -107,42 +124,24 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         if self._session is not None:
             exc_type = args[0] if args else None
             if exc_type is None and not self._committed:
+                # In deferred mode commit() only writes the outbox rows and
+                # flushes — the real DB commit belongs to the processor.
                 await self.commit()
-            await self._session.__aexit__(*args)
+            if not self._deferred_commit:
+                await self._session.__aexit__(*args)
             self._session = None
 
     async def commit(self) -> None:
         if self._session is None:
             return
         try:
-            serializer = DomainEventSerializer()
-            for event in self._staged_events:
-                raw_occurred_at = (
-                    event.occurred_at.value
-                    if hasattr(event.occurred_at, "value")
-                    else event.occurred_at
-                )
-                event_type = type(event).__name__
-                payload = serializer.to_payload(event)
-                outbox = OutboxEventModel(
-                    id=str(uuid.uuid4()),
-                    event_type=event_type,
-                    occurred_at=raw_occurred_at,
-                    payload=payload,
-                    correlation_id=get_correlation_id(),
-                    causation_id=get_causation_id(),
-                )
-                self._session.add(outbox)
-                self._session.add(
-                    AuditEventModel(
-                        id=str(uuid.uuid4()),
-                        event_type=event_type,
-                        occurred_at=raw_occurred_at,
-                        payload=payload,
-                    )
-                )
-
-            await self._session.commit()
+            await self._write_staged_outbox()
+            if self._deferred_commit:
+                # Materialize the pending changes in the shared transaction;
+                # the actual commit belongs to the processor.
+                await self._session.flush()
+            else:
+                await self._session.commit()
             self._staged_events.clear()
             self._staged_messages.clear()
             self._committed = True
@@ -150,8 +149,42 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             await self._session.rollback()
             raise ConcurrentModificationError("Aggregate", str(exc)) from exc
 
+    async def _write_staged_outbox(self) -> None:
+        if self._session is None:
+            return
+        serializer = DomainEventSerializer()
+        for event in self._staged_events:
+            raw_occurred_at = (
+                event.occurred_at.value
+                if hasattr(event.occurred_at, "value")
+                else event.occurred_at
+            )
+            event_type = type(event).__name__
+            payload = serializer.to_payload(event)
+            outbox = self._models.events.outbox(
+                id=str(uuid.uuid4()),
+                event_type=event_type,
+                occurred_at=raw_occurred_at,
+                payload=payload,
+                correlation_id=get_correlation_id(),
+                causation_id=get_causation_id(),
+            )
+            self._session.add(outbox)
+            self._session.add(
+                self._models.audit(
+                    id=str(uuid.uuid4()),
+                    event_type=event_type,
+                    occurred_at=raw_occurred_at,
+                    payload=payload,
+                )
+            )
+
     async def rollback(self) -> None:
         if self._session is not None:
             await self._session.rollback()
         self._staged_events.clear()
         self._staged_messages.clear()
+        if self._deferred_commit:
+            scope = get_session_scope()
+            if scope is not None:
+                scope.rolled_back = True

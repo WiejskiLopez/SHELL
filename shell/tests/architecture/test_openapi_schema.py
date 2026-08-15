@@ -21,7 +21,7 @@ _APPLICATION_PACKAGES = (
     "shell.session.application",
     "shell.project.application",
     "shell.scheduling.application",
-    "shell.messaging.application",
+    "shell.ingestion.application",
 )
 _DTO_MODULES: list[str] = []
 

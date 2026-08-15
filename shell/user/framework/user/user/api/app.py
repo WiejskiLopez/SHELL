@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.dependencies import ContainerProtocol
+from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.user.framework.user.user.api.router import router
@@ -25,7 +26,8 @@ def create_user_app(container: ContainerProtocol) -> FastAPI:
     app.include_router(router)
 
     @app.get("/health", tags=["Health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    mount_readiness(app, container)
     return app

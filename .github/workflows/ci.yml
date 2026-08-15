@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit-and-lint:
+    name: Unit / Lint / Type
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync
+      - name: Ruff check
+        run: uv run ruff check shell shell/tests
+      - name: Ruff format check
+        run: uv run ruff format --check shell shell/tests
+      - name: Architecture tests
+        run: uv run pytest shell/tests/architecture -v
+      - name: Unit tests
+        run: uv run pytest shell/tests/platform/unit shell/tests/session shell/tests/definition shell/tests/execution shell/tests/scheduling shell/tests/user shell/tests/project shell/tests/ingestion -v
+      - name: Platform delivery SQLite integration + contracts
+        run: uv run pytest shell/tests/platform/integration/sql_sqlite shell/tests/contracts -ra
+
+  production-gate:
+    name: Production Gate (PostgreSQL + RabbitMQ)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: uv sync
+      - name: Start PostgreSQL and RabbitMQ
+        run: docker compose -f shell/docker-compose.test.yml up -d postgres rabbitmq
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 60); do
+            if docker exec $(docker compose -f shell/docker-compose.test.yml ps -q postgres) pg_isready -U shell_test >/dev/null 2>&1 \
+               && docker exec $(docker compose -f shell/docker-compose.test.yml ps -q rabbitmq) rabbitmq-diagnostics -q ping >/dev/null 2>&1; then
+              echo "services ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "services did not become ready" >&2; exit 1
+      - name: PostgreSQL + RabbitMQ integration tests
+        env:
+          POSTGRES_TEST_URL: "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test"
+          RABBIT_TEST_URL: "amqp://shell:shell@localhost:5672"
+        run: |
+          output=$(uv run pytest shell/tests/platform/integration/sql_postgres shell/tests/platform/integration/sql_rabbit -ra 2>&1)
+          status=$?
+          echo "$output"
+          if [ $status -ne 0 ]; then exit $status; fi
+          if echo "$output" | grep -qE "[0-9]+ skipped"; then
+            echo "::error::Production gate must not skip PG/Rabbit tests (services are up)"
+            exit 1
+          fi
+      - name: System tests (two independent databases via broker)
+        env:
+          RABBIT_TEST_URL: "amqp://shell:shell@localhost:5672"
+        run: |
+          output=$(uv run pytest shell/tests/system -ra 2>&1)
+          status=$?
+          echo "$output"
+          if [ $status -ne 0 ]; then exit $status; fi
+          if echo "$output" | grep -qE "[0-9]+ skipped"; then
+            echo "::error::System tests must not be skipped in the production gate"
+            exit 1
+          fi
+      - name: Tear down services
+        if: always()
+        run: docker compose -f shell/docker-compose.test.yml down -v

@@ -7,6 +7,9 @@ description: "Use when defining or testing communication between SHELL bounded c
 
 Cross-BC communication is a public contract, not an import shortcut.
 
+For the distinction between read-only providers and operation/mutation services,
+load `integration-patterns/provider-service-separation/SKILL.md`.
+
 ## HTTP contracts
 
 Define and test request/response payloads, status codes, error shape, timeouts, correlation ID propagation, and compatibility. The consumer owns an outbound port; infrastructure contains the HTTP adapter.

@@ -1,0 +1,1 @@
+database_url: "sqlite+aiosqlite:///database/dev/ingestion.db"

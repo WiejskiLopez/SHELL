@@ -1,6 +1,6 @@
 """APScheduler-based cyclic job runner (future: mozna zastapic asyncio.Task).
 
-Replaces the old MessagingWorker loop.
+Replaces the old IngestionWorker loop.
 Jobs are defined by SchedulerExecution rows in the DB.
 On start, loads all enabled SchedulerExecution rows and registers
 them as APScheduler interval jobs.

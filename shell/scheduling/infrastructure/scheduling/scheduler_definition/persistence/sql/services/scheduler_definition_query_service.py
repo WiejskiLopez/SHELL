@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
 
@@ -35,27 +35,36 @@ class SchedulerDefinitionQueryService:
             model = res.scalar_one_or_none()
             if not model:
                 return None
+            action_config_raw = model.action_config
             action_config = (
                 ActionConfigDto(
-                    graph_definition_id=model.action_config.get("graph_definition_id"),
+                    graph_definition_id=cast(
+                        "str | None", action_config_raw.get("graph_definition_id")
+                    ),
                     input_mapping=(
-                        json.dumps(model.action_config["input_mapping"])
-                        if model.action_config.get("input_mapping")
+                        json.dumps(action_config_raw["input_mapping"])
+                        if action_config_raw.get("input_mapping")
                         else None
                     ),
-                    emit_event_type=model.action_config.get("emit_event_type"),
+                    emit_event_type=cast("str | None", action_config_raw.get("emit_event_type")),
                     emit_event_payload=(
-                        json.dumps(model.action_config["emit_event_payload"])
-                        if model.action_config.get("emit_event_payload")
+                        json.dumps(action_config_raw["emit_event_payload"])
+                        if action_config_raw.get("emit_event_payload")
                         else None
                     ),
                 )
                 if model.action_config
                 else None
             )
+            execution_policy_raw = model.execution_policy or {}
             execution_policy = (
                 ExecutionPolicyDto(
-                    **(model.execution_policy or {}),
+                    max_concurrent=cast("int", execution_policy_raw.get("max_concurrent", 1)),
+                    timeout_seconds=cast("int | None", execution_policy_raw.get("timeout_seconds")),
+                    retry_count=cast("int", execution_policy_raw.get("retry_count", 0)),
+                    retry_delay_seconds=cast(
+                        "int", execution_policy_raw.get("retry_delay_seconds", 0)
+                    ),
                 )
                 if model.execution_policy
                 else None

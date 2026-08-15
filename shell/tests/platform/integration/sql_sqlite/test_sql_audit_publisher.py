@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
 
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -13,7 +16,6 @@ from shell.execution.domain.execution.aggregates.task_execution.value_objects.ta
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
-from shell.platform.infrastructure.persistence.sql.models import AuditEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -26,7 +28,7 @@ class TestSqlAuditPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        pub = SqlAuditPublisher(session_factory)
+        pub = SqlAuditPublisher(session_factory, PERSISTENCE_DELIVERY_MODELS)
         events = cast(
             "list[DomainEvent]",
             [
@@ -43,7 +45,9 @@ class TestSqlAuditPublisher:
         await pub.publish(events)
 
         async with session_factory() as session:
-            rows = (await session.execute(select(AuditEventModel))).scalars().all()
+            rows = (
+                (await session.execute(select(PERSISTENCE_DELIVERY_MODELS.audit))).scalars().all()
+            )
 
         types = {r.event_type for r in rows}
         assert "TaskExecutionCreatedEvent" in types
@@ -53,10 +57,14 @@ class TestSqlAuditPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        pub = SqlAuditPublisher(session_factory)
+        pub = SqlAuditPublisher(session_factory, PERSISTENCE_DELIVERY_MODELS)
         async with session_factory() as session:
-            before = len((await session.execute(select(AuditEventModel))).scalars().all())
+            before = len(
+                (await session.execute(select(PERSISTENCE_DELIVERY_MODELS.audit))).scalars().all()
+            )
         await pub.publish([])
         async with session_factory() as session:
-            after = len((await session.execute(select(AuditEventModel))).scalars().all())
+            after = len(
+                (await session.execute(select(PERSISTENCE_DELIVERY_MODELS.audit))).scalars().all()
+            )
         assert before == after

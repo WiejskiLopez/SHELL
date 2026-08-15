@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
+from shell.platform.framework.api.health import mount_readiness
 from shell.scheduling.framework.scheduling.scheduler_definition.api.router import (
     router as scheduler_definition_router,
 )
@@ -24,5 +25,8 @@ def create_scheduling_app(container: object | None = None) -> FastAPI:
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:
         return {"status": "ok"}
+
+    if container is not None:
+        mount_readiness(app, container)
 
     return app

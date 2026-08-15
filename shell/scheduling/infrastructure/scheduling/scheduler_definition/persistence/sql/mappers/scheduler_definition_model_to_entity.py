@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
@@ -45,19 +45,24 @@ def scheduler_definition_model_to_entity(
         if model.trigger_filter
         else None,
     )
+    action_config_raw = model.action_config
     action_config = ActionConfig(
         action_type=model.action_type,
-        graph_definition_id=model.action_config.get("graph_definition_id"),
-        input_mapping=JsonStr(json.dumps(model.action_config.get("input_mapping")))
-        if model.action_config.get("input_mapping")
+        graph_definition_id=cast("str | None", action_config_raw.get("graph_definition_id")),
+        input_mapping=JsonStr(json.dumps(action_config_raw.get("input_mapping")))
+        if action_config_raw.get("input_mapping")
         else None,
-        emit_event_type=model.action_config.get("emit_event_type"),
-        emit_event_payload=JsonStr(json.dumps(model.action_config.get("emit_event_payload")))
-        if model.action_config.get("emit_event_payload")
+        emit_event_type=cast("str | None", action_config_raw.get("emit_event_type")),
+        emit_event_payload=JsonStr(json.dumps(action_config_raw.get("emit_event_payload")))
+        if action_config_raw.get("emit_event_payload")
         else None,
     )
+    execution_policy_raw = model.execution_policy or {}
     policy = ExecutionPolicy(
-        **(model.execution_policy or {}),
+        max_concurrent=cast("int", execution_policy_raw.get("max_concurrent", 1)),
+        timeout_seconds=cast("int | None", execution_policy_raw.get("timeout_seconds")),
+        retry_count=cast("int", execution_policy_raw.get("retry_count", 0)),
+        retry_delay_seconds=cast("int", execution_policy_raw.get("retry_delay_seconds", 0)),
     )
     return SchedulerDefinition.restore(
         id=SchedulerDefinitionId(model.id),

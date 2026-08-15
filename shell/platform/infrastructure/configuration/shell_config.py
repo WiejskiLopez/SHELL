@@ -47,6 +47,9 @@ class EventsConfig:
     worker_poll_interval: float = 1.0
     worker_backoff_factor: float = 2.0
     worker_max_backoff: float = 30.0
+    worker_heartbeat_interval_seconds: float = 15.0
+    worker_max_batch_time_seconds: float = 45.0
+    broker_url: str = "amqp://shell:shell@localhost:5672"
 
 
 @dataclass
@@ -141,6 +144,15 @@ class ShellConfig:
                     merged.get("events", {}).get("worker_backoff_factor", 2.0)
                 ),
                 worker_max_backoff=float(merged.get("events", {}).get("worker_max_backoff", 30.0)),
+                worker_heartbeat_interval_seconds=float(
+                    merged.get("events", {}).get("worker_heartbeat_interval_seconds", 15.0)
+                ),
+                worker_max_batch_time_seconds=float(
+                    merged.get("events", {}).get("worker_max_batch_time_seconds", 45.0)
+                ),
+                broker_url=merged.get("events", {}).get(
+                    "broker_url", "amqp://shell:shell@localhost:5672"
+                ),
             ),
         )
 

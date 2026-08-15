@@ -17,6 +17,12 @@ A BC may import:
 
 A BC must not directly import another BC's domain, application, infrastructure, framework, or bootstrap implementation. Cross-BC access uses HTTP or versioned event contracts.
 
+Platform technical mechanisms have one implementation in `shell/platform/` and are
+used by every BC through imports. This includes shared inbox/outbox event models,
+publishers, processors, relays, serialization, and retry behavior. Do not duplicate
+these classes in bounded contexts. Shared platform classes run against the consuming
+BC's own database session and migrations; sharing code does not share database data.
+
 ## Required BC surface
 
 Each deployable BC should provide:

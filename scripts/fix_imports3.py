@@ -29,7 +29,7 @@ files = [
     "domain/execution/aggregates/user_execution_state/user_execution_state.py",
     "domain/execution/aggregates/workflow/workflow.py",
     "domain/execution/aggregates/workflow_state/workflow_state.py",
-    "domain/messaging/aggregates/message_router/message_router.py",
+    "domain/messaging/aggregates/ingestion/ingestion.py",
     "domain/project/aggregates/project/project.py",
     "domain/project/aggregates/project_skill/project_skill.py",
     "domain/project/aggregates/project_state/project_state.py",

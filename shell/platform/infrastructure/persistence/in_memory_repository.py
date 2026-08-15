@@ -31,6 +31,10 @@ class InMemoryRepository(Generic[TAggregate, TId]):
         key = id.value if hasattr(id, "value") else str(id)
         return self._store.get(key)
 
+    def all(self) -> list[TAggregate]:
+        """Return a copy of all stored aggregates (including soft-deleted)."""
+        return list(self._store.values())
+
     async def save(self, entity: TAggregate) -> None:
         key = entity.id.value if hasattr(entity.id, "value") else str(entity.id)  # type: ignore[attr-defined]
         self._store[key] = entity

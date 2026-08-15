@@ -12,12 +12,6 @@ from shell.platform.infrastructure.persistence.memory.fake_message_publisher imp
     FakeMessagePublisher,
 )
 from shell.platform.infrastructure.persistence.memory.fake_task_loader import FakeTaskLoader
-from shell.platform.infrastructure.persistence.memory.in_memory_query_services import (
-    InMemoryQueryServices,
-)
-from shell.platform.infrastructure.persistence.memory.in_memory_unit_of_work import (
-    InMemoryUnitOfWork,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +22,4 @@ __all__ = [
     "FakeLogger",
     "FakeMessagePublisher",
     "FakeTaskLoader",
-    "InMemoryQueryServices",
-    "InMemoryUnitOfWork",
 ]

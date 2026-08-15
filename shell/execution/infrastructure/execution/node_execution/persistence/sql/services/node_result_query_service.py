@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
 
@@ -35,11 +35,11 @@ class NodeResultQueryService:
             return NodeExecutionResultDto(
                 id=model.id,
                 node_execution_id=model.node_execution_id,
-                workflow_id=payload.get("workflow_id", ""),
-                status=payload.get("status", ""),
-                stdout=payload.get("stdout", ""),
-                stderr=payload.get("stderr", ""),
-                artifact_uri=payload.get("artifact_uri", ""),
+                workflow_id=cast("str", payload.get("workflow_id", "")),
+                status=cast("str", payload.get("status", "")),
+                stdout=cast("str", payload.get("stdout", "")),
+                stderr=cast("str", payload.get("stderr", "")),
+                artifact_uri=cast("str", payload.get("artifact_uri", "")),
                 created_at=model.created_at,
             )
 
@@ -62,10 +62,10 @@ class NodeResultQueryService:
                 id=model.id,
                 node_execution_id=model.node_execution_id,
                 workflow_id=workflow_id,
-                status=payload.get("status", ""),
-                stdout=payload.get("stdout", ""),
-                stderr=payload.get("stderr", ""),
-                artifact_uri=payload.get("artifact_uri", ""),
+                status=cast("str", payload.get("status", "")),
+                stdout=cast("str", payload.get("stdout", "")),
+                stderr=cast("str", payload.get("stderr", "")),
+                artifact_uri=cast("str", payload.get("artifact_uri", "")),
                 created_at=model.created_at,
             )
 

@@ -8,13 +8,17 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.execution.infrastructure.execution.persistence.memory.query_services import (
+    InMemoryExecutionQueryService,
+)
+from shell.execution.infrastructure.execution.persistence.memory.unit_of_work import (
+    InMemoryExecutionUnitOfWork,
+)
 from shell.execution.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,
-    InMemoryQueryServices,
-    InMemoryUnitOfWork,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.tests.shared.test_db import build_db_url as test_db_url
@@ -46,13 +50,13 @@ def postgres_test_url() -> str:
 
 
 @pytest.fixture()
-def unit_of_work() -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork()
+def unit_of_work() -> InMemoryExecutionUnitOfWork:
+    return InMemoryExecutionUnitOfWork()
 
 
 @pytest.fixture
-def queries(unit_of_work: InMemoryUnitOfWork) -> InMemoryQueryServices:
-    return InMemoryQueryServices(unit_of_work)
+def queries(unit_of_work: InMemoryExecutionUnitOfWork) -> InMemoryExecutionQueryService:
+    return InMemoryExecutionQueryService(unit_of_work)
 
 
 @pytest.fixture()
@@ -77,5 +81,3 @@ async def session_factory(
 @pytest.fixture()
 def events() -> FakeEventPublisher:
     return FakeEventPublisher()
-
-

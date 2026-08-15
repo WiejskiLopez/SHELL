@@ -6,9 +6,6 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.platform.infrastructure.persistence.sql.models.audit_event import (  # noqa: F401 -- register SQLAlchemy model metadata
-    AuditEventModel,
-)
 from shell.user.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
@@ -89,7 +86,9 @@ async def test_user_baseline_creates_required_tables(tmp_path: pathlib.Path) -> 
 
     engine = create_async_engine(db_url)
     async with engine.connect() as connection:
-        tables = await connection.run_sync(lambda sync_connection: set(inspect(sync_connection).get_table_names()))
+        tables = await connection.run_sync(
+            lambda sync_connection: set(inspect(sync_connection).get_table_names())
+        )
     await engine.dispose()
 
     assert tables == {
@@ -100,4 +99,10 @@ async def test_user_baseline_creates_required_tables(tmp_path: pathlib.Path) -> 
         "audit_event",
         "outbox_event",
         "inbox_event",
+        "outbox_message",
+        "inbox_message",
+        "outbox_command",
+        "inbox_command",
+        "processed_delivery",
+        "worker_heartbeat",
     }

@@ -1,13 +1,11 @@
+"""CommandInboxProcessor — consumes inbox commands and dispatches via CommandBus."""
+
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, cast
 
-from sqlalchemy import text
-
-from shell.platform.infrastructure.context import (
-    causation_id_var,
-    correlation_id_var,
+from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
+    InboxProcessorBase,
 )
 from shell.platform.infrastructure.messaging.serialization.command_deserializer import (
     CommandDeserializer,
@@ -17,59 +15,85 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.application.bus.command_bus import CommandBus
+    from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
+        EnvelopeValidationPolicy,
+        EnvelopeValidator,
+    )
+    from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import (
+        InboxStateModel,
+    )
+    from shell.platform.infrastructure.persistence.sql.models.command_delivery import (
+        CommandDeliveryModels,
+    )
+    from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 
 
-class CommandInboxProcessor:
+class _CommandRow(Protocol):
+    command_type: str
+    payload: dict[str, object]
+
+
+class CommandInboxProcessor(InboxProcessorBase):
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
         command_bus: CommandBus,
         batch_size: int = 100,
+        max_retries: int = 3,
+        retry_backoff_seconds: int = 30,
+        max_retry_backoff_seconds: int = 3600,
+        retry_jitter_seconds: float = 0.0,
+        lease_duration_seconds: int = 60,
         registry: dict[str, type[object]] | None = None,
+        worker_id: str | None = None,
+        max_concurrency: int = 1,
+        envelope_validator: EnvelopeValidator | None = None,
+        envelope_policy: EnvelopeValidationPolicy | None = None,
+        processed_delivery_model: type[object] | None = None,
+        consumer_name: str | None = None,
+        heartbeat_interval_seconds: float = 0.0,
+        max_batch_time_seconds: float = 0.0,
+        upcaster: PayloadUpcaster | None = None,
+        *,
+        models: CommandDeliveryModels,
     ) -> None:
-        self._session_factory = session_factory
+        super().__init__(
+            session_factory,
+            cast("type[InboxStateModel]", models.inbox),
+            batch_size=batch_size,
+            max_retries=max_retries,
+            retry_backoff_seconds=retry_backoff_seconds,
+            max_retry_backoff_seconds=max_retry_backoff_seconds,
+            retry_jitter_seconds=retry_jitter_seconds,
+            lease_duration_seconds=lease_duration_seconds,
+            worker_id=worker_id,
+            max_concurrency=max_concurrency,
+            envelope_validator=envelope_validator,
+            envelope_policy=envelope_policy,
+            processed_delivery_model=processed_delivery_model,
+            consumer_name=consumer_name,
+            heartbeat_interval_seconds=heartbeat_interval_seconds,
+            max_batch_time_seconds=max_batch_time_seconds,
+        )
         self._command_bus = command_bus
-        self._batch_size = batch_size
-        self._deserializer = CommandDeserializer(registry=registry)  # type: ignore[arg-type]
+        self._deserializer = CommandDeserializer(
+            registry=registry or {},
+            upcaster=upcaster,
+        )
 
-    async def run_once(self) -> int:
-        async with self._session_factory() as session:
-            rows = (
-                await session.execute(
-                    text("""
-                        SELECT id, command_type, occurred_at, payload, correlation_id, causation_id
-                        FROM inbox_command
-                        WHERE processed_at IS NULL
-                        LIMIT :limit
-                        FOR UPDATE SKIP LOCKED
-                    """),
-                    {"limit": self._batch_size},
-                )
-            ).all()
+    def _deserialize(self, row: object) -> object | None:
+        command_row = cast("_CommandRow", row)
+        return self._deserializer.deserialize(
+            command_row.command_type,
+            command_row.payload,
+            schema_version=getattr(row, "schema_version", 1),
+        )
 
-            if not rows:
-                return 0
+    async def _dispatch(self, domain_object: object) -> None:
+        await self._command_bus.dispatch(domain_object)
 
-            now = datetime.now(UTC)
-            ids = []
-            for row in rows:
-                command = self._deserializer.deserialize(
-                    command_type=row.command_type,
-                    payload=row.payload,
-                )
-                if command is not None:
-                    corr_token = correlation_id_var.set(row.correlation_id)
-                    caus_token = causation_id_var.set(row.causation_id)
-                    try:
-                        await self._command_bus.dispatch(command)
-                    finally:
-                        correlation_id_var.reset(corr_token)
-                        causation_id_var.reset(caus_token)
-                ids.append(row.id)
+    def _causation_value(self, domain_object: object, row: object) -> str:
+        return str(getattr(row, "causation_id", ""))
 
-            await session.execute(
-                text("UPDATE inbox_command SET processed_at = :now WHERE id = ANY(:ids)"),
-                {"now": now, "ids": ids},
-            )
-            await session.commit()
-            return len(rows)
+    def _type_name(self, row: object) -> str:
+        return cast("_CommandRow", row).command_type

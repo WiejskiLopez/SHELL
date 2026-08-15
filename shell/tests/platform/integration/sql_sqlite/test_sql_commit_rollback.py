@@ -17,6 +17,9 @@ from shell.definition.domain.definition.aggregates.runner_config.runner_config i
 from shell.definition.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.definition.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService as SqlRunnerConfigQueryService,
 )
@@ -38,10 +41,13 @@ class TestSqlCommitRollback:
         clock: FakeClock,
         id_generator: FakeIdGenerator,
     ) -> None:
-        sql_uow = SqlAlchemyRunnerConfigUnitOfWork(session_factory)
+        sql_uow = SqlAlchemyRunnerConfigUnitOfWork(
+            session_factory,
+            models=PERSISTENCE_DELIVERY_MODELS,
+        )
         try:
             async with sql_uow as u:
-                await u.repository(RunnerConfigRepository).save(  # type: ignore[type-abstract]
+                await u.repository(RunnerConfigRepository).save(
                     RunnerConfig.create(
                         id_=id_generator.new_id(RunnerConfigId),
                         now=CreatedAt.from_datetime(clock.now()),

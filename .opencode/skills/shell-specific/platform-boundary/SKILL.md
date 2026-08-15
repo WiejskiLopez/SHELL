@@ -17,7 +17,7 @@ description: "Use when adding or reviewing code in shell/platform or deciding wh
 
 ## Forbidden
 
-- imports from `shell.definition`, `shell.execution`, `shell.session`, `shell.user`, `shell.project`, `shell.scheduling`, or `shell.messaging`;
+- imports from `shell.definition`, `shell.execution`, `shell.session`, `shell.user`, `shell.project`, `shell.scheduling`, or `shell.ingestion`;
 - BC aggregates, DTOs, repositories, routers, migrations, or event lists;
 - a generic helper that silently depends on one BC implementation;
 - a platform test importing a BC merely to construct sample data.

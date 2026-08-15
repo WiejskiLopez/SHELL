@@ -19,3 +19,24 @@ async def test_session_standalone_create_and_list(tmp_path) -> None:
         list_response = await client.get("/api/v1/sessions")
         assert list_response.status_code == 200
         assert list_response.json()["total"] == 1
+
+
+async def test_session_health_reports_backlog(tmp_path) -> None:
+    app = await make_session_app(tmp_path)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/health")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert "backlog" in body
+        assert body["backlog"]["total"] >= 0
+
+
+async def test_session_readiness_requires_worker_on_empty_inbox(tmp_path) -> None:
+    app = await make_session_app(tmp_path)
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.get("/readiness")
+        assert response.status_code == 503
+        body = response.json()
+        assert body["status"] == "not_ready"
+        assert body["checks"]["database"] is True

@@ -46,7 +46,7 @@ To oznacza również, że **nie ma listy "dozwolonych skrótów"** — lista wyj
 | `wf_id` | Nie wiadomo czy `workflow_id` czy `workflow_instance_id` |
 | `env_id` | Czy `envelope_id` czy `environment_id`? |
 | `parent_id` | Czy `parent_graph_execution_id` czy `parent_workflow_id`? |
-| `msg_id` | `message_id` to pełna nazwa |
+| `msg_id` | `ingestion_id` to pełna nazwa |
 | `gd` | `graph_definition` to pełna nazwa |
 | `nd` / `node_dto` | `node_definition` — sufiks `dto` mylący gdy to nie DTO |
 | `dto` | Zawsze opisz co za DTO: `graph_definition_dto` |

@@ -20,6 +20,6 @@ class SessionExecutionStateModel(ExecutionSqlAlchemyModelBase):
         nullable=False,
     )
     direction: Mapped[str] = mapped_column(nullable=False)
-    state_data: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    state_data: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

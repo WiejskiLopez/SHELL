@@ -7,6 +7,9 @@ from argparse import (
 from typing import TYPE_CHECKING
 
 from shell.execution.bootstrap.execution.cli.command.command import RunnableCommand
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    EVENT_DELIVERY_MODELS,
+)
 from shell.execution.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
@@ -29,6 +32,6 @@ class RelayCommand(RunnableCommand):
         relay_logger = StdlibLogger("shell.relay")
         downstream = LoggingEventPublisher(relay_logger)
 
-        relay = EventOutboxToInboxRelay(sf, downstream)
+        relay = EventOutboxToInboxRelay(sf, EVENT_DELIVERY_MODELS, downstream)
         count = await relay.run_once()
         logger.info("processed %s outbox event(s)", count)

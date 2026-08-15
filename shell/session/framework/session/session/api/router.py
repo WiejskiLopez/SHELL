@@ -41,21 +41,17 @@ def get_session_controller(
         _query_service: SessionQueryService = (
             container.infra.session_query_service
             if hasattr(container, "app")
-            else container.session_query_service()
+            else getattr(container, "session_query_service")()  # noqa: B009 -- atrybut spoza ContainerProtocol, direct access daje mypy attr-defined
         )
     except Exception:
         raise HTTPException(
             status_code=501, detail="Session query service not implemented"
         ) from None
     command_bus: CommandBus = (
-        container.app.buses.command_bus
-        if hasattr(container, "app")
-        else container.command_bus()
+        container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
     )
     query_bus: QueryBus = (
-        container.app.buses.query_bus
-        if hasattr(container, "app")
-        else container.query_bus()
+        container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
     )
     return SessionController(command_bus, _query_service, query_bus)
 

@@ -94,5 +94,3 @@ def test_handler_does_not_stage_events_manually() -> None:
         "Use unit_of_work.save(Repo, aggregate) which pulls, maps and stages automatically:\n"
         + "\n".join(violations)
     )
-
-

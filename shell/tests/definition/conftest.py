@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.definition.migrations.baseline import run_definition_baseline
-from shell.platform.infrastructure.persistence.memory import (
-    FakeEventPublisher,
-    InMemoryUnitOfWork,
+from shell.definition.infrastructure.definition.persistence.memory.unit_of_work import (
+    InMemoryDefinitionUnitOfWork,
 )
+from shell.definition.migrations.baseline import run_definition_baseline
+from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.tests.shared.test_db import build_db_url as test_db_url
 
@@ -42,8 +42,8 @@ def postgres_test_url() -> str:
 
 
 @pytest.fixture()
-def unit_of_work() -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork()
+def unit_of_work() -> InMemoryDefinitionUnitOfWork:
+    return InMemoryDefinitionUnitOfWork()
 
 
 @pytest.fixture(scope="module")
@@ -58,5 +58,3 @@ async def session_factory(
 @pytest.fixture()
 def events() -> FakeEventPublisher:
     return FakeEventPublisher()
-
-

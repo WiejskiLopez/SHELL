@@ -12,10 +12,17 @@ from shell.platform.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,
-    InMemoryQueryServices,
-    InMemoryUnitOfWork,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.session.infrastructure.session.persistence.memory.query_services import (
+    InMemorySessionQueryService,
+)
+from shell.session.infrastructure.session.persistence.memory.unit_of_work import (
+    InMemorySessionUnitOfWork,
+)
+from shell.session.infrastructure.session.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.session.infrastructure.session.session.persistence.sql.unit_of_work import (
     SqlAlchemySessionUnitOfWork,
 )
@@ -49,13 +56,13 @@ def postgres_test_url() -> str:
 
 
 @pytest.fixture()
-def unit_of_work() -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork()
+def unit_of_work() -> InMemorySessionUnitOfWork:
+    return InMemorySessionUnitOfWork()
 
 
 @pytest.fixture
-def queries(unit_of_work: InMemoryUnitOfWork) -> InMemoryQueryServices:
-    return InMemoryQueryServices(unit_of_work)
+def queries(unit_of_work: InMemorySessionUnitOfWork) -> InMemorySessionQueryService:
+    return InMemorySessionQueryService(unit_of_work)
 
 
 @pytest.fixture()
@@ -87,4 +94,4 @@ def sql_uow(
     session_factory: async_sessionmaker,
     events: FakeEventPublisher,
 ) -> SqlAlchemySessionUnitOfWork:
-    return SqlAlchemySessionUnitOfWork(session_factory)
+    return SqlAlchemySessionUnitOfWork(session_factory, models=PERSISTENCE_DELIVERY_MODELS)

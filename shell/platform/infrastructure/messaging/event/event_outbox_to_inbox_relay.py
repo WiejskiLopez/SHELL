@@ -1,7 +1,7 @@
 """EventOutboxToInboxRelay — reads pending outbox_event rows and re-publishes to an EventPublisher.
 
 Intended as a one-shot or periodic background task:
-    relay = EventOutboxToInboxRelay(session_factory, downstream_publisher)
+    relay = EventOutboxToInboxRelay(session_factory, event_delivery_models, downstream_publisher)
     await relay.run_once()   # processes all pending rows in one pass
 
 Concurrency safety: uses SELECT FOR UPDATE SKIP LOCKED on dialects that support
@@ -12,33 +12,66 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, cast
 
 import sqlalchemy as sa
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from shell.platform.infrastructure.persistence.sql.models import InboxEventModel, OutboxEventModel
-
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+    from sqlalchemy.orm import Mapped
 
     from shell.platform.application.ports.ports import EventPublisher
+    from shell.platform.infrastructure.persistence.sql.models.event_delivery import (
+        EventDeliveryModels,
+    )
 
 logger = logging.getLogger(__name__)
+
+
+class EventOutboxModel(Protocol):
+    """Outbox_event columns used for the pending-row SELECT (class-level access)."""
+
+    id: Mapped[str]
+    event_type: Mapped[str]
+    occurred_at: Mapped[datetime]
+    payload: Mapped[dict[str, object]]
+    correlation_id: Mapped[str]
+    causation_id: Mapped[str]
+    published_at: Mapped[datetime | None]
+
+
+class EventOutboxRow(Protocol):
+    """Runtime instance shape of a pending outbox_event row."""
+
+    id: str
+    event_type: str
+    occurred_at: datetime
+    payload: dict[str, object]
+    correlation_id: str
+    causation_id: str
+    published_at: datetime | None
 
 
 class EventOutboxToInboxRelay:
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
+        models: EventDeliveryModels,
         downstream: EventPublisher | None = None,
         batch_size: int = 100,
+        target_session_factory: async_sessionmaker[AsyncSession] | None = None,
+        target_models: EventDeliveryModels | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._downstream = downstream
+        self._inbox_model = models.inbox
+        self._outbox_model = cast("type[EventOutboxModel]", models.outbox)
+        self._target_session_factory = target_session_factory or session_factory
+        self._target_inbox_model = target_models.inbox if target_models else models.inbox
         self._batch_size = batch_size
 
         engine = getattr(session_factory, "bind", None)
@@ -49,9 +82,9 @@ class EventOutboxToInboxRelay:
     async def run_once(self) -> int:
         async with self._session_factory() as session:
             stmt = (
-                select(OutboxEventModel)
-                .where(OutboxEventModel.published_at.is_(None))
-                .order_by(OutboxEventModel.occurred_at)
+                select(self._outbox_model)
+                .where(self._outbox_model.published_at.is_(None))
+                .order_by(self._outbox_model.occurred_at)
                 .limit(self._batch_size)
             )
             if self._skip_locked:
@@ -63,10 +96,12 @@ class EventOutboxToInboxRelay:
 
             now = datetime.now(tz=UTC)
 
-            if self._is_postgres:
-                await self._batch_insert_postgres(session, rows, now)
-            else:
-                await self._batch_insert_sqlite(session, rows, now)
+            async with self._target_session_factory() as target_session:
+                if self._is_postgres:
+                    await self._batch_insert_postgres(target_session, rows, now)
+                else:
+                    await self._batch_insert_sqlite(target_session, rows, now)
+                await target_session.commit()
 
             await session.commit()
             return len(rows)
@@ -74,9 +109,10 @@ class EventOutboxToInboxRelay:
     async def _batch_insert_postgres(
         self,
         session: AsyncSession,
-        rows: Sequence[OutboxEventModel],
+        rows: Sequence[object],
         now: datetime,
     ) -> None:
+        typed_rows = cast("Sequence[EventOutboxRow]", rows)
         values = [
             {
                 "id": row.id,
@@ -88,21 +124,22 @@ class EventOutboxToInboxRelay:
                 "received_at": now,
                 "processed_at": None,
             }
-            for row in rows
+            for row in typed_rows
         ]
-        insert_stmt = pg_insert(InboxEventModel).values(values)
+        insert_stmt = pg_insert(self._target_inbox_model).values(values)
         upsert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=["id"])
         await session.execute(upsert_stmt)
 
-        for row in rows:
+        for row in typed_rows:
             row.published_at = now
 
     async def _batch_insert_sqlite(
         self,
         session: AsyncSession,
-        rows: Sequence[OutboxEventModel],
+        rows: Sequence[object],
         now: datetime,
     ) -> None:
+        typed_rows = cast("Sequence[EventOutboxRow]", rows)
         values = [
             {
                 "id": row.id,
@@ -114,11 +151,11 @@ class EventOutboxToInboxRelay:
                 "received_at": now,
                 "processed_at": None,
             }
-            for row in rows
+            for row in typed_rows
         ]
-        stmt = sa.insert(InboxEventModel).values(values)
+        stmt = sa.insert(self._target_inbox_model).values(values)
         stmt = stmt.prefix_with("OR IGNORE")
         await session.execute(stmt)
 
-        for row in rows:
+        for row in typed_rows:
             row.published_at = now

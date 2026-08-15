@@ -17,6 +17,6 @@ class RunnerConfigModel(DefinitionSqlAlchemyModelBase):
     package_name: Mapped[str] = mapped_column(String(255), nullable=False)
     kind: Mapped[str] = mapped_column(String(64), nullable=False)
     hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    body: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    body: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     version: Mapped[int] = mapped_column(nullable=False, default=1)

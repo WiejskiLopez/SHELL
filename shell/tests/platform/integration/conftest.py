@@ -7,13 +7,16 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    EVENT_DELIVERY_MODELS,
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.definition.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
     SqlAlchemyRunnerConfigUnitOfWork,
 )
 from shell.definition.migrations.baseline import run_definition_baseline
 from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.platform.infrastructure.persistence.sql.models import Base
 from shell.tests.shared.test_db import build_db_url as test_db_url
 
 if TYPE_CHECKING:
@@ -64,7 +67,7 @@ async def session_factory(
 
     engine = create_async_engine(url)
     async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
+        await connection.run_sync(EVENT_DELIVERY_MODELS.outbox.metadata.create_all)
     await engine.dispose()
     return build_session_factory(url)
 
@@ -79,4 +82,21 @@ def sql_uow(
     session_factory: async_sessionmaker,
     events: FakeEventPublisher,
 ) -> SqlAlchemyRunnerConfigUnitOfWork:
-    return SqlAlchemyRunnerConfigUnitOfWork(session_factory)
+    return SqlAlchemyRunnerConfigUnitOfWork(session_factory, models=PERSISTENCE_DELIVERY_MODELS)
+
+
+@pytest.fixture(scope="function")
+async def pg_session_factory() -> async_sessionmaker:
+    """PostgreSQL-backed session factory (requires POSTGRES_TEST_URL).
+
+    Function-scoped so each test owns its event loop (avoids Windows proactor
+    "attached to a different loop" issues across function-scoped pytest-asyncio
+    loops).
+    """
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    engine = create_async_engine(POSTGRES_URL)
+    async with engine.begin() as connection:
+        await connection.run_sync(EVENT_DELIVERY_MODELS.outbox.metadata.create_all)
+    await engine.dispose()
+    return build_session_factory(POSTGRES_URL)

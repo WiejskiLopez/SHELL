@@ -8,17 +8,8 @@ from sqlalchemy import select
 from shell.definition.application.definition.graph_definition.dto.graph_definition import (
     GraphDefinitionDto,
 )
-from shell.definition.application.definition.node_definition.dto.node_definition import (
-    NodeDefinitionDto,
-)
 from shell.definition.infrastructure.definition.graph_definition.persistence.sql.models import (
     GraphDefinitionModel,
-)
-from shell.definition.infrastructure.definition.node_definition.persistence.sql.models import (
-    NodeDefinitionModel,
-)
-from shell.definition.infrastructure.definition.node_link_definition.persistence.sql.models import (
-    NodeLinkDefinitionModel,
 )
 
 if TYPE_CHECKING:
@@ -59,25 +50,4 @@ class SqlGraphDefinitionQueryService:
     async def _to_dto(
         self, session: AsyncSession, model: GraphDefinitionModel
     ) -> GraphDefinitionDto:
-        link_stmt = (
-            select(NodeDefinitionModel)
-            .join(
-                NodeLinkDefinitionModel,
-                NodeLinkDefinitionModel.node_definition_id == NodeDefinitionModel.id,
-            )
-            .where(NodeLinkDefinitionModel.graph_definition_id == model.id)
-        )
-        node_models = (await session.execute(link_stmt)).scalars().all()
-
-        return GraphDefinitionDto(
-            id=model.id,
-            created_at=model.created_at,
-            node_definitions=[
-                NodeDefinitionDto(
-                    id=node.id,
-                    node_type=node.node_type,
-                    max_step=node.max_step,
-                )
-                for node in node_models
-            ],
-        )
+        return GraphDefinitionDto(id=model.id, created_at=model.created_at)

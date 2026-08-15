@@ -12,4 +12,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8002
 
-CMD ["python", "-m", "shell.definition.framework.definition.api", "--host", "0.0.0.0", "--port", "8002", "--db-url", "sqlite+aiosqlite:///shell_dev/definition.db"]
+CMD ["python", "-m", "shell.definition.bootstrap.definition.main", "--host", "0.0.0.0", "--port", "8002", "--db-url", "sqlite+aiosqlite:///shell_dev/definition.db"]

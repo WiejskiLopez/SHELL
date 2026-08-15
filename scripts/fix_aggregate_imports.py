@@ -32,7 +32,7 @@ event_renames = {
     "schedulerjob": "scheduler_job",
     "projectskill": "project_skill",
     "projectstate": "project_state",
-    "messagerouter": "message_router",
+    "messagerouter": "ingestion",
     "workflowstate": "workflow_state",
     "nodeexecutionstate": "node_execution_state",
     "sessionexecutionstate": "session_execution_state",

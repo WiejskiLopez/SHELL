@@ -7,10 +7,26 @@ _BC_CONTAINER_ROOTS = {
     "execution": BASE / "execution" / "bootstrap" / "execution" / "container",
     "project": BASE / "project" / "bootstrap" / "project" / "container",
     "scheduling": BASE / "scheduling" / "bootstrap" / "scheduling" / "container",
-    "messaging": BASE / "messaging" / "bootstrap" / "messaging" / "container",
+    "ingestion": BASE / "ingestion" / "bootstrap" / "ingestion" / "container",
     "session": BASE / "session" / "bootstrap" / "session" / "container",
     "user": BASE / "user" / "bootstrap" / "user" / "container",
 }
+
+# Cross-BC integration-event contracts a container may subscribe to (same
+# allowlist as test_bc_isolation — public contracts, not implementation code).
+_ALLOWED_CROSS_BC_CONTRACTS = frozenset(
+    {
+        "shell.user.application.user.user.integration_events",
+        "shell.user.application.user.auth_session.integration_events",
+    }
+)
+
+
+def _is_allowed_contract(imported: str) -> bool:
+    return any(
+        imported == allowed or imported.startswith(allowed + ".")
+        for allowed in _ALLOWED_CROSS_BC_CONTRACTS
+    )
 
 
 def test_bc_containers_import_only_their_own_bc() -> None:
@@ -21,6 +37,8 @@ def test_bc_containers_import_only_their_own_bc() -> None:
             for imported in get_imports(path):
                 for other_bc in _BC_CONTAINER_ROOTS:
                     if other_bc == bc:
+                        continue
+                    if _is_allowed_contract(imported):
                         continue
                     if imported.startswith(
                         (
@@ -40,5 +58,3 @@ def test_bc_containers_import_only_their_own_bc() -> None:
         "A BC container may compose only its own BC and platform services:\n"
         + "\n".join(violations)
     )
-
-

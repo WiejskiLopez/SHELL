@@ -8,9 +8,31 @@ from dependency_injector import containers, providers
 
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
+from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+    CommandInboxProcessor,
+)
+from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import (
+    InboxMetricsService,
+)
+from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
+from shell.platform.infrastructure.messaging.transport.rabbit import (
+    RabbitDeliveryTransport,
+    RabbitInboxConsumer,
+)
+from shell.platform.infrastructure.metrics.logging_metrics_backend import (
+    LoggingMetricsBackend,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.serialization.command_registry import (
+    build_command_registry,
+    discover_command_types,
+)
 from shell.platform.infrastructure.time.system_clock import SystemClock
 from shell.user.application.user.auth_session.command_handlers.login_auth_session_handler import (
     LoginAuthSessionHandler,
@@ -55,6 +77,9 @@ from shell.user.infrastructure.user.auth_session.services.secure_token_generator
 from shell.user.infrastructure.user.auth_session.services.user_query_provider import (
     SqlUserQueryProvider,
 )
+from shell.user.infrastructure.user.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.user.infrastructure.user.user.persistence.sql.services.user_query_service import (
     UserQueryService,
 )
@@ -72,9 +97,26 @@ class UserCoreContainer(containers.DeclarativeContainer):
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
     # Per-BC Unit of Work — zna TYLKO repozytoria BC User
+    persistence_delivery_models = providers.Object(PERSISTENCE_DELIVERY_MODELS)
+    inbox_metrics_service = providers.Singleton(
+        InboxMetricsService,
+        session_factory=session_factory,
+        inbox_model=persistence_delivery_models.provided.events.inbox,
+        backend=LoggingMetricsBackend(),
+    )
+    readiness_probe = providers.Singleton(
+        SqlReadinessProbe,
+        session_factory=session_factory,
+        inbox_model=persistence_delivery_models.provided.events.inbox,
+        max_backlog=1000,
+        worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
+    )
+    integration_mapper = providers.Singleton(ReflectiveIntegrationMapper)
     unit_of_work_factory = providers.Factory(
         SqlAlchemyUserUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
+        models=persistence_delivery_models,
     )
 
     # Shared tools
@@ -85,6 +127,42 @@ class UserCoreContainer(containers.DeclarativeContainer):
     # Application buses
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
+    command_registry = providers.Object(
+        build_command_registry(discover_command_types("shell.user.application.user"))
+    )
+    command_inbox_processor_factory = providers.Factory(
+        CommandInboxProcessor,
+        session_factory=session_factory,
+        command_bus=command_bus,
+        models=persistence_delivery_models.provided.commands,
+        registry=command_registry,
+        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
+        consumer_name="user-command",
+        worker_id=config.command_worker_id,
+        heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
+        max_batch_time_seconds=config.worker_max_batch_time_seconds,
+    )
+
+    # Event delivery to the broker (Faza 9): outbox → Rabbit.
+    delivery_transport = providers.Factory(
+        RabbitDeliveryTransport,
+        url=config.broker_url,
+    )
+    outbox_to_transport_relay_factory = providers.Factory(
+        OutboxToTransportRelay,
+        session_factory=session_factory,
+        models=persistence_delivery_models.provided.events,
+        transport=delivery_transport,
+        kind="event",
+    )
+    rabbit_command_inbox_consumer_factory = providers.Factory(
+        RabbitInboxConsumer,
+        url=config.broker_url,
+        session_factory=session_factory,
+        models=persistence_delivery_models.provided.commands,
+        queue_name="shell-user-command-inbox",
+        routing_keys=["command.#"],
+    )
 
     # Command Handlers — tylko User BC
     create_user_handler_factory = providers.Factory(

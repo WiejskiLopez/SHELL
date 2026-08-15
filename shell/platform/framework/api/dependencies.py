@@ -20,6 +20,8 @@ class ContainerProtocol(Protocol):
 
     app: Any
     infra: Any
+    command_bus: Any
+    query_bus: Any
 
 
 def get_core_container(request: _Request) -> ContainerProtocol:
@@ -39,7 +41,7 @@ def get_command_bus(
     bus = _get_buses(container).command_bus
     if not hasattr(bus, "dispatch") and callable(bus):
         bus = bus()
-    return cast("CommandBus", bus)
+    return bus
 
 
 def get_query_bus(
@@ -48,4 +50,4 @@ def get_query_bus(
     bus = _get_buses(container).query_bus
     if not hasattr(bus, "dispatch") and callable(bus):
         bus = bus()
-    return cast("QueryBus", bus)
+    return bus

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.session.domain.session.ports.workflow_session_provider import WorkflowSessionProvider
 
@@ -16,7 +16,7 @@ class WorkflowSessionProviderHttpAdapter(WorkflowSessionProvider):
         self,
         session_id: str,
         user_id: str,
-        payload: dict,
+        payload: dict[str, Any],
     ) -> None:
         response = await self._client.post(
             "/api/v1/workflows/add-session-output",

@@ -12,4 +12,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8001
 
-CMD ["python", "-m", "shell.user.framework.user.api", "--host", "0.0.0.0", "--port", "8001", "--db-url", "sqlite+aiosqlite:///shell_dev/user.db", "--api-key", "dev-user-key"]
+CMD ["python", "-m", "shell.user.bootstrap.user.main", "--host", "0.0.0.0", "--port", "8001", "--db-url", "sqlite+aiosqlite:///shell_dev/user.db", "--api-key", "dev-user-key"]

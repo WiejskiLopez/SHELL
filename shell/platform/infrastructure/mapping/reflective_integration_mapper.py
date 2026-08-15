@@ -16,6 +16,9 @@ from typing import Any
 from shell.platform.application.context.causation_id import get_causation_id
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.application.events import IntegrationEvent
+from shell.platform.infrastructure.mapping.integration_mapping_error import (
+    IntegrationMappingError,
+)
 
 ENVELOPE_FIELDS: frozenset[str] = frozenset(f.name for f in dataclasses.fields(IntegrationEvent))
 
@@ -71,10 +74,18 @@ class ReflectiveIntegrationMapper:
         try:
             mod = importlib.import_module(full_mod)
         except ModuleNotFoundError:
-            raise ValueError(f"Cannot find integration event {int_name} in {full_mod}") from None
+            raise IntegrationMappingError(
+                f"Cannot find integration event {int_name} for domain event "
+                f"{event_cls.__name__} in {full_mod}. Declare the integration event "
+                "or mark the domain event as internal-only."
+            ) from None
         int_cls = getattr(mod, int_name, None)
         if int_cls is None:
-            raise ValueError(f"Cannot find integration event {int_name} in {full_mod}")
+            raise IntegrationMappingError(
+                f"Cannot find integration event {int_name} for domain event "
+                f"{event_cls.__name__} in {full_mod}. Declare the integration event "
+                "or mark the domain event as internal-only."
+            )
         return int_cls  # type: ignore[no-any-return]
 
     def _to_str(self, raw: Any) -> str | None:

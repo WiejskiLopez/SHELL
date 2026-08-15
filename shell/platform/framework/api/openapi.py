@@ -25,7 +25,7 @@ OPENAPI_TAGS = [
     {"name": "EdgeLinkExecutions", "description": "Edge link execution — link nodes to edges"},
     {"name": "Projects", "description": "Project management — CRUD for projects"},
     {
-        "name": "MessageRouters",
+        "name": "Ingestions",
         "description": "Message router management — CRUD for message routing",
     },
     {

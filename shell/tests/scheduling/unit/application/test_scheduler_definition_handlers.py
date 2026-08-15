@@ -41,7 +41,9 @@ if TYPE_CHECKING:
     from shell.platform.infrastructure.persistence.memory import (
         FakeClock,
         FakeIdGenerator,
-        InMemoryUnitOfWork,
+    )
+    from shell.scheduling.infrastructure.scheduling.persistence.memory.unit_of_work import (
+        InMemorySchedulingUnitOfWork,
     )
 
 
@@ -60,7 +62,7 @@ class TestSchedulerDefinitionHandlers:
 
     async def test_create(
         self,
-        unit_of_work: InMemoryUnitOfWork,
+        unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
         id_generator: FakeIdGenerator,
         trigger_config: dict,
@@ -82,7 +84,7 @@ class TestSchedulerDefinitionHandlers:
 
     async def test_create_and_retrieve(
         self,
-        unit_of_work: InMemoryUnitOfWork,
+        unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
         id_generator: FakeIdGenerator,
         trigger_config: dict,
@@ -109,7 +111,7 @@ class TestSchedulerDefinitionHandlers:
 
     async def test_update(
         self,
-        unit_of_work: InMemoryUnitOfWork,
+        unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
         id_generator: FakeIdGenerator,
         trigger_config: dict,
@@ -132,7 +134,7 @@ class TestSchedulerDefinitionHandlers:
 
     async def test_update_not_found(
         self,
-        unit_of_work: InMemoryUnitOfWork,
+        unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
     ) -> None:
         with pytest.raises(SchedulerDefinitionUpdateNotFoundError):
@@ -142,7 +144,7 @@ class TestSchedulerDefinitionHandlers:
 
     async def test_delete(
         self,
-        unit_of_work: InMemoryUnitOfWork,
+        unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
         id_generator: FakeIdGenerator,
         trigger_config: dict,
@@ -165,7 +167,7 @@ class TestSchedulerDefinitionHandlers:
 
     async def test_delete_not_found(
         self,
-        unit_of_work: InMemoryUnitOfWork,
+        unit_of_work: InMemorySchedulingUnitOfWork,
         clock: FakeClock,
     ) -> None:
         with pytest.raises(SchedulerDefinitionDeleteNotFoundError):

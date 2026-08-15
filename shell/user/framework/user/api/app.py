@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import (
     CorrelationIdMiddleware,
@@ -43,9 +44,10 @@ def create_user_app(
 
     app.include_router(users_router, prefix="/api/v1")
     app.include_router(auth_sessions_router, prefix="/api/v1")
+    mount_readiness(app, core_container)
 
     @app.get("/health", tags=["Health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     return app

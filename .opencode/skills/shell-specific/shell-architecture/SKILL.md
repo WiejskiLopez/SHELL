@@ -16,6 +16,8 @@ overview alone:
 - `bounded-context-boundary` — BC isolation and standalone composition roots;
 - `test-topology` — ownership and placement of tests;
 - `integration-contracts` — HTTP/event communication between BCs.
+- `provider-service-separation` — rozdzielenie portów odczytu (`Provider`) od
+    portów operacji i mutacji (`Service`) między BC.
 
 Nie używamy wspólnych top-level pakietów `shell/domain`, `shell/application`,
 `shell/infrastructure`, `shell/framework`, `shell/process` ani `shell/bootstrap`.
@@ -24,6 +26,14 @@ Nie używamy wspólnych top-level pakietów `shell/domain`, `shell/application`,
     Platforma nie importuje żadnego bounded contextu.
 - `shell/<bc>/{domain,application,process,infrastructure,framework,bootstrap}/`
     zawiera kod i composition root wyłącznie konkretnego BC.
+- Wspólne mechanizmy techniczne implementuj tylko raz w `shell/platform/`.
+    Wszystkie BC korzystają z tych samych platformowych klas i adapterów, np.
+    `InboxEventModel`, `OutboxEventModel`, publishera, processora i relaya.
+    Nie twórz kopii tych klas per BC.
+- Wspólna implementacja platformowa nie oznacza wspólnej bazy danych. Każdy BC
+    używa tych samych klas platformy z własnym `DATABASE_URL`, własną sesją oraz
+    własnymi migracjami. Tabele o tych samych nazwach są wtedy tabelami w różnych
+    bazach.
 - Nie istnieje tryb monolityczny ani wspólny composition root dla wielu BC.
 - Komunikacja między BC przebiega przez publiczne kontrakty HTTP lub eventowe.
 
@@ -144,6 +154,7 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 - Piszesz handler z zasadami między-domenowymi → `references/application-handlers.md`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
 - Implementujesz adapter danych międzyagregatowych → `shell/<bc>/infrastructure/<bc>/services/<nazwa_agregatu>/` (patrz [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval))
+- Projektujesz integrację tylko do odczytu albo operację na innym BC → `provider-service-separation` (Provider vs Service, lokalne mapowanie kontraktów i własność portu)
 - Piszesz Event Handler → `shell/<bc>/application/<bc>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")

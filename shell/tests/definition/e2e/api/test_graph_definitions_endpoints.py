@@ -24,7 +24,7 @@ class TestGraphDefinitionEndpoints:
         assert resp.status_code == 200
         data = resp.json()
         assert data["id"] == "base-planner-id"
-        assert "node_definitions" in data
+        assert "created_at" in data
 
     async def test_get_graph_definition_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await make_definition_app(tmp_path)

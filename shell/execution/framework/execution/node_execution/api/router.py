@@ -27,8 +27,12 @@ router = APIRouter(prefix="/node-executions", tags=["NodeExecutions"])
 def get_node_execution_controller(
     container: ContainerProtocol = Depends(get_core_container),
 ) -> NodeExecutionController:
-    command_bus = container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
-    query_bus = container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    command_bus = (
+        container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
+    )
+    query_bus = (
+        container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    )
     return NodeExecutionController(command_bus=command_bus, query_bus=query_bus)
 
 

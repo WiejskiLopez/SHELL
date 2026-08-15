@@ -30,10 +30,14 @@ router = APIRouter(prefix="/scheduler-jobs", tags=["SchedulerJobs"])
 def get_controller(
     container: ContainerProtocol = Depends(get_core_container),
 ) -> SchedulerJobController:
-    command_bus = container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
+    command_bus = (
+        container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
+    )
     try:
         query_service: SchedulerExecutionQueryService = (
-            container.infra.scheduler_execution_query_service if hasattr(container, "app") else container.scheduler_execution_query_service()
+            container.infra.scheduler_execution_query_service
+            if hasattr(container, "app")
+            else getattr(container, "scheduler_execution_query_service")()  # noqa: B009 -- atrybut spoza ContainerProtocol, direct access daje mypy attr-defined
         )
     except Exception:
         raise HTTPException(

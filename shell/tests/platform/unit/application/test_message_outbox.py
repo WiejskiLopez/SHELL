@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from shell.messaging.domain.messaging.aggregates.message_router.messages.routable_message import (
-    RoutableMessage,
+from shell.ingestion.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
+    IngestionPayload,
 )
-from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_data import (
-    MessageData,
+from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
+    IngestionData,
 )
 from shell.platform.application.bus.message_bus import MessageBus
 from shell.platform.application.bus.message_bus_publisher import MessageBusPublisher
@@ -24,28 +24,28 @@ from shell.platform.infrastructure.messaging.memory_outbox_store import InMemory
 from shell.platform.types import JsonStr
 
 
-def _routable_message() -> RoutableMessage:
-    return RoutableMessage(
+def _ingestion_payload() -> IngestionPayload:
+    return IngestionPayload(
         occurred_at=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-        message_data=MessageData(JsonStr(json.dumps({"type": "test"}))),
+        ingestion_data=IngestionData(JsonStr(json.dumps({"type": "test"}))),
     )
 
 
 class TestInMemoryMessageOutboxStore:
     async def test_publish_adds_records(self) -> None:
         store = InMemoryMessageOutboxStore()
-        await store.publish([_routable_message(), _routable_message()])
+        await store.publish([_ingestion_payload(), _ingestion_payload()])
         assert len(store.records) == 2
 
     async def test_pending_returns_unpublished(self) -> None:
         store = InMemoryMessageOutboxStore()
-        await store.publish([_routable_message()])
+        await store.publish([_ingestion_payload()])
         assert len(store.pending()) == 1
 
     async def test_records_have_message_type(self) -> None:
         store = InMemoryMessageOutboxStore()
-        await store.publish([_routable_message()])
-        assert store.records[0].message_type == "RoutableMessage"
+        await store.publish([_ingestion_payload()])
+        assert store.records[0].message_type == "IngestionPayload"
 
     async def test_empty_publish_no_records(self) -> None:
         store = InMemoryMessageOutboxStore()
@@ -56,7 +56,7 @@ class TestInMemoryMessageOutboxStore:
         token = set_correlation_id("test-corr-123")
         try:
             store = InMemoryMessageOutboxStore()
-            await store.publish([_routable_message()])
+            await store.publish([_ingestion_payload()])
             assert store.records[0].correlation_id == "test-corr-123"
         finally:
             reset_correlation_id(token)
@@ -65,7 +65,7 @@ class TestInMemoryMessageOutboxStore:
         token = set_causation_id("test-caus-456")
         try:
             store = InMemoryMessageOutboxStore()
-            await store.publish([_routable_message()])
+            await store.publish([_ingestion_payload()])
             assert store.records[0].causation_id == "test-caus-456"
         finally:
             reset_causation_id(token)
@@ -83,8 +83,8 @@ class TestMessageBusPublisher:
             return _Handler()
 
         bus = MessageBus()
-        bus.register(RoutableMessage, _handler_factory)
+        bus.register(IngestionPayload, _handler_factory)
         publisher = MessageBusPublisher(bus)
-        message = _routable_message()
+        message = _ingestion_payload()
         await publisher.publish([message])
         assert received == [message]

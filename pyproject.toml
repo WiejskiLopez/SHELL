@@ -8,8 +8,10 @@ version = "0.1.0"
 description = "File-system-driven agent runtime shared library"
 requires-python = ">=3.11"
 dependencies = [
+    "aio-pika>=10.0.1",
     "alembic>=1.18.5",
     "apscheduler>=3.11.3",
+    "asyncpg>=0.31.0",
     "dependency-injector>=4.49.1",
     "fastapi>=0.139.0",
     "httpx>=0.28.1",
@@ -25,6 +27,7 @@ dev = ["pytest>=7"]
 
 [project.scripts]
 shell-seed-dev = "shell.config.seed.dev_data:main"
+shell-retention = "shell.platform.infrastructure.cli.retention:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -74,7 +77,7 @@ runtime-evaluated-base-classes = [
 "shell/framework/session/session/api/*.py" = ["TCH001"]
 "shell/framework/execution/workflow/api/*.py" = ["TCH001"]
 "shell/framework/execution/node_execution/api/*.py" = ["TCH001"]
-"shell/framework/messaging/message_router/api/*.py" = ["TCH001"]
+"shell/ingestion/framework/ingestion/api/*.py" = ["TCH001"]
 "shell/framework/scheduling/scheduler_definition/api/*.py" = ["TCH001"]
 "shell/framework/scheduling/scheduler_job/api/*.py" = ["TCH001"]
 "shell/framework/scheduling/scheduler_execution/api/*.py" = ["TCH001"]
@@ -84,7 +87,7 @@ runtime-evaluated-base-classes = [
 [tool.importlinter]
 root_package = "shell"
 
-[tool.importlinter.contract.platform_isolation]
+[[tool.importlinter.contracts]]
 name = "Platform must not import bounded contexts"
 type = "forbidden"
 source_modules = ["shell.platform"]
@@ -95,7 +98,7 @@ forbidden_modules = [
     "shell.user",
     "shell.project",
     "shell.scheduling",
-    "shell.messaging",
+    "shell.ingestion",
 ]
 
 [tool.mypy]

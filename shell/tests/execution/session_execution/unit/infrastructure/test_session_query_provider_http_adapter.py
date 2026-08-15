@@ -4,8 +4,11 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_snapshot import (
-    SessionSnapshot,
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
+    SessionIdRef,
+)
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_reference import (
+    SessionReference,
 )
 from shell.execution.infrastructure.execution.session_execution.http.session_query_provider_http_adapter import (
     SessionQueryProviderHttpAdapter,
@@ -37,39 +40,28 @@ class TestSessionQueryProviderHttpAdapter:
     ) -> None:
         response_data = {
             "id": "session-1",
-            "goal": "test goal",
-            "status": "opened",
-            "opened_at": "2024-01-01T00:00:00",
-            "closed_at": None,
         }
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
         result = await adapter.get_by_id("session-1")
-        assert isinstance(result, SessionSnapshot)
-        assert result.session_id.value == "session-1"
-        assert result.goal == "test goal"
-        assert result.status == "opened"
-        assert result.closed_at is None
+        assert isinstance(result, SessionReference)
+        assert result.session_id == SessionIdRef("session-1")
 
-    async def test_get_by_id_with_closed_at(
+    async def test_get_by_id_maps_only_required_field(
         self,
         adapter: SessionQueryProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         response_data = {
             "id": "session-2",
-            "goal": "another goal",
-            "status": "closed",
-            "opened_at": "2024-01-01T00:00:00",
-            "closed_at": "2024-01-02T00:00:00",
         }
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
         result = await adapter.get_by_id("session-2")
-        assert isinstance(result, SessionSnapshot)
-        assert result.closed_at is not None
+        assert isinstance(result, SessionReference)
+        assert result.session_id == SessionIdRef("session-2")
 
     async def test_raises_on_5xx(
         self,

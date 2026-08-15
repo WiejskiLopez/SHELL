@@ -79,6 +79,9 @@ from shell.execution.application.execution.workflow.query_handlers.get_workflow_
 from shell.execution.application.execution.workflow.query_handlers.list_workflows_handler import (
     ListWorkflowsHandler,
 )
+from shell.execution.bootstrap.execution.contract_catalog import EXECUTION_CONTRACT_CATALOG
+from shell.execution.bootstrap.execution.event_registry import build_execution_event_registry
+from shell.execution.bootstrap.execution.upcaster import build_execution_upcaster
 from shell.execution.infrastructure.execution.edge_execution.persistence.sql.services.edge_execution_query_service import (
     EdgeExecutionQueryService,
 )
@@ -97,6 +100,9 @@ from shell.execution.infrastructure.execution.node_execution.persistence.sql.ser
 from shell.execution.infrastructure.execution.node_execution.persistence.sql.unit_of_work import (
     SqlAlchemyNodeExecutionUnitOfWork,
 )
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.execution.infrastructure.execution.task_execution.persistence.sql.services.task_execution_query_service import (
     TaskExecutionQueryService,
 )
@@ -110,10 +116,33 @@ from shell.execution.infrastructure.execution.workflow.persistence.sql.unit_of_w
     SqlAlchemyWorkflowUnitOfWork,
 )
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+    CommandInboxProcessor,
+)
+from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+    EventInboxProcessor,
+)
+from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
+    envelope_policy_from_catalog,
+)
+from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import (
+    InboxMetricsService,
+)
+from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer
+from shell.platform.infrastructure.metrics.logging_metrics_backend import (
+    LoggingMetricsBackend,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.serialization.command_registry import (
+    build_command_registry,
+    discover_command_types,
+)
+from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
@@ -124,19 +153,86 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
 
     # Infrastruktura bazodanowa
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
+    command_bus = providers.Singleton(CommandBus)
 
     # Per-aggregate Unit of Work — każdy agregat ma własny UoW
+    persistence_delivery_models = providers.Object(PERSISTENCE_DELIVERY_MODELS)
+    event_bus = providers.Singleton(EventBus)
+    event_registry = providers.Singleton(build_execution_event_registry)
+    event_inbox_processor_factory = providers.Factory(
+        EventInboxProcessor,
+        session_factory=session_factory,
+        event_bus=event_bus,
+        models=persistence_delivery_models.provided.events,
+        registry=event_registry,
+        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
+        consumer_name="execution",
+        worker_id=config.worker_id,
+        heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
+        max_batch_time_seconds=config.worker_max_batch_time_seconds,
+        envelope_policy=envelope_policy_from_catalog(EXECUTION_CONTRACT_CATALOG),
+        upcaster=providers.Singleton(build_execution_upcaster),
+    )
+    command_registry = providers.Object(
+        build_command_registry(
+            discover_command_types("shell.execution.application.execution")
+        )
+    )
+    command_inbox_processor_factory = providers.Factory(
+        CommandInboxProcessor,
+        session_factory=session_factory,
+        command_bus=command_bus,
+        models=persistence_delivery_models.provided.commands,
+        registry=command_registry,
+        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
+        consumer_name="execution-command",
+        worker_id=config.command_worker_id,
+        heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
+        max_batch_time_seconds=config.worker_max_batch_time_seconds,
+        upcaster=providers.Singleton(PayloadUpcaster),
+    )
+    rabbit_command_inbox_consumer_factory = providers.Factory(
+        RabbitInboxConsumer,
+        url=config.broker_url,
+        session_factory=session_factory,
+        models=persistence_delivery_models.provided.commands,
+        queue_name="shell-execution-command-inbox",
+        routing_keys=["command.#"],
+    )
+    rabbit_inbox_consumer_factory = providers.Factory(
+        RabbitInboxConsumer,
+        url=config.broker_url,
+        session_factory=session_factory,
+        models=persistence_delivery_models.provided.events,
+        queue_name="shell-execution-event-inbox",
+    )
+    inbox_metrics_service = providers.Singleton(
+        InboxMetricsService,
+        session_factory=session_factory,
+        inbox_model=persistence_delivery_models.provided.events.inbox,
+        backend=LoggingMetricsBackend(),
+    )
+    readiness_probe = providers.Singleton(
+        SqlReadinessProbe,
+        session_factory=session_factory,
+        inbox_model=persistence_delivery_models.provided.events.inbox,
+        max_backlog=1000,
+        worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
+    )
     edge_execution_uow_factory = providers.Factory(
         SqlAlchemyEdgeExecutionUnitOfWork,
         session_factory=session_factory,
+        models=persistence_delivery_models,
     )
     edge_link_execution_uow_factory = providers.Factory(
         SqlAlchemyEdgeLinkExecutionUnitOfWork,
         session_factory=session_factory,
+        models=persistence_delivery_models,
     )
     node_execution_uow_factory = providers.Factory(
         SqlAlchemyNodeExecutionUnitOfWork,
         session_factory=session_factory,
+        models=persistence_delivery_models,
     )
 
     # Shared tools
@@ -150,27 +246,57 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     workflow_query_service = providers.Singleton(
         WorkflowQueryService, session_factory=session_factory
     )
-    edge_link_execution_query_service = providers.Singleton(EdgeLinkExecutionQueryService, session_factory=session_factory)
-    get_edge_link_execution_handler_factory = providers.Factory(GetEdgeLinkExecutionByIdHandler, queries=edge_link_execution_query_service)
-    workflow_uow_factory = providers.Factory(SqlAlchemyWorkflowUnitOfWork, session_factory=session_factory)
-    task_execution_uow_factory = providers.Factory(SqlAlchemyTaskExecutionUnitOfWork, session_factory=session_factory)
-    create_workflow_handler_factory = providers.Factory(CreateWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory, id_generator=id_generator_factory)
-    update_workflow_handler_factory = providers.Factory(UpdateWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory)
-    delete_workflow_handler_factory = providers.Factory(DeleteWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory)
-    get_workflow_handler_factory = providers.Factory(GetWorkflowByIdHandler, queries=workflow_query_service)
-    list_workflows_handler_factory = providers.Factory(ListWorkflowsHandler, queries=workflow_query_service)
-    list_task_executions_handler_factory = providers.Factory(ListTaskExecutionsHandler, queries=task_execution_query_service)
+    edge_link_execution_query_service = providers.Singleton(
+        EdgeLinkExecutionQueryService, session_factory=session_factory
+    )
+    get_edge_link_execution_handler_factory = providers.Factory(
+        GetEdgeLinkExecutionByIdHandler, queries=edge_link_execution_query_service
+    )
+    workflow_uow_factory = providers.Factory(
+        SqlAlchemyWorkflowUnitOfWork,
+        session_factory=session_factory,
+        models=persistence_delivery_models,
+    )
+    task_execution_uow_factory = providers.Factory(
+        SqlAlchemyTaskExecutionUnitOfWork,
+        session_factory=session_factory,
+        models=persistence_delivery_models,
+    )
+    create_workflow_handler_factory = providers.Factory(
+        CreateWorkflowHandler,
+        unit_of_work=workflow_uow_factory,
+        clock=clock_factory,
+        id_generator=id_generator_factory,
+    )
+    update_workflow_handler_factory = providers.Factory(
+        UpdateWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory
+    )
+    delete_workflow_handler_factory = providers.Factory(
+        DeleteWorkflowHandler, unit_of_work=workflow_uow_factory, clock=clock_factory
+    )
+    get_workflow_handler_factory = providers.Factory(
+        GetWorkflowByIdHandler, queries=workflow_query_service
+    )
+    list_workflows_handler_factory = providers.Factory(
+        ListWorkflowsHandler, queries=workflow_query_service
+    )
+    list_task_executions_handler_factory = providers.Factory(
+        ListTaskExecutionsHandler, queries=task_execution_query_service
+    )
     node_result_query_service = providers.Singleton(
         NodeResultQueryService, session_factory=session_factory
     )
     get_node_execution_result_handler_factory = providers.Factory(
         GetNodeExecutionResultHandler, queries=node_result_query_service
     )
-    edge_execution_query_service = providers.Singleton(EdgeExecutionQueryService, session_factory=session_factory)
-    get_edge_execution_handler_factory = providers.Factory(GetEdgeExecutionByIdHandler, queries=edge_execution_query_service)
+    edge_execution_query_service = providers.Singleton(
+        EdgeExecutionQueryService, session_factory=session_factory
+    )
+    get_edge_execution_handler_factory = providers.Factory(
+        GetEdgeExecutionByIdHandler, queries=edge_execution_query_service
+    )
 
     # Application buses
-    command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
 
     # Command Handlers — tylko Execution BC
@@ -257,8 +383,12 @@ def configure_execution_container(container: ExecutionCoreContainer) -> None:
     ):
         command_bus.register(command, factory)
     query_bus.register(GetEdgeExecutionByIdQuery, container.get_edge_execution_handler_factory)
-    query_bus.register(GetEdgeLinkExecutionByIdQuery, container.get_edge_link_execution_handler_factory)
+    query_bus.register(
+        GetEdgeLinkExecutionByIdQuery, container.get_edge_link_execution_handler_factory
+    )
     query_bus.register(GetWorkflowByIdQuery, container.get_workflow_handler_factory)
     query_bus.register(ListWorkflowsQuery, container.list_workflows_handler_factory)
     query_bus.register(ListTaskExecutionsQuery, container.list_task_executions_handler_factory)
-    query_bus.register(GetNodeExecutionResultQuery, container.get_node_execution_result_handler_factory)
+    query_bus.register(
+        GetNodeExecutionResultQuery, container.get_node_execution_result_handler_factory
+    )

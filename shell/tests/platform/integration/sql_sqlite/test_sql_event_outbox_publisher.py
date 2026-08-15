@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    EVENT_DELIVERY_MODELS,
+)
 from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -17,7 +20,6 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
     SqlEventOutboxPublisher,
 )
-from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -28,7 +30,7 @@ class TestSqlEventOutboxPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        pub = SqlEventOutboxPublisher(session_factory)
+        pub = SqlEventOutboxPublisher(session_factory, EVENT_DELIVERY_MODELS)
         events = [
             TaskExecutionCreatedEvent.now(
                 task_execution_id=TaskExecutionId.generate(),
@@ -38,7 +40,7 @@ class TestSqlEventOutboxPublisher:
         await pub.publish(events)
 
         async with session_factory() as session:
-            rows = (await session.execute(select(OutboxEventModel))).scalars().all()
+            rows = (await session.execute(select(EVENT_DELIVERY_MODELS.outbox))).scalars().all()
         assert any(r.event_type == "TaskExecutionCreatedEvent" for r in rows)
         assert all(r.published_at is None for r in rows)
 
@@ -46,10 +48,14 @@ class TestSqlEventOutboxPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        pub = SqlEventOutboxPublisher(session_factory)
+        pub = SqlEventOutboxPublisher(session_factory, EVENT_DELIVERY_MODELS)
         async with session_factory() as session:
-            before = len((await session.execute(select(OutboxEventModel))).scalars().all())
+            before = len(
+                (await session.execute(select(EVENT_DELIVERY_MODELS.outbox))).scalars().all()
+            )
         await pub.publish([])
         async with session_factory() as session:
-            after = len((await session.execute(select(OutboxEventModel))).scalars().all())
+            after = len(
+                (await session.execute(select(EVENT_DELIVERY_MODELS.outbox))).scalars().all()
+            )
         assert before == after

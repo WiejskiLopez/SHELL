@@ -29,13 +29,13 @@ class GraphExecutionModel(ExecutionSqlAlchemyModelBase, VersionedMixin):
         ForeignKey("graph_execution.id", ondelete="SET NULL"),
         nullable=True,
     )
-    state_input: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    state_output: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    state_input: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
+    state_output: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     depth: Mapped[int] = mapped_column(nullable=False, default=0)
     max_subgraph_depth: Mapped[int] = mapped_column(nullable=False, default=5)
     timeout_at: Mapped[datetime | None] = mapped_column(nullable=True)
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
-    tags: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    tags: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

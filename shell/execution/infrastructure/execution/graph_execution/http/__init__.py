@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.execution.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
+from shell.execution.infrastructure.execution.graph_execution.http.providers.graph_execution_definition.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
 

@@ -8,12 +8,19 @@ from shell.platform.infrastructure.serialization import DomainEventSerializer
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
+
 logger = logging.getLogger(__name__)
 
 
 class EventDeserializer:
-    def __init__(self, registry: dict[str, type] | None = None) -> None:
+    def __init__(
+        self,
+        registry: dict[str, type] | None = None,
+        upcaster: PayloadUpcaster | None = None,
+    ) -> None:
         self._registry = registry or {}
+        self._upcaster = upcaster
         self._serializer = DomainEventSerializer()
 
     def deserialize(
@@ -30,6 +37,12 @@ class EventDeserializer:
             return None
 
         try:
+            if self._upcaster is not None:
+                payload, schema_version = self._upcaster.upcast(
+                    event_type,
+                    schema_version,
+                    payload,
+                )
             return self._serializer.from_payload(
                 event_cls=event_cls,
                 occurred_at=occurred_at,

@@ -26,8 +26,12 @@ router = APIRouter(prefix="/workflows", tags=["Workflows"])
 def get_workflow_controller(
     container: ContainerProtocol = Depends(get_core_container),
 ) -> WorkflowController:
-    command_bus = container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
-    query_bus = container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    command_bus = (
+        container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
+    )
+    query_bus = (
+        container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    )
     return WorkflowController(command_bus, query_bus)
 
 

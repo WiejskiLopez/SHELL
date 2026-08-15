@@ -41,7 +41,7 @@ Zależności produkcyjne (z `shell/pyproject.toml`):
 | `asyncpg` | PostgreSQL async driver |
 | `alembic` | Migracje schematu SQL |
 | `pydantic>=2.7`, `pydantic-settings` | DTO, Settings, request/response modele |
-| `dependency-injector` | DI per BC — **legacy, tylko w martwych kontenerach** (patrz `do_usuniecia.md`); composition root używa Pure DI |
+| `dependency-injector` | Kontenery DI poszczególnych BC |
 | `motor` | MongoDB async driver (adapter zawieszony) |
 | `pyyaml` | Parsowanie task.yaml |
 | `httpx` | Klient HTTP/testy e2e |
@@ -292,7 +292,7 @@ shell/tests/
 │   ├── integration/
 │   └── e2e/
 ├── definition/                 ← Testy BC definition
-├── messaging/                  ← Testy BC messaging
+├── ingestion/                  ← Testy BC ingestion
 ├── project/                    ← Testy BC project
 ├── scheduling/                 ← Testy BC scheduling
 ├── platform/                   ← Testy warstwy platform (buses, middleware)
@@ -321,7 +321,7 @@ Importy idą **tylko w tym kierunku** — żadna niższa warstwa nie może impor
 | `application/` | Komendy, zapytania, handlery (CQRS), DTO, porty aplikacyjne | `domain/` + stdlib |
 | `infrastructure/` | Adaptery SQL/Memory/HTTP, modele ORM, mappery, logging, messaging | `domain/` + `application/` + libs |
 | `framework/` | CLI (argparse), FastAPI per BC | `infrastructure/` (przez DI) |
-| `bootstrap/` | Composition Root (Pure DI `Container`), `ApplicationFactory` | Wszystkie warstwy |
+| `bootstrap/` | Composition Root konkretnego BC | Wszystkie warstwy tego BC |
 | `platform/` | Shared Kernel: klasy bazowe, busy, shared VOs, persistence base | Tylko stdlib + libs |
 | `process/` | Sagi / Process Managery (long-running workflows) | `domain/` + `application/` |
 
@@ -333,13 +333,13 @@ Importy idą **tylko w tym kierunku** — żadna niższa warstwa nie może impor
 
 | BC | domain/aggregates | application/ | infrastructure/ | framework/ | bootstrap/ |
 |---|---|---|---|---|---|
-| **user** | user, user_state, user_skill | commands, queries, handlers | SQL repos, HTTP adapters | FastAPI router | (przez CoreContainer) |
-| **session** | session, session_state | commands, queries | SQL repos | FastAPI router | (przez CoreContainer) |
-| **definition** | graph_definition, node_definition, runner_config, graph_definition_embedding | queries | SQL repos | FastAPI router | (przez CoreContainer) |
-| **execution** | workflow, graph_execution, node_execution, edge_execution, task_execution, session_execution i in. (19 agregatów) | commands, queries per agregat | SQL repos per agregat | FastAPI router + orchestration | (przez CoreContainer) |
-| **messaging** | message_router | queries | SQL repos | — | (przez CoreContainer) |
-| **project** | project, project_skill, project_state | commands, queries | SQL repos, HTTP | FastAPI router | (przez CoreContainer) |
-| **scheduling** | scheduler_definition, scheduler_execution, scheduler_job | queries | SQL repos, services | — | (przez CoreContainer) |
+| **user** | user, user_state, user_skill | commands, queries, handlers | SQL repos, HTTP adapters | FastAPI router | `UserCoreContainer` |
+| **session** | session, session_state | commands, queries | SQL repos | FastAPI router | `SessionCoreContainer` |
+| **definition** | graph_definition, node_definition, runner_config, graph_definition_embedding | queries | SQL repos | FastAPI router | `DefinitionCoreContainer` |
+| **execution** | workflow, graph_execution, node_execution, edge_execution, task_execution, session_execution i in. (19 agregatów) | commands, queries per agregat | SQL repos per agregat | FastAPI router + orchestration | `ExecutionCoreContainer` |
+| **ingestion** | ingestion | queries, commands | SQL repos | FastAPI router | `IngestionCoreContainer` |
+| **project** | project, project_skill, project_state | commands, queries | SQL repos, HTTP | FastAPI router | `ProjectCoreContainer` |
+| **scheduling** | scheduler_definition, scheduler_execution, scheduler_job | queries | SQL repos, services | — | `SchedulingCoreContainer` |
 
 ---
 
@@ -391,7 +391,7 @@ framework/<bc>/
 
 bootstrap/<bc>/
 └── container/
-    └── <bc>_container.py           ← DI Container per BC (legacy, martwy — do usunięcia)
+    └── <bc>_core_container.py      ← kontener DI konkretnego BC
 ```
 
 ### platform/ — Shared Kernel
@@ -416,40 +416,24 @@ platform/
 ├── infrastructure/configuration/   ← YAML config loader
 ├── framework/api/                  ← Wspólne: middleware, OpenAPI, websocket
 ├── framework/cli/                  ← Wspólny parser CLI
-├── bootstrap/container/            ← Composition Root — Pure DI (Container + moduły)
 └── bootstrap/config_logging/       ← Konfiguracja logowania
 ```
 
-### Composition Root (Pure DI) — `platform/bootstrap/container/`
+### Composition Roots per BC
 
-Cały DI jest ręcznie spięty w **jednym Composition Root** bez frameworka DI
-(`dependency-injector` nie jest używany w kodzie produkcyjnym — patrz `do_usuniecia.md`).
+Każdy bounded context ma własny composition root i nie współdzieli kontenera z innym BC.
+Platforma dostarcza generyczne busy, persistence, serializację oraz wzorzec inbox/outbox;
+konkretne modele event delivery są instalowane w metadata danego BC.
 
 ```
-platform/bootstrap/container/
-├── root.py                     ← Container / CoreContainer — kompozycja warstw (entrypoint)
-├── infrastructure.py           ← Infrastructure — session_factory, query services, UoW factory, publisherowie
-├── buses.py                    ← Buses — CommandBus, QueryBus, EventBus, MessageBus
-├── application.py              ← Application — komponuje buses, commands, queries, event_handlers
-├── command_factories.py        ← Commands — fabryki command handlerów
-├── query_factories.py          ← Queries — fabryki query handlerów
-├── event_handlers.py           ← EventHandlers — fabryki event handlerów
-├── events.py                   ← Events — outbox/inbox relay i procesory
-├── execution_command_factories.py    ← mixin fabryk handlerów BC execution
-├── scheduling_command_factories.py   ← mixin fabryk handlerów BC scheduling
-└── core_container.py           ← re-eksport kompatybilności (Container, CoreContainer, ...)
-
-platform/bootstrap/factory/
-├── bus_factory.py              ← wire_buses(container) — spina rejestrację wszystkich busów
-├── command_factory.py          ← register_commands(container)
-├── query_factory.py            ← register_queries(container)
-├── event_factory.py            ← register_events(container)
-└── message_factory.py          ← register_messages(container)
+shell/<bc>/bootstrap/<bc>/
+├── main.py                     ← entrypoint usługi BC
+├── event_registry.py           ← rejestr własnych eventów BC
+└── container/<bc>_core_container.py
+                                  ← kontener wyłącznie tego BC
 ```
 
-Cykl życia: `Singleton` = obiekty współdzielone (busy, query services), `transient` = nowa
-instancja przy każdym wywołaniu fabryki (handlery, UoW, mapper). Semantyka transient jest
-zachowana przez fabryki (`unit_of_work_factory()`, `clock_factory()`, `id_generator_factory()`).
+Komunikacja między BC odbywa się wyłącznie przez publiczne kontrakty HTTP lub eventowe.
 
 ---
 
@@ -476,32 +460,20 @@ graph TD
     Project -->|ma| ProjectState
     SchedulerDefinition -->|tworzy| SchedulerJob
     SchedulerJob -->|uruchamia| SchedulerExecution
-    MessageRouter -->|przetwarza| Message
+    Ingestion -->|przetwarza| Message
 ```
 
 ---
 
 ## 11. Szyny (CommandBus / QueryBus / EventBus)
 
-Wszystkie busy zdefiniowane w `platform/application/bus/`, instantowane jako singlety w
-`Buses` (`platform/bootstrap/container/buses.py`) i dostępne przez `container.app.buses`.
+Wszystkie busy są zdefiniowane w `platform/application/bus/` i konfigurowane lokalnie
+w kontenerze konkretnego BC; nie istnieje wspólny bus/container dla wszystkich BC.
 
 ### Rejestracja handlerów
 
-Handlery są rejestrowane **deklaratywnie w fabrykach rejestracji**
-(`platform/bootstrap/factory/*.py`), a instancje tworzone przez fabryki handlerów
-w `container.app.commands` / `container.app.queries` / `container.app.event_handlers`:
-
-```python
-# platform/bootstrap/factory/command_factory.py
-def register_commands(container: Container) -> None:
-    cmd_bus = container.app.buses.command_bus
-    commands = container.app.commands
-    cmd_bus.register(CreateUserCommand, commands.create_user_handler_factory)
-```
-
-Pełne spięcie robi `wire_buses(container)` (`bus_factory.py`), wywoływane przez
-`ApplicationFactory.build()`.
+Handlery są rejestrowane w konfiguracji kontenera konkretnego BC, na przykład
+w `shell/user/bootstrap/user/container/user_core_container.py`.
 
 ### Wywołanie z kodu
 
@@ -533,8 +505,8 @@ dto: UserDto | None = await query_bus.dispatch(
 | **execution** | `workflow`, `graph_execution`, `node_execution`, `edge_execution`, `session_execution`, `task_execution`, `envelope`, `node_result`, `prompt` |
 | **project** | `project`, `project_skill`, `project_state` |
 | **scheduling** | `scheduler_definition`, `scheduler_job`, `scheduler_execution` |
-| **messaging** | `message_router`, `inbox_message`, `outbox_message` |
-| **platform** | `audit_event`, `outbox_event` |
+| **ingestion** | `ingestion`, `outbox_event`, `inbox_event`, `outbox_message`, `inbox_message`, `outbox_command`, `inbox_command`, `audit_event` |
+| **pozostałe BC** | własne tabele domenowe oraz te same lokalne tabele delivery |
 
 ### Migracje
 

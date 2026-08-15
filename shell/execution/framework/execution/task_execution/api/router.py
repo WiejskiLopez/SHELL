@@ -26,7 +26,9 @@ def get_task_execution_controller(
     container: ContainerProtocol = Depends(get_core_container),
 ) -> TaskExecutionController:
     try:
-        query_bus: QueryBus = container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+        query_bus: QueryBus = (
+            container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+        )
     except Exception:
         raise HTTPException(
             status_code=501, detail="Task execution query service not implemented"

@@ -20,7 +20,7 @@ Wysłanie wiadomości użytkownika do agenta. Główny endpoint interakcji.
 - Response (202 — Accepted):
   ```json
   {
-    "message_id": "string",
+    "ingestion_id": "string",
     "status": "accepted"
   }
   ```
@@ -130,7 +130,7 @@ Alternatywny kanał do streamowania odpowiedzi agenta (prostszy niż WebSocket).
 ## 4. Uwagi
 
 - To jest największa luka między backendem a frontendem. Backend nie ma w ogóle koncepcji czatu ani interakcji user↔agent.
-- `MessageRouter` istnieje ale służy do routowania wiadomości między komponentami systemu — to nie to samo co chat.
+- `Ingestion` istnieje ale służy do routowania wiadomości między komponentami systemu — to nie to samo co chat.
 - Na początek można zrobić prosty model: wiadomość usera → triggeruje wykonanie → zwraca response przez polling. WebSocket/SSE mogą być później.
 - Agent Status MFE używa `GET /api/v1/node-executions/{id}/result` — ten endpoint już istnieje.
 - Historia komunikacji (Execution Logs MFE) i User Input MFE dzielą te same endpointy czatu.

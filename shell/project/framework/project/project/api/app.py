@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.project.framework.project.project.api.router import router
@@ -29,7 +30,8 @@ def create_project_app(container: ContainerProtocol) -> FastAPI:
     app.include_router(router, prefix="/api/v1")
 
     @app.get("/health", tags=["Health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
+    mount_readiness(app, container)
     return app

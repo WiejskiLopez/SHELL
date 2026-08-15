@@ -1,0 +1,81 @@
+"""Architecture tests for bounded-context delivery bundle providers."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+
+_CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
+    (
+        "definition",
+        lambda: (
+            __import__(
+                "shell.definition.bootstrap.definition.container.definition_core_container",
+                fromlist=["DefinitionCoreContainer"],
+            ).DefinitionCoreContainer
+        ),
+    ),
+    (
+        "execution",
+        lambda: (
+            __import__(
+                "shell.execution.bootstrap.execution.container.execution_core_container",
+                fromlist=["ExecutionCoreContainer"],
+            ).ExecutionCoreContainer
+        ),
+    ),
+    (
+        "ingestion",
+        lambda: (
+            __import__(
+                "shell.ingestion.bootstrap.ingestion.container.ingestion_core_container",
+                fromlist=["IngestionCoreContainer"],
+            ).IngestionCoreContainer
+        ),
+    ),
+    (
+        "project",
+        lambda: (
+            __import__(
+                "shell.project.bootstrap.project.container.project_core_container",
+                fromlist=["ProjectCoreContainer"],
+            ).ProjectCoreContainer
+        ),
+    ),
+    (
+        "scheduling",
+        lambda: (
+            __import__(
+                "shell.scheduling.bootstrap.scheduling.container.scheduling_core_container",
+                fromlist=["SchedulingCoreContainer"],
+            ).SchedulingCoreContainer
+        ),
+    ),
+    (
+        "session",
+        lambda: (
+            __import__(
+                "shell.session.bootstrap.session.container.session_core_container",
+                fromlist=["SessionCoreContainer"],
+            ).SessionCoreContainer
+        ),
+    ),
+    (
+        "user",
+        lambda: (
+            __import__(
+                "shell.user.bootstrap.user.container.user_core_container",
+                fromlist=["UserCoreContainer"],
+            ).UserCoreContainer
+        ),
+    ),
+)
+
+
+def test_each_bc_container_exposes_local_persistence_bundle() -> None:
+    for bounded_context, container_factory in _CONTAINERS:
+        container = container_factory()()
+        assert container.persistence_delivery_models() is not None, bounded_context

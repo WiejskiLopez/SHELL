@@ -46,7 +46,7 @@ Każdy agregat w `shell/<bounded_context>/infrastructure/<bounded_context>/<aggr
 
 ### Uwagi szczególne
 
-- **`messaging/`** — wyjątek: `persistence/` na poziomie BC zamiast w `message_router/`, ponieważ BC ma tylko jeden agregat, a persistence zawiera modele współdzielone (inbox/outbox).
+- **`ingestion/`** — BC przyjmujący i normalizujący komunikację wejściową; techniczne mechanizmy event/message/command pozostają w `shell/platform/infrastructure/messaging/`.
 - **`scheduler_job/`** — agregat istnieje tylko w domenie (`shell/scheduling/domain/scheduling/aggregates/scheduler_job/`); brak implementacji w infrastrukturze.
 
 ### Struktura dla bounded context

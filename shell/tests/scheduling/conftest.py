@@ -9,13 +9,15 @@ import pytest
 from shell.platform.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
-    InMemoryUnitOfWork,
+)
+from shell.scheduling.infrastructure.scheduling.persistence.memory.unit_of_work import (
+    InMemorySchedulingUnitOfWork,
 )
 
 
 @pytest.fixture()
-def unit_of_work() -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork()
+def unit_of_work() -> InMemorySchedulingUnitOfWork:
+    return InMemorySchedulingUnitOfWork()
 
 
 @pytest.fixture()

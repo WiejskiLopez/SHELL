@@ -16,5 +16,4 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
     return GraphDefinitionDto(
         id=model.id,
         created_at=model.created_at,
-        node_definitions=[],
     )

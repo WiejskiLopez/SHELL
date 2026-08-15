@@ -14,8 +14,8 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    if os.environ.get("PG_TEST_URL") is None:
-        skip_pg = pytest.mark.skip(reason="PG_TEST_URL not set")
+    if os.environ.get("POSTGRES_TEST_URL") is None:
+        skip_pg = pytest.mark.skip(reason="POSTGRES_TEST_URL not set")
         for item in items:
             if "sql_postgres" in str(item.fspath):
                 item.add_marker(skip_pg)

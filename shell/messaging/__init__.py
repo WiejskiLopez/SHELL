@@ -1,1 +1,0 @@
-"""Messaging bounded context package."""

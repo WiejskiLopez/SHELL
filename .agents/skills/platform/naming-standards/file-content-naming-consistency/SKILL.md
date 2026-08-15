@@ -10,12 +10,12 @@ z `__init__.py` lub używany przez inne moduły.
 
 | Plik | Główny symbol | OK? |
 |---|---|---|
-| `message_router.py` | `MessageRouterModel` | ✅ |
-| `message.py` | `MessageRouterModel` | ❌ — brak `_router` |
-| `sql_message_router_repository.py` | `SqlMessageRouterRepository` | ✅ |
-| `sql_message_repository.py` | `SqlMessageRouterRepository` | ❌ — brak `_router` |
-| `message_router_entity_to_model.py` | `message_router_entity_to_model()` | ✅ |
-| `message_entity_to_model.py` | `message_router_entity_to_model()` | ❌ — brak `_router` |
+| `ingestion.py` | `IngestionModel` | ✅ |
+| `message.py` | `IngestionModel` | ❌ — brak `_router` |
+| `sql_ingestion_repository.py` | `SqlIngestionRepository` | ✅ |
+| `sql_message_repository.py` | `SqlIngestionRepository` | ❌ — brak `_router` |
+| `ingestion_entity_to_model.py` | `ingestion_entity_to_model()` | ✅ |
+| `message_entity_to_model.py` | `ingestion_entity_to_model()` | ❌ — brak `_router` |
 
 ## Konwersja PascalCase → snake_case
 
@@ -23,16 +23,16 @@ Nazwa pliku = `snake_case` wersja nazwy głównej klasy:
 
 | Klasa | Nazwa pliku |
 |---|---|
-| `MessageRouterModel` | `message_router.py` (lub `message_router_model.py`) |
-| `SqlMessageRouterRepository` | `sql_message_router_repository.py` |
-| `InMemoryMessageRouterRepository` | `in_memory_message_router_repository.py` |
+| `IngestionModel` | `ingestion.py` (lub `ingestion_model.py`) |
+| `SqlIngestionRepository` | `sql_ingestion_repository.py` |
+| `InMemoryIngestionRepository` | `in_memory_ingestion_repository.py` |
 
 Nazwa pliku = dokładna nazwa funkcji (dla mapperów, serwisów):
 
 | Funkcja | Nazwa pliku |
 |---|---|
-| `message_router_entity_to_model()` | `message_router_entity_to_model.py` |
-| `message_router_model_to_entity()` | `message_router_model_to_entity.py` |
+| `ingestion_entity_to_model()` | `ingestion_entity_to_model.py` |
+| `ingestion_model_to_entity()` | `ingestion_model_to_entity.py` |
 
 ## Wyjątki
 
@@ -44,8 +44,8 @@ Nazwa pliku = dokładna nazwa funkcji (dla mapperów, serwisów):
 ## Uzasadnienie
 
 - Konsekwentne nazewnictwo ułatwia nawigację: programista szukający
-  `MessageRouterModel` od razu wie, że plik to `message_router.py`.
+  `IngestionModel` od razu wie, że plik to `ingestion.py`.
 - Eliminuje niejednoznaczność gdy istnieje wiele powiązanych pojęć
-  (np. `message` generic vs `message_router` aggregate).
+  (np. `message` generic vs `ingestion` aggregate).
 - Zmniejsza ryzyko konfliktów importów (dwa pliki o nazwie `message.py`
   w różnych pakietach prowadzą do confusion).

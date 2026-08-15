@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-TRepository = TypeVar("TRepository")
-
 
 class UnitOfWork(Protocol):
-    def repository(self, repo_type: type[TRepository]) -> TRepository: ...
+    def repository(self, repo_type: type[Any]) -> Any: ...
 
     def stage_events(self, events: Sequence[object]) -> None: ...
 

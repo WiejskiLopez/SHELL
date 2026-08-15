@@ -26,8 +26,12 @@ router = APIRouter(prefix="/edge-links", tags=["EdgeLinkExecutions"])
 def get_edge_link_execution_controller(
     container: ContainerProtocol = Depends(get_core_container),
 ) -> EdgeLinkExecutionController:
-    command_bus = container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
-    query_bus = container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    command_bus = (
+        container.app.buses.command_bus if hasattr(container, "app") else container.command_bus()
+    )
+    query_bus = (
+        container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
+    )
     return EdgeLinkExecutionController(command_bus=command_bus, query_bus=query_bus)
 
 

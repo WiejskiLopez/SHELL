@@ -76,7 +76,7 @@ Każda zmiana modelu ORM (dodanie/usunięcie kolumny, zmiana typu, zmiana indeks
 
 Zasada inwersyjna: jeśli nowa migracja dodaje kolumnę, której model ORM nie ma (lub odwrotnie), jest to sygnał, że refaktoryzacja nie została domknięta.
 
-## Outbox / Messaging
+## Outbox / Ingestion
 
 - Transactional Outbox: zapis eventu w tej samej transakcji co domena
 - `outbox_event` tabela → `OutboxRelay` → EventPublisher
