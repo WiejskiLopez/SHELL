@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.execution.infrastructure.execution.workflow.persistence.sql.unit_of_work import (
+from shell.execution_service.infrastructure.execution.workflow.persistence.sql.unit_of_work import (
     SqlAlchemyWorkflowUnitOfWork,
 )
-from shell.execution.migrations.baseline import run_execution_baseline
+from shell.execution_service.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:

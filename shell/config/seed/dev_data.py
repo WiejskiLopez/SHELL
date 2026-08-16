@@ -158,10 +158,8 @@ def _seed_sessions(session: Session, users_data: list[dict[str, Any]]) -> None:
         is_closed = sd["status"] == "closed"
         sess = SessionModel(
             id=sd["id"],
-            goal=sd["goal"],
             status=sd["status"],
             user_id=sd["user_id"],
-            project_id="",
             created_at=_NOW,
             opened_at=_NOW,
             closed_at=_NOW if is_closed else None,

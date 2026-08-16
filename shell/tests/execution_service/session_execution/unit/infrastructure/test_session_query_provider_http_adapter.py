@@ -10,7 +10,7 @@ from shell.execution_service.domain.execution.aggregates.session_execution.value
 from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.session_reference import (
     SessionReference,
 )
-from shell.execution_service.infrastructure.execution.session_execution.http.session_query_provider_http_adapter import (
+from shell.execution_service.infrastructure.execution.session_execution.adapters.session_query_provider.session_query_provider_http_adapter import (
     SessionQueryProviderHttpAdapter,
 )
 
@@ -30,7 +30,7 @@ class TestSessionQueryProviderHttpAdapter:
         mock_client: AsyncMock,
     ) -> None:
         mock_client.get = AsyncMock(return_value=Mock(status_code=404))
-        result = await adapter.get_by_id("nonexistent-session")
+        result = await adapter.get_by_id(SessionIdRef("nonexistent-session"))
         assert result is None
 
     async def test_get_by_id_maps_response(
@@ -44,7 +44,7 @@ class TestSessionQueryProviderHttpAdapter:
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
-        result = await adapter.get_by_id("session-1")
+        result = await adapter.get_by_id(SessionIdRef("session-1"))
         assert isinstance(result, SessionReference)
         assert result.session_id == SessionIdRef("session-1")
 
@@ -59,7 +59,7 @@ class TestSessionQueryProviderHttpAdapter:
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
-        result = await adapter.get_by_id("session-2")
+        result = await adapter.get_by_id(SessionIdRef("session-2"))
         assert isinstance(result, SessionReference)
         assert result.session_id == SessionIdRef("session-2")
 
@@ -74,4 +74,4 @@ class TestSessionQueryProviderHttpAdapter:
             )
         )
         with pytest.raises(Exception, match="Server error"):
-            await adapter.get_by_id("session-1")
+            await adapter.get_by_id(SessionIdRef("session-1"))

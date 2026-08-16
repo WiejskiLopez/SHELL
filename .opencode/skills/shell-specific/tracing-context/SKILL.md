@@ -53,7 +53,6 @@ Funkcje dostępu (z tego samego modułu):
 |---------|-----------|---------|
 | `CorrelationIdMiddleware` (HTTP) | `correlation_id` | `request.headers["x-correlation-id"]` lub UUID |
 | `CorrelationIdAsyncClient` (HTTP out) | `X-Correlation-ID` header | `get_correlation_id()` |
-| `CorrelationIdInterceptor` (gRPC out) | `x-correlation-id` metadata | `get_correlation_id()` |
 | `EventInboxProcessor.run_once()` | `correlation_id`, `causation_id` | `correlation_id`=z wiersza inbox, `causation_id`=`domain_event.event_id` |
 | `CommandInboxProcessor.run_once()` | `correlation_id` | z wiersza inbox; `causation_id` resetowane do `""` |
 | `auto_correlation_id` (test fixture) | `correlation_id` | `f"test-{uuid.uuid4()}"` (autouse we wszystkich testach) |
@@ -68,7 +67,6 @@ Funkcje dostępu (z tego samego modułu):
 | `SqlAlchemyUnitOfWork.commit()` | `correlation_id` | `Envelope.transport_metadata["correlation_id"]` |
 | `graph_execution_entity_to_model()` | `correlation_id` | `graph_execution.correlation_id` |
 | `CorrelationIdAsyncClient` | `correlation_id` | HTTP header `X-Correlation-ID` |
-| `CorrelationIdInterceptor` | `correlation_id` | gRPC metadata `x-correlation-id` |
 | `JsonFormatter.format()` | `correlation_id` | Każda linia loga JSON |
 
 ## Modele SQL z kolumnami correlation/causation

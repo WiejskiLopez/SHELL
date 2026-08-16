@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class CreateSessionRequest(BaseModel):
-    goal: str = Field(..., min_length=1, max_length=1000)
+    pass

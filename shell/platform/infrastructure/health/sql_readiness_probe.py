@@ -61,13 +61,11 @@ class SqlReadinessProbe(ReadinessProbe):
                 checks["migrations"] = await self._check_migrations(session)
                 checks["worker"] = await self._check_worker(session)
                 checks["backlog"] = await self._check_backlog(session)
-                checks["legacy"] = await self._check_legacy(session)
         except Exception as exc:  # noqa: BLE001 — readiness must never raise
             checks["database"] = f"error: {type(exc).__name__}: {exc}"
             checks["migrations"] = "not checked"
             checks["worker"] = "not checked"
             checks["backlog"] = "not checked"
-            checks["legacy"] = "not checked"
 
         ready = all(isinstance(value, bool) and value is True for value in checks.values())
         return ReadinessReport(ready=ready, checks=checks)
@@ -136,14 +134,6 @@ class SqlReadinessProbe(ReadinessProbe):
         )
         backlog = result.scalar_one()
         return backlog <= self._max_backlog
-
-    async def _check_legacy(self, session: AsyncSession) -> bool:
-        result = await session.execute(
-            select(func.count())
-            .select_from(self._inbox_model)
-            .where(self._inbox_model.status == InboxStatus.LEGACY_REVIEW.value)
-        )
-        return result.scalar_one() == 0
 
     async def _database_now(self, session: AsyncSession) -> datetime:
         raw = (await session.execute(select(func.current_timestamp()))).scalar_one()

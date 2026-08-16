@@ -107,7 +107,7 @@ elseif (-not $UnitOnly -and -not $hasPostgres) {
 
 # Platform delivery integration (SQLite) + system + contracts — ALWAYS run,
 # regardless of Postgres/Rabbit availability. These are the ref2/ref4 critical
-# scenarios (atomicity, heartbeat, claim, legacy migration, readiness,
+# scenarios (atomicity, heartbeat, claim, readiness,
 # retention, replay, relay, two-BC flow) and must not silently skip.
 if (-not $UnitOnly) {
     Run-Command "$python -m pytest shell/tests/platform/integration/sql_sqlite -ra" "Platform Delivery SQLite Integration"

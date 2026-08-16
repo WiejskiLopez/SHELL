@@ -14,7 +14,7 @@ Dashboardy i readiness checks potrzebują liczb operacyjnych (ile wiadomości w 
 
 `MetricsBackend` to `Protocol` (`shell/platform/application/ports/metrics.py`) z trzema metodami, wszystkie z argumentami keyword-only:
 
-- `record_backlog(*, pending: int, processing: int, processed: int, retry: int, dead_letter: int, legacy_review: int, oldest_pending_age_seconds: float | None) -> None` — pełny snapshot backlogu,
+- `record_backlog(*, pending: int, processing: int, processed: int, retry: int, dead_letter: int, oldest_pending_age_seconds: float | None) -> None` — pełny snapshot backlogu,
 - `record_lease_expired(count: int) -> None` — liczba wygasłych dzierżaw,
 - `record_duplicate_delivery(count: int) -> None` — liczba zduplikowanych dostaw.
 
@@ -33,7 +33,6 @@ processing: int = 0
 processed: int = 0
 retry: int = 0
 dead_letter: int = 0
-legacy_review: int = 0
 total: int = 0
 oldest_pending_age_seconds: float | None = None
 by_status: dict[str, int] = field(default_factory=dict)

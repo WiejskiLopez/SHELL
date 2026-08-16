@@ -13,4 +13,3 @@ class InboxStatus(ValueObject, StrEnum):
     PROCESSED = "PROCESSED"
     RETRY = "RETRY"
     DEAD_LETTER = "DEAD_LETTER"
-    LEGACY_REVIEW = "LEGACY_REVIEW"

@@ -208,35 +208,3 @@ class TestWorkerHeartbeatReadiness:
         report = await probe.check()
         assert report.ready is False
         assert report.checks["worker"] is False
-
-    async def test_legacy_review_blocks_readiness(
-        self,
-        session_factory: async_sessionmaker,
-        tmp_path,
-    ) -> None:
-        isolated = await self._isolated(tmp_path)
-        async with isolated() as session:
-            session.add(
-                _INBOX_MODEL(
-                    id="evt-hb-legacy",
-                    event_type="SampleEvent",
-                    occurred_at=datetime.now(tz=UTC),
-                    payload={},
-                    correlation_id="corr",
-                    causation_id="cause",
-                    received_at=datetime.now(tz=UTC),
-                    status=InboxStatus.LEGACY_REVIEW.value,
-                )
-            )
-            await session.commit()
-
-        probe = SqlReadinessProbe(
-            isolated,
-            _INBOX_MODEL,
-            max_backlog=10,
-            worker_heartbeat_model=_WORKER_HEARTBEAT_MODEL,
-            worker_stale_after_seconds=30,
-        )
-        report = await probe.check()
-        assert report.ready is False
-        assert report.checks["legacy"] is False

@@ -8,7 +8,6 @@ from datetime import datetime
 class SessionDto:
     id: str
     user_id: str
-    goal: str
     status: str
     opened_at: datetime
     closed_at: datetime | None

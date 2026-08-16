@@ -30,7 +30,6 @@ class OpenSessionHandler:
         session = Session.open(
             id_=session_id,
             user_id=UserIdRef(command.user_id),
-            goal=command.goal,
             now=CreatedAt.from_datetime(self._clock.now()),
         )
         async with self._unit_of_work as unit_of_work:

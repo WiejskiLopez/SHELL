@@ -35,7 +35,7 @@ deklaruje *co* aplikacja potrzebuje, a adapter realizuje *jak*.
   i `MessagePublisher` (`async publish(messages: Sequence[object])`).
 - `metrics.py` — `MetricsBackend(Protocol)` — "pluggable sink" dla metryk
   backlogu inbox; metody `record_backlog(*, pending, processing, processed,
-  retry, dead_letter, legacy_review, oldest_pending_age_seconds)`,
+  retry, dead_letter, oldest_pending_age_seconds)`,
   `record_lease_expired(count)`, `record_duplicate_delivery(count)`.
 - `readiness.py` — `ReadinessReport` (frozen dataclass `ready: bool`,
   `checks: dict[str, object]`) oraz `ReadinessProbe`: `async check() -> ReadinessReport`.

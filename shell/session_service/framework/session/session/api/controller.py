@@ -44,7 +44,6 @@ def _to_response(dto: SessionDto) -> ApiSessionResponse:
     return ApiSessionResponse(
         id=dto.id,
         user_id=dto.user_id,
-        goal=dto.goal,
         status=dto.status,
         opened_at=dto.opened_at,
         closed_at=dto.closed_at,
@@ -97,7 +96,7 @@ class SessionController:
         self, body: ApiCreateSessionRequest, user_id: str
     ) -> ApiCreateSessionResponse:
         session_id = await self._command_bus.dispatch(
-            OpenSessionCommand(goal=body.goal, user_id=user_id)
+            OpenSessionCommand(user_id=user_id)
         )
         return ApiCreateSessionResponse(id=str(session_id))
 

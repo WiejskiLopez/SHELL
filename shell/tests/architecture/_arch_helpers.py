@@ -6,10 +6,38 @@ import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Iterator, Sequence
 
 SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent
 BASE = SHELL_SRC
+SERVICE_ROOTS = (BASE / "platform", *sorted(BASE.glob("*_service")))
+
+
+def architecture_failure(
+    rule: str,
+    expected: str,
+    violations: Sequence[str],
+    remediation: str | None = None,
+) -> str:
+    """Buduje spójny i użyteczny komunikat dla asercji architektonicznej."""
+    message = (
+        f"Złamana reguła: {rule}\n"
+        f"Powinno być: {expected}\n"
+        "Naruszenia:\n"
+        + "\n".join(violations)
+    )
+    if remediation:
+        message += f"\nJak naprawić: {remediation}"
+    return message
+
+
+def architecture_assertion_message(rule: str, expected: str, details: object) -> str:
+    """Buduje polski komunikat dla pojedynczej asercji architektonicznej."""
+    return (
+        f"Złamana reguła: {rule}\n"
+        f"Powinno być: {expected}\n"
+        f"Naruszenia: {details}"
+    )
 
 
 _EXCLUDED_DIRS = frozenset(
@@ -35,6 +63,30 @@ def iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
         if any(part in _EXCLUDED_DIRS for part in py_file.parts):
             continue
         yield py_file
+
+
+def iter_layer_files(layer: str) -> Iterator[pathlib.Path]:
+    """Iterate Python files in the platform and every bounded-context layer."""
+    for service_root in SERVICE_ROOTS:
+        yield from iter_py_files(service_root / layer)
+
+
+def iter_layer_dirs(layer: str, *parts: str) -> Iterator[pathlib.Path]:
+    """Iterate matching directories across platform and bounded contexts."""
+    for service_root in SERVICE_ROOTS:
+        directory = service_root / layer
+        if parts:
+            directory = directory.joinpath(*parts)
+        if directory.is_dir():
+            yield directory
+
+
+def iter_named_dirs(layer: str, name: str) -> Iterator[pathlib.Path]:
+    """Iterate directories with *name* below every service layer."""
+    for service_root in SERVICE_ROOTS:
+        layer_dir = service_root / layer
+        if layer_dir.is_dir():
+            yield from (path for path in layer_dir.rglob(name) if path.is_dir())
 
 
 def iter_domain_files() -> Iterator[pathlib.Path]:

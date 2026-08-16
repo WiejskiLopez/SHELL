@@ -22,7 +22,6 @@ class MetricsBackend(Protocol):
         processed: int,
         retry: int,
         dead_letter: int,
-        legacy_review: int,
         oldest_pending_age_seconds: float | None,
     ) -> None: ...
 

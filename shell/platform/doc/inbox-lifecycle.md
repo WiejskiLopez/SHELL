@@ -12,7 +12,7 @@ Rekord inbox przechodzi przez stany: oczekiwanie, przetwarzanie (z lease), retry
 
 ### InboxStatus
 
-`InboxStatus(ValueObject, StrEnum)` definiuje sześć wartości:
+`InboxStatus(ValueObject, StrEnum)` definiuje pięć wartości:
 
 ```
 PENDING        nowy rekord, oczekuje na claim (next_attempt_at <= now)
@@ -20,7 +20,6 @@ PROCESSING     zaclaimowany przez workera; lease_until = granica posiadania
 PROCESSED      przetworzony i potwierdzony (ack)
 RETRY          nieudany, zaplanowany na ponowną próbę (next_attempt_at = backoff)
 DEAD_LETTER    przekroczone max_retries (lub nieobsługiwany schema_version)
-LEGACY_REVIEW  status zarezerwowany w enumie dla przepływów review/migracji legacy
 ```
 
 Dziedziczenie po `ValueObject` + `StrEnum` daje wartości porównywalne jako stringi i traktowalne jako obiekty domeny. Domyślną wartością kolumny `status` jest `InboxStatus.PENDING.value`, więc każdy wiersz zaczyna w tym samym, jawnym stanie.
@@ -62,7 +61,7 @@ Kolumny `received_at`, `correlation_id`, `causation_id`, `payload` nie są w mix
 - `PROCESSING → RETRY` — `InboxProcessorBase._schedule_failure()` gdy nie przekroczono `max_retries`: ustawia `RETRY`, `next_attempt_at = now + backoff`, `retry_count = next_retry_count`, `error_code`, `error_message`.
 - `PROCESSING → DEAD_LETTER` — `_schedule_failure()` gdy `next_retry_count >= max_retries` lub błąd walidacji `UNSUPPORTED_SCHEMA_VERSION` (`immediate_dead_letter=True`): ustawia `DEAD_LETTER`, `failed_at`, loguje `critical`.
 
-Przejścia do `LEGACY_REVIEW` nie są produkowane przez procesor w tych źródłach — status jest częścią jawnego enuma (patrz też [legacy-migration](legacy-migration.md)).
+Przejścia między stanami realizowane są wyłącznie przez procesor i serwis claima; nie istnieją statusy zarezerwowane dla przepływów migracyjnych.
 
 ## Kluczowe pliki
 
@@ -78,6 +77,5 @@ Przejścia do `LEGACY_REVIEW` nie są produkowane przez procesor w tych źródł
 - [inbox-processor](inbox-processor.md)
 - [heartbeat-lease](heartbeat-lease.md)
 - [envelope-versioning](envelope-versioning.md)
-- [legacy-migration](legacy-migration.md)
 - [delivery-models](delivery-models.md)
 - [sqlalchemy-persistence](sqlalchemy-persistence.md)

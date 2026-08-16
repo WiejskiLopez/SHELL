@@ -147,19 +147,18 @@ class FileStorage(Protocol):
 
 ```
 # Porty
-shell/domain/platform/ports/                        # Uniwersalne porty (Clock, IdGenerator)
-shell/domain/<bc>/aggregates/<agregat>/repositories/ # Porty repozytoriów per agregat
-shell/domain/<bc>/aggregates/<agregat>/ports/         # Porty serwisów domenowych per agregat
-shell/application/<bc>/ports/                        # Porty aplikacyjne
+shell/domain/platform/ports/                        # Uniwersalne porty platformy (Clock, IdGenerator)
+shell/application/<bc>/ports/                       # Porty aplikacyjne
 
 # Adaptery
 shell/infrastructure/platform/time/                 # Adaptery uniwersalne (zegar)
 shell/infrastructure/platform/identity/             # Adaptery uniwersalne (IdGenerator)
-shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/  # Adaptery repozytoriów SQL
-shell/infrastructure/<bc>/<aggregate>/persistence/memory/            # Adaptery InMemory
 shell/infrastructure/<bc>/http/                     # HTTP adaptery
 shell/infrastructure/<bc>/acl/                      # Anti-Corruption Layer
 ```
+
+Porty wyjściowe konkretnego agregatu (katalogi `repositories/` i `ports/`) i ich
+adaptery opisują dedykowane wzorce: Repository, Aggregate Provider i Command Port.
 
 ## 9. Podsumowanie — Checklista
 

@@ -64,13 +64,13 @@ class LoginAuthSessionHandler:
         user_email = UserEmail(command.email)
 
         async with self._unit_of_work as unit_of_work:
-            user = await self._user_query_provider.get_by_email(user_email)
-            if user is None or user.status != UserStatus.ACTIVE:
+            user_reference = await self._user_query_provider.get_by_email(user_email)
+            if user_reference is None or user_reference.status != UserStatus.ACTIVE:
                 raise AuthSessionLoginDeniedError()
 
             active_auth_session = await unit_of_work.repository(
                 AuthSessionRepository
-            ).get_active_by_user_id(user.id, now)
+            ).get_active_by_user_id(user_reference.id, now)
             if active_auth_session is not None:
                 active_auth_session.renew_token(
                     Hash.of(raw_token), OccurredAt.from_datetime(now.value)
@@ -80,7 +80,7 @@ class LoginAuthSessionHandler:
                 auth_session = AuthSession.create(
                     id_=self._id_generator.new_id(AuthSessionId),
                     now=now,
-                    user_id=user.id,
+                    user_id=user_reference.id,
                     token_hash=Hash.of(raw_token),
                     expires_at=ExpiresAt.from_datetime(now.value + self._session_ttl),
                 )

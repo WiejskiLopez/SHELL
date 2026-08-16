@@ -147,38 +147,12 @@ async def handle(self, command: CompleteOrderCommand) -> str:
         unit_of_work.stage_events(order.pull_events())
 ```
 
-## Porty serwisów — definicja i implementacja
+## Porty — korzystanie z portów w handlerze
 
-- Wszystko czego agregat wymaga do podjęcia decyzji (kalkulacje, walidacje krzyżowe, dane z innych agregatów/subdomen/mikroserwisów) jest dostarczane przez **serwisy domenowe**.
-- Porty (Protocol) tych serwisów są definiowane w `shell/domain/<bc>/aggregates/<agregat>/services/` lub `shell/domain/<bc>/aggregates/<agregat>/ports/` — po stronie **konsumującego** agregatu.
+- Wszystko czego agregat wymaga do podjęcia decyzji (kalkulacje, walidacje krzyżowe, dane z innych agregatów/subdomen/mikroserwisów) jest dostarczane przez **porty zewnętrzne** (Provider dla odczytu, Command Port dla operacji).
 - Handler wstrzykuje implementacje tych portów, wywołuje je przed metodą agregatu i przekazuje wyniki (Value Objecty) jako parametry.
 - Agregat **nie ma bezpośrednich zależności do portów infrastrukturalnych** — dostaje wszystkie dane jako parametry wywołania.
-
-```python
-# Port zdefiniowany w domain/execution/aggregates/<agregat>/services/workflow_data_port.py
-# (konsumujący definiuje kontrakt)
-class WorkflowDataPort(Protocol):
-    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary: ...
-
-class EligibilityPort(Protocol):
-    async def check(self, customer_id: CustomerId) -> Eligibility: ...
-```
-
-### Implementacja adaptera
-
-Adaptery implementujące te porty znajdują się w `shell/infrastructure/<bc>/services/<nazwa_agregatu>/` — jeden folder grupuje wszystkie adaptery dla danego agregatu.
-
-Jeśli agregat zostanie wydzielony do osobnego mikroserwisu, zmienia się **tylko** zawartość tego folderu (z lokalnego repozytorium na HTTP). Port w domenie i handler w aplikacji pozostają bez zmian.
-
-```python
-# shell/infrastructure/execution/services/workflow/
-class SqlWorkflowDataAdapter:
-    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary:
-        model = await self._repo.get_by_id(workflow_id)
-        return self._mapper.to_summary(model)
-```
-
-
+- Definicje portów i adapterów opisują wzorce Aggregate Provider (odczyt) i Command Port (operacje).
 
 ## Zero decyzji w handlerze
 

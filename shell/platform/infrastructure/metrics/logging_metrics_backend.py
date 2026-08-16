@@ -25,18 +25,16 @@ class LoggingMetricsBackend:
         processed: int,
         retry: int,
         dead_letter: int,
-        legacy_review: int,
         oldest_pending_age_seconds: float | None,
     ) -> None:
         logger.info(
             "inbox.backlog pending=%s processing=%s processed=%s retry=%s dead_letter=%s "
-            "legacy_review=%s oldest_pending_age_seconds=%s",
+            "oldest_pending_age_seconds=%s",
             pending,
             processing,
             processed,
             retry,
             dead_letter,
-            legacy_review,
             oldest_pending_age_seconds,
         )
 

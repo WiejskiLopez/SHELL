@@ -28,7 +28,6 @@ class SessionQueryService:
             return SessionDto(
                 id=session_model.id,
                 user_id=session_model.user_id,
-                goal=session_model.goal,
                 status=session_model.status,
                 opened_at=session_model.opened_at,
                 closed_at=session_model.closed_at,
@@ -61,7 +60,6 @@ class SessionQueryService:
                 SessionDto(
                     id=row.id,
                     user_id=row.user_id,
-                    goal=row.goal,
                     status=row.status,
                     opened_at=row.opened_at,
                     closed_at=row.closed_at,

@@ -19,10 +19,6 @@ from shell.platform.infrastructure.messaging.event.event_worker import run_event
 from shell.platform.infrastructure.messaging.inbox.inbox_batch_result import (
     InboxBatchResult,
 )
-from shell.platform.infrastructure.messaging.inbox.inbox_legacy_migration import (
-    InboxLegacyMigration,
-    assert_inbox_ready,
-)
 from shell.platform.infrastructure.messaging.polling_worker import (
     PollingWorker,
     PollingWorkerConfig,
@@ -94,7 +90,6 @@ def main() -> None:
     parser.add_argument("--db-url", default=None)
     parser.add_argument("--api-key", default=None)
     parser.add_argument("--worker", action="store_true")
-    parser.add_argument("--run-legacy-migration", action="store_true")
     args = parser.parse_args()
 
     config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
@@ -128,16 +123,7 @@ def main() -> None:
 
     async def run() -> None:
         await run_user_baseline(database_url)
-        inbox_model = container.persistence_delivery_models().events.inbox
-        if args.run_legacy_migration:
-            counts = await InboxLegacyMigration(
-                container.session_factory(), inbox_model
-            ).classify_legacy_rows()
-            print(f"inbox legacy migration counts: {counts}")
-            await assert_inbox_ready(container.session_factory(), inbox_model)
-            return
         if args.worker:
-            await assert_inbox_ready(container.session_factory(), inbox_model)
             await asyncio.gather(_run_outbox_relay(container), _run_command_worker(container))
         else:
             await server.serve()

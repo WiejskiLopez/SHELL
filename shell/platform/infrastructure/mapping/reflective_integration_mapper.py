@@ -1,10 +1,4 @@
-"""Single reflective mapper — maps any domain event to its integration event.
-
-Uses naming convention: ``SessionOpenedEvent`` → ``SessionOpenedIntegrationEvent``
-and module path conventions for legacy BCs and the extracted ``shell.user_service`` BC.
-
-No per-aggregate mappers, no isinstance, no try/except, no fallbacks.
-"""
+"""Single reflective mapper for the current bounded-context event topology."""
 
 from __future__ import annotations
 
@@ -51,25 +45,20 @@ class ReflectiveIntegrationMapper:
         int_name = event_cls.__name__.replace("Event", "IntegrationEvent")
 
         parts = event_cls.__module__.split(".")
-        if parts[1] == "platform":
-            # shell.platform.domain.events.aggregate_deleted_event
-            # → shell.application.domain.integration_events.aggregate_deleted_integration_event
-            int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
-            full_mod = f"shell.application.domain.integration_events.{int_file}"
-        elif len(parts) > 5 and parts[2] == "domain":
-            # shell.<bc>_service.domain.<bc>.aggregates.<agg>.events.<file>
-            # → shell.<bc>_service.application.<bc>.<agg>.integration_events.<file>
-            bc = parts[3]
-            agg = parts[5]
-            int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
-            full_mod = f"shell.{bc}_service.application.{bc}.{agg}.integration_events.{int_file}"
-        else:
-            # shell.domain.<bc>.aggregates.<agg>.events.<file>
-            # → shell.application.<bc>.<agg>.integration_events.<file>
-            bc = parts[2]
-            agg = parts[4]
-            int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
-            full_mod = f"shell.application.{bc}.{agg}.integration_events.{int_file}"
+        if (
+            len(parts) <= 5
+            or parts[0] != "shell"
+            or not parts[1].endswith("_service")
+            or parts[2] != "domain"
+        ):
+            raise IntegrationMappingError(
+                f"Unsupported domain event module topology: {event_cls.__module__}"
+            )
+
+        bc = parts[1][:-len("_service")]
+        agg = parts[5]
+        int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
+        full_mod = f"shell.{bc}_service.application.{bc}.{agg}.integration_events.{int_file}"
 
         try:
             mod = importlib.import_module(full_mod)

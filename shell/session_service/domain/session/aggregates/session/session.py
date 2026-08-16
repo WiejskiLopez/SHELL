@@ -74,7 +74,6 @@ class Session(AggregateRoot[SessionId]):
         id_: SessionId,
         user_id: UserIdRef | None = None,
         now: CreatedAt | None = None,
-        goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
             user_id = UserIdRef.generate()
@@ -190,13 +189,6 @@ class Session(AggregateRoot[SessionId]):
     def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
-    # --- Legacy deprecated properties ---
-
-    @property
-    def goal(self) -> str:
-        """Deprecated: goal was replaced by structured state_inputs."""
-        return ""
-
     # --- Factory ---
 
     @classmethod
@@ -205,7 +197,6 @@ class Session(AggregateRoot[SessionId]):
         id_: SessionId,
         now: OccurredAt | None = None,
         user_id: UserIdRef | None = None,
-        goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
             user_id = UserIdRef.generate()

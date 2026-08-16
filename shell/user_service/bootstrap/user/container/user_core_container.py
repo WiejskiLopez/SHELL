@@ -90,14 +90,14 @@ from shell.user_service.application.user.user_state.queries.get_user_state_by_id
 from shell.user_service.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
     GetUserStateByIdHandler,
 )
-from shell.user_service.infrastructure.user.auth_session.persistence.sql.services.auth_session_query_service import (
-    AuthSessionQueryService,
-)
-from shell.user_service.infrastructure.user.auth_session.services.secure_token_generator import (
+from shell.user_service.infrastructure.user.auth_session.adapters.token_generator.secure_token_generator import (
     SecureTokenGenerator,
 )
-from shell.user_service.infrastructure.user.auth_session.services.user_query_provider import (
-    SqlUserQueryProvider,
+from shell.user_service.infrastructure.user.auth_session.adapters.user_query_provider.user_query_provider_sql_adapter import (
+    UserQueryProviderSqlAdapter,
+)
+from shell.user_service.infrastructure.user.auth_session.persistence.sql.services.auth_session_query_service import (
+    AuthSessionQueryService,
 )
 from shell.user_service.infrastructure.user.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS,
@@ -248,7 +248,7 @@ class UserCoreContainer(containers.DeclarativeContainer):
         session_factory=session_factory,
     )
     user_query_provider = providers.Singleton(
-        SqlUserQueryProvider,
+        UserQueryProviderSqlAdapter,
         queries=user_query_service,
     )
     token_generator_factory = providers.Factory(SecureTokenGenerator)

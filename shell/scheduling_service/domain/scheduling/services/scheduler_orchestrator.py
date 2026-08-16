@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Any
 
 from shell.platform.domain.value_objects.changed_at import ChangedAt
@@ -50,7 +49,7 @@ class SchedulerOrchestrator:
             status=ExecutionStatus.PENDING,
             trigger_event_id=TriggerEventId(trigger_event_id) if trigger_event_id else None,
             trigger_event_type=TriggerEventType(trigger_event_type) if trigger_event_type else None,
-            input_state=StateData(JsonStr(json.dumps(input_state))) if input_state else None,
+            input_state=StateData(JsonStr.from_object(input_state)) if input_state else None,
             created_at=CreatedAt.from_datetime(now.value),
             changed_at=ChangedAt.from_datetime(now.value),
         )
@@ -99,7 +98,7 @@ class SchedulerOrchestrator:
             execution.fail(error=ErrorDescription(error), now=now)
         else:
             execution.complete(
-                output_state=StateData(JsonStr(json.dumps(output_state))) if output_state else None,
+                output_state=StateData(JsonStr.from_object(output_state)) if output_state else None,
                 now=now,
             )
         return execution.pull_events()

@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 
 def session_change_model(model: SessionModel, entity: Session) -> None:
-    model.goal = entity.goal
     model.status = entity._status
     model.user_id = entity.user_id.value
     model.opened_at = entity.opened_at.value

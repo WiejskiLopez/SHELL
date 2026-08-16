@@ -8,7 +8,7 @@ from shell.tests.session_service.e2e.conftest import TEST_USER_ID, make_session_
 async def test_session_standalone_create_and_list(tmp_path) -> None:
     app = await make_session_app(tmp_path)
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        create_response = await client.post("/api/v1/sessions/", json={"goal": "standalone"})
+        create_response = await client.post("/api/v1/sessions/", json={})
         assert create_response.status_code == 201
         session_id = create_response.json()["id"]
 

@@ -19,7 +19,7 @@ _LATER_DT = ChangedAt.from_datetime(datetime(2025, 1, 2, tzinfo=UTC))
 
 class TestSession:
     def _make_session(self) -> Session:
-        return Session.open(id_=SessionId.generate(), goal="do stuff", now=_NOW)
+        return Session.open(id_=SessionId.generate(), now=_NOW)
 
     def test_open_creates_open_session(self) -> None:
         s = self._make_session()

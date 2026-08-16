@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 def session_entity_to_model(session: Session) -> SessionModel:
     return SessionModel(
         id=session.id.value,
-        goal=session.goal,
         status=session._status.value,
         user_id=session.user_id.value,
         created_at=session.created_at.value,

@@ -87,7 +87,7 @@ class TestReflectiveIntegrationMapper:
 
     def test_unknown_event_type_raises(self) -> None:
         class FakeEvent:
-            __module__ = "shell.domain.fake.aggregates.fake.events.fake_event"
+            __module__ = "legacy.domain.fake.aggregates.fake.events.fake_event"
             __name__ = "FakeEvent"
             event_id = type("id", (), {"value": "x"})()
             occurred_at = type("oa", (), {"value": datetime(2025, 1, 1, tzinfo=UTC)})()
@@ -95,14 +95,14 @@ class TestReflectiveIntegrationMapper:
             aggregate_name = type("n", (), {"value": ""})()
             schema_version = type("v", (), {"value": 1})()
 
-        with pytest.raises(IntegrationMappingError, match="Cannot find integration event"):
+        with pytest.raises(IntegrationMappingError, match="Unsupported domain event module topology"):
             self._mapper.map(FakeEvent())
 
     def test_unknown_event_type_is_still_a_value_error(self) -> None:
         """IntegrationMappingError must remain catchable as ValueError."""
 
         class FakeEvent:
-            __module__ = "shell.domain.fake.aggregates.fake.events.fake_event"
+            __module__ = "legacy.domain.fake.aggregates.fake.events.fake_event"
             __name__ = "FakeEvent"
             event_id = type("id", (), {"value": "x"})()
             occurred_at = type("oa", (), {"value": datetime(2025, 1, 1, tzinfo=UTC)})()

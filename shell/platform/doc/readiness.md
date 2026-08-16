@@ -28,13 +28,12 @@ class ReadinessProbe(Protocol):
 
 Konstruktor: `session_factory`, `inbox_model: type[InboxStateModel]`, `max_backlog: int = 1000`, `worker_heartbeat_model: type[_WorkerHeartbeatReadModel] | None = None`, `worker_stale_after_seconds: float = 30.0`.
 
-`check()` wykonuje kolejno pięć sprawdzeń w jednej sesji:
+`check()` wykonuje kolejno cztery sprawdzenia w jednej sesji:
 
 - `database` — realny round-trip: `await session.execute(text("SELECT 1"))`,
 - `migrations` — `select(func.count()).select_from(self._inbox_model)`; tabela istnieje tylko po uruchomieniu baseline (patrz [delivery-models](delivery-models.md)); błąd → `False`,
 - `worker` — liveness workera (szczegóły niżej),
-- `backlog` — `count(status IN (PENDING, RETRY)) <= max_backlog`,
-- `legacy` — `count(status == LEGACY_REVIEW) == 0` (patrz [legacy-migration](legacy-migration.md)).
+- `backlog` — `count(status IN (PENDING, RETRY)) <= max_backlog`.
 
 Żadne sprawdzenie nie rzuca wyjątkiem: całość jest owinięta w `try/except Exception`, a w razie błędu `checks["database"]` dostaje `f"error: {type(exc).__name__}: {exc}"`, a pozostałe — `"not checked"`. `ready` to `all(isinstance(value, bool) and value is True for value in checks.values())`, więc endpoint może odpowiedzieć `503` z treścią diagnostyczną zamiast 500.
 
@@ -95,5 +94,4 @@ Analogiczne rejestracje istnieją w kontenerach BC: `definition`, `project`, `se
 - [delivery-models](delivery-models.md)
 - [heartbeat-lease](heartbeat-lease.md)
 - [metrics](metrics.md)
-- [legacy-migration](legacy-migration.md)
 - [polling-worker](polling-worker.md)

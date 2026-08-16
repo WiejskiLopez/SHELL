@@ -7,23 +7,26 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.execution.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+from shell.execution_service.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
-from shell.execution.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
     ProjectIdRef,
 )
-from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
+from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
-from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.execution.domain.execution.aggregates.workflow.workflow import Workflow
+from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.execution_service.domain.execution.aggregates.workflow.workflow import Workflow
 from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.execution.infrastructure.execution.workflow.persistence.sql.unit_of_work import (
+from shell.execution_service.infrastructure.execution.workflow.persistence.sql.unit_of_work import (
     SqlAlchemyWorkflowUnitOfWork,
+)
+from shell.execution_service.infrastructure.execution.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
 )
 
 if TYPE_CHECKING:
@@ -47,8 +50,14 @@ class TestRepoDebug:
             project_id=ProjectIdRef("project-id"),
         )
 
-        uow_a = SqlAlchemyWorkflowUnitOfWork(session_factory)
-        uow_b = SqlAlchemyWorkflowUnitOfWork(session_factory)
+        uow_a = SqlAlchemyWorkflowUnitOfWork(
+            session_factory,
+            models=PERSISTENCE_DELIVERY_MODELS,
+        )
+        uow_b = SqlAlchemyWorkflowUnitOfWork(
+            session_factory,
+            models=PERSISTENCE_DELIVERY_MODELS,
+        )
 
         async with uow_a as ua:
             await ua.repository(WorkflowRepository).save(wf)

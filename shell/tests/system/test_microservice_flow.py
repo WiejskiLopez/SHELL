@@ -41,7 +41,7 @@ from shell.user_service.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
 )
-from shell.user_service.infrastructure.user.auth_session.services.secure_token_generator import (
+from shell.user_service.infrastructure.user.auth_session.adapters.token_generator.secure_token_generator import (
     SecureTokenGenerator,
 )
 from shell.user_service.infrastructure.user.persistence.sql.models.base import (

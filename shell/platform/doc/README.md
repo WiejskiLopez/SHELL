@@ -57,7 +57,6 @@ DDD, CQRS, transactional outbox, inbox z lease, at-least-once).
 - [processed-delivery-dedup](processed-delivery-dedup.md) — Deduplikacja `processed_delivery`
 - [heartbeat-lease](heartbeat-lease.md) — Odnawianie lease i limit czasu batcha
 - [replay](replay.md) — Bezpieczny replay administracyjny
-- [legacy-migration](legacy-migration.md) — Migracja legacy i guardrail startu workera
 - [retention](retention.md) — Retencja DLQ i `processed_delivery`
 - [delivery-transport](delivery-transport.md) — Port i adaptery transportu (RabbitMQ)
 - [relay](relay.md) — Relay outbox→transport oraz outbox→inbox
@@ -65,7 +64,7 @@ DDD, CQRS, transactional outbox, inbox z lease, at-least-once).
 - [delivery-models](delivery-models.md) — Modele persistence delivery (bundle per BC)
 - [polling-worker](polling-worker.md) — Worker cykliczny z backoff i heartbeat
 - [metrics](metrics.md) — Metryki backlogu przez port MetricsBackend
-- [readiness](readiness.md) — Readiness (DB, migracje, worker, backlog, legacy)
+- [readiness](readiness.md) — Readiness (DB, migracje, worker, backlog)
 
 ### Framework i API
 

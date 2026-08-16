@@ -153,7 +153,7 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 - Piszesz Query Service → `shell/<bc>/application/<bc>/query_services/<nazwa_agregatu>/` (patrz [query-handler-structure](../../pattern-standards/query-handler-structure/SKILL.md#query-service--lokalizacja-per-agregat))
 - Piszesz handler z zasadami między-domenowymi → `references/application-handlers.md`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
-- Implementujesz adapter danych międzyagregatowych → `shell/<bc>/infrastructure/<bc>/services/<nazwa_agregatu>/` (patrz [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval))
+- Implementujesz adapter danych międzyagregatowych → wzorce Aggregate Provider (odczyt) i Command Port (operacje); porty w `ports/`, adaptery w `infrastructure/<bc>/<aggregate>/adapters/<nazwa>/`
 - Projektujesz integrację tylko do odczytu albo operację na innym BC → `provider-service-separation` (Provider vs Service, lokalne mapowanie kontraktów i własność portu)
 - Piszesz Event Handler → `shell/<bc>/application/<bc>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
@@ -167,7 +167,7 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 1. **Domain**: VO / Entity / Aggregate Root / Event / Exception / Service / Repository Port w `domain/`
 2. **Application**: Atomowy Command/Query + Handler + DTO + Mapper w `application/`; Query Services w `query_services/<nazwa_agregatu>/`
 3. **Process** (jeśli potrzeba orkiestracji): Saga/Process Manager + handlers + commands + ports w `process/`
-4. **Infrastructure**: ORM Model + migracja Alembic + SQL Repository + InMemory Repository + adaptery serwisów międzyagregatowych w `infrastructure/<bc>/services/<nazwa_agregatu>/`
+4. **Infrastructure**: ORM Model + migracja Alembic + SQL Repository + InMemory Repository + adaptery portów międzyagregatowych (wzorce Aggregate Provider / Command Port)
 5. **DI**: Container + Factory w `bootstrap/`
 6. **Framework**: Router FastAPI albo komenda CLI w `framework/`
 7. **Testy**: unit (domain + application + process) + integration (SQLite) + E2E

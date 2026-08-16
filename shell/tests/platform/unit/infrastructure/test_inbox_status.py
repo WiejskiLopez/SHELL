@@ -12,7 +12,6 @@ class TestInboxStatus:
         assert InboxStatus.PROCESSED.value == "PROCESSED"
         assert InboxStatus.RETRY.value == "RETRY"
         assert InboxStatus.DEAD_LETTER.value == "DEAD_LETTER"
-        assert InboxStatus.LEGACY_REVIEW.value == "LEGACY_REVIEW"
 
     def test_all_members_covered(self) -> None:
         assert set(InboxStatus) == {
@@ -21,7 +20,6 @@ class TestInboxStatus:
             InboxStatus.PROCESSED,
             InboxStatus.RETRY,
             InboxStatus.DEAD_LETTER,
-            InboxStatus.LEGACY_REVIEW,
         }
 
     def test_is_value_object_and_strenum(self) -> None:

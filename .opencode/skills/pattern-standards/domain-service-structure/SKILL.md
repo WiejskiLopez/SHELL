@@ -55,62 +55,16 @@ class PricingService:
         ...
 ```
 
-## Porty do pobierania danych międzyagregatowych
-
-Porty te służą do pobierania danych z innych agregatów (w obrębie tego samego BC, subdomeny lub zewnętrznego mikroserwisu) i są definiowane po stronie **konsumującego** BC.
-
-- Port (Protocol) definiowany jest w `shell/domain/<bc>/aggregates/<agregat>/services/` lub `shell/domain/<bc>/aggregates/<agregat>/ports/`.
-- Port zwraca tylko i wyłącznie Value Objecty domeny konsumującej — nigdy surowych DTO źródła.
-- Każda metoda portu jest asynchroniczna — dane z innego agregatu/mikroserwisu są zawsze pobierane async.
-- Port jest własnością potrzebującego: jeśli agregat A potrzebuje danych z agregatu B, port ląduje w `shell/domain/<konsumujący_bc>/aggregates/<agregat_a>/ports/`, nie w `shell/domain/<źródłowy_bc>/aggregates/<agregat_b>/`.
-
-```python
-# shell/domain/execution/aggregates/graph_execution/services/workflow_data_port.py
-class WorkflowDataPort(Protocol):
-    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary: ...
-    async def get_active_workflows(self, owner_id: UserId) -> list[WorkflowSummary]: ...
-```
-
-```python
-# shell/domain/execution/aggregates/graph_execution/ports/eligibility_port.py
-class EligibilityPort(Protocol):
-    async def check(self, customer_id: CustomerId) -> Eligibility: ...
-```
-
-### Zasady
-
-1. **Port definiuje konsumujący** — to konsumujący wie jakie dane i w jakiej formie potrzebuje.
-2. **Mapowanie na VO w adapterze** — adapter w infrastrukturze mapuje surową odpowiedź źródła na VO domeny konsumującej.
-3. **Async zawsze** — pobieranie danych spoza agregatu jest zawsze asynchroniczne (nawet jeśli lokalne).
-4. **Minimalizacja coupling** — jeśli agregat B zostanie wydzielony do osobnego mikroserwisu, zmienia się tylko adapter w infrastrukturze (z lokalnego repozytorium na HTTP). Port w domenie i cały kod go używający pozostaje bez zmian. Całość implementacji dla danego agregatu znajduje się w jednym folderze `infrastructure/<bc>/services/<nazwa_agregatu>/`, co umożliwia łatwe wycięcie.
-
-```python
-# Zmiana adaptera przy ekstrakcji mikroserwisu:
-
-# Przed: adapter lokalny
-class LocalWorkflowDataAdapter:
-    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary:
-        workflow = await self._repo.get_by_id(workflow_id)
-        return self._mapper.to_summary(workflow)
-
-# Po: adapter HTTP (reszta systemu bez zmian)
-class HttpWorkflowDataAdapter:
-    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary:
-        raw = await self._http_client.get(f"/workflows/{workflow_id.value}/summary")
-        return WorkflowSummary.from_dict(raw)
-```
-
-> **Implementacja adapterów → [port-adapter-structure](../port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval)**
-
 ## DI
 
 - Wtryskiwany przez DI jako singleton.
 
 ## Lokalizacja
 
-- Porty serwisów domenowych: `shell/domain/<bc>/services/`
-- Porty do pobierania danych międzyagregatowych: `shell/domain/<bc>/services/`
-- Adaptery: `shell/infrastructure/<bc>/services/<nazwa_agregatu>/`
+- Domain Services: `shell/domain/<bc>/aggregates/<agregat>/services/`
+
+Lokalizację portów komunikacji międzyagregatowej (katalog `ports/`) i ich adapterów
+opisują dedykowane wzorce: Aggregate Provider i Command Port.
 
 ## Bezpieczeństwo
 

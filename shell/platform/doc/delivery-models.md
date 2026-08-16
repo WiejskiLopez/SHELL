@@ -94,7 +94,7 @@ Index(f"ix_{table_name}_status_next_attempt_received", "status", "next_attempt_a
 Index(f"ix_{table_name}_status_lease_until", "status", "lease_until"),
 ```
 
-Stany w `InboxStatus` (`shell/platform/domain/value_objects/inbox_status.py`, `ValueObject` + `StrEnum`): `PENDING`, `PROCESSING`, `PROCESSED`, `RETRY`, `DEAD_LETTER`, `LEGACY_REVIEW`.
+Stany w `InboxStatus` (`shell/platform/domain/value_objects/inbox_status.py`, `ValueObject` + `StrEnum`): `PENDING`, `PROCESSING`, `PROCESSED`, `RETRY`, `DEAD_LETTER`.
 
 Uwaga: `InboxMessageModel` dodatkowo nadpisuje `__table_args__`, dodając `Index("ix_inbox_message_processed_at", "processed_at")` przed indeksami z mixinu.
 

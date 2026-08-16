@@ -51,7 +51,7 @@ class TestSqlSessionRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         session_id = await OpenSessionHandler(sql_uow, clock, id_generator).handle(
-            OpenSessionCommand(goal="integration test", user_id="integration-user")
+            OpenSessionCommand(user_id="integration-user")
         )
         await CloseSessionHandler(sql_uow, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
@@ -74,7 +74,6 @@ class TestSqlSessionRepository:
                     SessionModel(
                         id="session-user-a-old",
                         user_id="user-a",
-                        goal="old",
                         status="OPEN",
                         created_at=created_at,
                         opened_at=created_at,
@@ -82,7 +81,6 @@ class TestSqlSessionRepository:
                     SessionModel(
                         id="session-user-a-new",
                         user_id="user-a",
-                        goal="new",
                         status="OPEN",
                         created_at=created_at + timedelta(days=1),
                         opened_at=created_at + timedelta(days=1),
@@ -90,7 +88,6 @@ class TestSqlSessionRepository:
                     SessionModel(
                         id="session-user-b",
                         user_id="user-b",
-                        goal="other",
                         status="OPEN",
                         created_at=created_at + timedelta(days=2),
                         opened_at=created_at + timedelta(days=2),

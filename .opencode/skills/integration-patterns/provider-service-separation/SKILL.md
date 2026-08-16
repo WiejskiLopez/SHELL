@@ -94,22 +94,8 @@ Dla endpointów złożonych z wielu agregatów nazwij response read modelem, np.
 
 ## Lokalizacja
 
-Port providera lub serwisu:
-
-```text
-shell/<consumer>/domain/<consumer>/aggregates/<aggregate>/ports/
-```
-
-albo `services/`, jeśli repozytorium danego BC używa tej konwencji.
-
-Implementacja adaptera:
-
-```text
-shell/<consumer>/infrastructure/<consumer>/<aggregate>/http/providers/<provider>/
-shell/<consumer>/infrastructure/<consumer>/<aggregate>/http/services/<service>/
-```
-
-Dla prostych adapterów lokalnych dopuszczalne są odpowiednie katalogi `services/` w infrastrukturze agregatu. Nie umieszczaj portu w BC źródłowym.
+Lokalizację portów (katalog `ports/` — odczyt i operacje razem) oraz adapterów
+opisują wzorce Aggregate Provider i Command Port. Nie umieszczaj portu w BC źródłowym.
 
 ## Synchronicznie czy asynchronicznie
 

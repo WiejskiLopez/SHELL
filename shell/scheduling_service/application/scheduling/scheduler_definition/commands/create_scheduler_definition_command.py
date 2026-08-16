@@ -12,3 +12,7 @@ class CreateSchedulerDefinitionCommand:
     execution_policy: dict[str, Any]
     enabled: bool = True
     description: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.name:
+            raise ValueError("name cannot be empty")

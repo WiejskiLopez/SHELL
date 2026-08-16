@@ -6,9 +6,6 @@ from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import (
     InboxClaimService,
     InboxStateModel,
 )
-from shell.platform.infrastructure.messaging.inbox.inbox_legacy_migration import (
-    InboxLegacyMigration,
-)
 from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import (
     InboxMetrics,
     InboxMetricsService,
@@ -22,7 +19,6 @@ from shell.platform.infrastructure.messaging.inbox.inbox_replay_service import (
 
 __all__ = [
     "InboxClaimService",
-    "InboxLegacyMigration",
     "InboxMetrics",
     "InboxMetricsService",
     "InboxProcessorBase",

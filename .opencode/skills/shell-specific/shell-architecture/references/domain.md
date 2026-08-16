@@ -11,8 +11,8 @@ shell/domain/
 │   │   ├── <agregat>.py
 │   │   ├── entities/             # Child entities
 │   │   ├── events/               # Domain Events
-│   |   ├── repositories/         # Porty repozytoriów
-│   |   ├── ports/                # Porty serwisow innych aggregatow, a ich adaptery beda w infrastrukturze
+│   |   ├── repositories/         # Porty repozytoriów (własna persystencja)
+│   |   ├── ports/                # Porty zewnętrzne — odczyt (Provider) i operacje (Command Port)
 |   │   ├── services/             # Domain Services
 |   │   ├── specifications/       # Specification classes
 |   │   ├── exceptions/           # Domain Exceptions

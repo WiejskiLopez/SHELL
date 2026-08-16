@@ -41,7 +41,6 @@ class InboxMetrics:
     processed: int = 0
     retry: int = 0
     dead_letter: int = 0
-    legacy_review: int = 0
     total: int = 0
     oldest_pending_age_seconds: float | None = None
     by_status: dict[str, int] = field(default_factory=dict)
@@ -87,7 +86,6 @@ class InboxMetricsService:
             processed=by_status.get(InboxStatus.PROCESSED.value, 0),
             retry=by_status.get(InboxStatus.RETRY.value, 0),
             dead_letter=by_status.get(InboxStatus.DEAD_LETTER.value, 0),
-            legacy_review=by_status.get(InboxStatus.LEGACY_REVIEW.value, 0),
             total=sum(by_status.values()),
             oldest_pending_age_seconds=self._age_seconds(oldest),
             by_status=by_status,
@@ -105,7 +103,6 @@ class InboxMetricsService:
                 processed=metrics.processed,
                 retry=metrics.retry,
                 dead_letter=metrics.dead_letter,
-                legacy_review=metrics.legacy_review,
                 oldest_pending_age_seconds=metrics.oldest_pending_age_seconds,
             )
         except Exception:

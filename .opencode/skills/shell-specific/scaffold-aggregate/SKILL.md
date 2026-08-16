@@ -711,6 +711,6 @@ To samo podejście — zmiana w 7 miejscach, żadnej magii.
 - [id-naming-convention](../../naming-standards/id-naming-convention/SKILL.md) — konwencja ID UserId ↔ user_id
 - [aggregate-structure](../../pattern-standards/aggregate-structure/SKILL.md) — struktura Aggregate Root
 - [mapper-structure](../../pattern-standards/mapper-structure/SKILL.md) — mapowanie między warstwami
-- [repository-structure](../../pattern-standards/repository-structure/SKILL.md) — porty i implementacje
+- [repository](../../infrastructure-layer/repository/SKILL.md) — porty i implementacje
 - [command-handler-structure](../../pattern-standards/command-handler-structure/SKILL.md) — struktura handlerów
 - [backend-api-standards](../backend-api-standards/SKILL.md) — tagi, DTO, endpointy

@@ -298,6 +298,6 @@ Handler:                  session.user_id  →  UserIdRef('abc-123')
 - [class-and-type-naming-standards](../class-and-type-naming-standards/SKILL.md) — PascalCase dla klas ID, IdRef pattern
 - [value-object-structure](../../pattern-standards/value-object-structure/SKILL.md) — struktura ValueObject, EntityId base class
 - [mapper-structure](../../pattern-standards/mapper-structure/SKILL.md) — symetryczne mapowanie między warstwami
-- [repository-structure](../../pattern-standards/repository-structure/SKILL.md) — porty z typowanymi ID, implementacja SQL
+- [repository](../../infrastructure-layer/repository/SKILL.md) — porty z typowanymi ID, implementacja SQL
 - [variable-and-parameter-naming-standards](../variable-and-parameter-naming-standards/SKILL.md) — zmienne z sufiksem `_id`
 - [file-naming-standards](../file-naming-standards/SKILL.md) — pliki `task_execution_id.py` dla `TaskExecutionId`

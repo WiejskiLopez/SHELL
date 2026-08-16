@@ -313,7 +313,7 @@ class TestGraphExecutionMapper:
 
 
 # ---------------------------------------------------------------------------
-# Session  (model_to_entity buggy: passes unexpected 'goal' kwarg)
+# Session
 # ---------------------------------------------------------------------------
 
 

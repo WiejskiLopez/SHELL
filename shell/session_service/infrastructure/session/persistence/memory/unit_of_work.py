@@ -9,8 +9,14 @@ from shell.platform.infrastructure.mapping.reflective_integration_mapper import 
 from shell.session_service.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
+from shell.session_service.domain.session.aggregates.session_state.repositories.session_state_repository import (
+    SessionStateRepository,
+)
 from shell.session_service.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
+)
+from shell.session_service.infrastructure.session.session_state.persistence.memory.in_memory_session_state_repository import (
+    InMemorySessionStateRepository,
 )
 
 if TYPE_CHECKING:
@@ -24,6 +30,7 @@ TRepository = TypeVar("TRepository")
 class InMemorySessionUnitOfWork(UnitOfWork):
     def __init__(self, mapper: Any | None = None) -> None:
         self._session_repository = InMemorySessionRepository()
+        self._session_state_repository = InMemorySessionStateRepository()
         self._mapper = mapper or ReflectiveIntegrationMapper()
 
         self._committed = False
@@ -35,6 +42,8 @@ class InMemorySessionUnitOfWork(UnitOfWork):
         repos: dict[type, object] = {
             InMemorySessionRepository: self._session_repository,
             SessionRepository: self._session_repository,
+            InMemorySessionStateRepository: self._session_state_repository,
+            SessionStateRepository: self._session_state_repository,
         }
         repo = repos.get(repo_type)
         if repo is None:

@@ -14,7 +14,7 @@ from shell.execution_service.domain.execution.aggregates.graph_execution.value_o
 from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_definition_reference import (
     GraphDefinitionReference,
 )
-from shell.execution_service.infrastructure.execution.graph_execution.http.providers.graph_execution_definition.graph_execution_definition_provider_http_adapter import (
+from shell.execution_service.infrastructure.execution.graph_execution.adapters.graph_execution_definition.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
 
@@ -34,7 +34,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         mock_client: AsyncMock,
     ) -> None:
         mock_client.get = AsyncMock(return_value=Mock(status_code=404))
-        result = await adapter.get_graph_definition("nonexistent-id")
+        result = await adapter.get_graph_definition(GraphDefinitionIdRef("nonexistent-id"))
         assert result is None
         mock_client.get.assert_awaited_once_with("/api/v1/graph-definitions/nonexistent-id")
 
@@ -50,7 +50,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
-        result = await adapter.get_graph_definition("def-123")
+        result = await adapter.get_graph_definition(GraphDefinitionIdRef("def-123"))
         assert isinstance(result, GraphDefinitionReference)
         assert result.graph_definition_id == GraphDefinitionIdRef("def-123")
 
@@ -96,4 +96,4 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
             )
         )
         with pytest.raises(Exception, match="Server error"):
-            await adapter.get_graph_definition("def-123")
+            await adapter.get_graph_definition(GraphDefinitionIdRef("def-123"))

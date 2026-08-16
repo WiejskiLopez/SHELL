@@ -48,7 +48,7 @@ class TestSessionHandlers:
         queries: InMemorySessionQueryService,
     ) -> None:
         session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
-            OpenSessionCommand(goal="do work", user_id="user-1")
+            OpenSessionCommand(user_id="user-1")
         )
         dto = await GetSessionHistoryHandler(queries).handle(
             GetSessionHistoryQuery(session_id=session_id.value)
@@ -64,7 +64,7 @@ class TestSessionHandlers:
         queries: InMemorySessionQueryService,
     ) -> None:
         session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
-            OpenSessionCommand(goal="close test", user_id="user-1")
+            OpenSessionCommand(user_id="user-1")
         )
         await CloseSessionHandler(unit_of_work, clock).handle(
             CloseSessionCommand(session_id=session_id.value)

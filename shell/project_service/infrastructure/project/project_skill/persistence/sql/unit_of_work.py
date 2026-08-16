@@ -6,6 +6,9 @@ from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import SqlAl
 from shell.project_service.domain.project.aggregates.project_skill.repositories.project_skill_repository import (
     ProjectSkillRepository,
 )
+from shell.project_service.infrastructure.project.persistence.sql.models.base import (
+    PERSISTENCE_DELIVERY_MODELS,
+)
 from shell.project_service.infrastructure.project.project_skill.persistence.sql.repositories.sql_project_skill_repository import (
     SqlProjectSkillRepository,
 )
@@ -22,7 +25,7 @@ class SqlAlchemyProjectSkillUnitOfWork(SqlAlchemyUnitOfWorkBase):
     def __init__(
         self, session_factory: async_sessionmaker[AsyncSession], mapper: Any | None = None
     ) -> None:
-        super().__init__(session_factory, mapper=mapper)
+        super().__init__(session_factory, mapper=mapper, models=PERSISTENCE_DELIVERY_MODELS)
 
     def _build_repo_map(self) -> dict[type, type]:
         return _REPO_MAP

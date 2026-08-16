@@ -3,27 +3,17 @@ from __future__ import annotations
 import argparse
 import asyncio
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
 
 import uvicorn
 
 from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
-from shell.platform.infrastructure.messaging.inbox.inbox_legacy_migration import (
-    InboxLegacyMigration,
-    assert_inbox_ready,
-)
 from shell.scheduling_service.bootstrap.scheduling.container.scheduling_core_container import (
     SchedulingCoreContainer,
     configure_scheduling_container,
 )
 from shell.scheduling_service.framework.scheduling.api.app import create_scheduling_app
 from shell.scheduling_service.migrations.baseline import run_scheduling_baseline
-
-if TYPE_CHECKING:
-    from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import (
-        InboxStateModel,
-    )
 
 
 def main() -> None:
@@ -33,7 +23,6 @@ def main() -> None:
     parser.add_argument("--db-url", default=None)
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--worker-interval", type=float, default=1.0)
-    parser.add_argument("--run-legacy-migration", action="store_true")
     args = parser.parse_args()
     config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
     database_url = args.db_url or config.database_url
@@ -53,20 +42,7 @@ def main() -> None:
 
     async def run() -> None:
         await run_scheduling_baseline(database_url)
-        inbox_model = cast(
-            "type[InboxStateModel]",
-            container.persistence_delivery_models().events.inbox,
-        )
-        if args.run_legacy_migration:
-            counts = await InboxLegacyMigration(
-                container.session_factory(), inbox_model
-            ).classify_legacy_rows()
-            print(f"inbox legacy migration counts: {counts}")
-            await assert_inbox_ready(container.session_factory(), inbox_model)
-            print("inbox legacy migration complete — LEGACY_REVIEW == 0")
-            return
         if args.worker:
-            await assert_inbox_ready(container.session_factory(), inbox_model)
             await run_delivery_workers(
                 workers=(
                     (
