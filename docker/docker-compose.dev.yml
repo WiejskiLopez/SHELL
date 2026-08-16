@@ -1,0 +1,57 @@
+services:
+  shell-user-api:
+    command: ["python", "-m", "shell.user_service.bootstrap.user.main", "--host", "0.0.0.0", "--port", "8001", "--api-key", "dev-user-key"]
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-user-worker:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-definition-api:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-definition-worker:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-session-api:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-session-worker:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-ingestion-api:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-ingestion-worker:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-project-api:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-project-worker:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-scheduling-api:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-scheduling-worker:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-execution-api:
+    volumes:
+      - ./dev/db:/app/database/dev
+
+  shell-execution-worker:
+    volumes:
+      - ./dev/db:/app/database/dev

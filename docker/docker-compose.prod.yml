@@ -1,0 +1,149 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shell}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shell}
+      POSTGRES_DB: ${POSTGRES_DB:-shell}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./prod/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-shell}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  shell-user-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_user
+      SHELL_API_KEY: ${SHELL_API_KEY:?SHELL_API_KEY must be set for prod}
+    command: ["python", "-m", "shell.user_service.bootstrap.user.main", "--host", "0.0.0.0", "--port", "8001", "--api-key", "${SHELL_API_KEY:?SHELL_API_KEY must be set for prod}"]
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-user-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_user
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-definition-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_definition
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-definition-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_definition
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-session-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_session
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-session-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_session
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-ingestion-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_ingestion
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-ingestion-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_ingestion
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-project-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_project
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-project-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_project
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-scheduling-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_scheduling
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-scheduling-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_scheduling
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-execution-api:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_execution
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  shell-execution-worker:
+    environment:
+      SHELL_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-shell}:${POSTGRES_PASSWORD:-shell}@postgres:5432/shell_execution
+    volumes:
+      - ./prod/config/default.yaml:/app/shell/config/default.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

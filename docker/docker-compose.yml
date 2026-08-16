@@ -1,0 +1,239 @@
+name: shell-dev
+
+x-shell-shared: &shell-shared
+  restart: unless-stopped
+  environment:
+    SHELL_EVENTS_BROKER_URL: ${SHELL_EVENTS_BROKER_URL:-amqp://shell:shell@rabbitmq}
+
+x-user-build: &user-build
+  context: ..
+  dockerfile: shell/user_service/docker/Dockerfile
+
+x-definition-build: &definition-build
+  context: ..
+  dockerfile: shell/definition_service/docker/Dockerfile
+
+x-session-build: &session-build
+  context: ..
+  dockerfile: shell/session_service/docker/Dockerfile
+
+x-ingestion-build: &ingestion-build
+  context: ..
+  dockerfile: shell/ingestion_service/docker/Dockerfile
+
+x-project-build: &project-build
+  context: ..
+  dockerfile: shell/project_service/docker/Dockerfile
+
+x-scheduling-build: &scheduling-build
+  context: ..
+  dockerfile: shell/scheduling_service/docker/Dockerfile
+
+x-execution-build: &execution-build
+  context: ..
+  dockerfile: shell/execution_service/docker/Dockerfile
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: shell-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-shell}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-shell}
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - shell_rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  shell-user-api:
+    build: *user-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.user_service.bootstrap.user.main", "--host", "0.0.0.0", "--port", "8001"]
+    ports:
+      - "8001:8001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-user-worker:
+    build: *user-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.user_service.bootstrap.user.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-user-api:
+        condition: service_healthy
+
+  shell-definition-api:
+    build: *definition-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.definition_service.bootstrap.definition.main", "--host", "0.0.0.0", "--port", "8002"]
+    ports:
+      - "8002:8002"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-definition-worker:
+    build: *definition-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.definition_service.bootstrap.definition.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-definition-api:
+        condition: service_healthy
+
+  shell-session-api:
+    build: *session-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.session_service.bootstrap.session.main", "--host", "0.0.0.0", "--port", "8003"]
+    ports:
+      - "8003:8003"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-session-worker:
+    build: *session-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.session_service.bootstrap.session.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-session-api:
+        condition: service_healthy
+
+  shell-ingestion-api:
+    build: *ingestion-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.ingestion_service.bootstrap.ingestion.main", "--host", "0.0.0.0", "--port", "8004"]
+    ports:
+      - "8004:8004"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8004/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-ingestion-worker:
+    build: *ingestion-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.ingestion_service.bootstrap.ingestion.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-ingestion-api:
+        condition: service_healthy
+
+  shell-project-api:
+    build: *project-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.project_service.bootstrap.project.main", "--host", "0.0.0.0", "--port", "8005"]
+    ports:
+      - "8005:8005"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8005/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-project-worker:
+    build: *project-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.project_service.bootstrap.project.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-project-api:
+        condition: service_healthy
+
+  shell-scheduling-api:
+    build: *scheduling-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.scheduling_service.bootstrap.scheduling.main", "--host", "0.0.0.0", "--port", "8006"]
+    ports:
+      - "8006:8006"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8006/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-scheduling-worker:
+    build: *scheduling-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.scheduling_service.bootstrap.scheduling.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-scheduling-api:
+        condition: service_healthy
+
+  shell-execution-api:
+    build: *execution-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.execution_service.bootstrap.execution.main", "--host", "0.0.0.0", "--port", "8007"]
+    ports:
+      - "8007:8007"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8007/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shell-execution-worker:
+    build: *execution-build
+    <<: *shell-shared
+    command: ["python", "-m", "shell.execution_service.bootstrap.execution.main", "--worker"]
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      shell-execution-api:
+        condition: service_healthy
+
+volumes:
+  shell_rabbitmq_data:
