@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 __all__ = [
     "build_session_factory",
     "get_session",
-    "seed_base_data",
 ]
 
 
@@ -43,7 +42,3 @@ async def get_session(
     """Async generator yielding a single AsyncSession (for use with Depends)."""
     async with session_factory() as session:
         yield session
-
-
-async def seed_base_data(url: str) -> None:
-    pass

@@ -4,6 +4,7 @@ Reguła: test sprawdza kontrakt architektoniczny bc isolation: test no direct cr
 
 Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -12,26 +13,55 @@ from _arch_helpers import BASE, architecture_assertion_message, get_imports, ite
 
 if TYPE_CHECKING:
     import pathlib
-_BCS = frozenset({'execution_service', 'definition_service', 'session_service', 'user_service', 'project_service', 'scheduling_service', 'ingestion_service'})
-_ALLOWED_CROSS_BC = frozenset({'shell.platform.domain', 'shell.platform.application', 'shell.user_service.application.user.user.integration_events', 'shell.user_service.application.user.auth_session.integration_events'})
+_BCS = frozenset(
+    {
+        "execution_service",
+        "definition_service",
+        "session_service",
+        "user_service",
+        "project_service",
+        "scheduling_service",
+        "ingestion_service",
+    }
+)
+_ALLOWED_CROSS_BC = frozenset(
+    {
+        "shell.platform.domain",
+        "shell.platform.application",
+        "shell.user_service.application.user.user.integration_events",
+        "shell.user_service.application.user.auth_session.integration_events",
+    }
+)
+
 
 def _is_cross_bc_import(imp: str, source_bc: str) -> str | None:
     """If imp crosses a BC boundary (is not platform), return the target BC name."""
     for bc in _BCS:
-        if bc == source_bc or bc == 'platform':
+        if bc == source_bc or bc == "platform":
             continue
-        prefixes = (f'shell.domain.{bc}', f'shell.application.{bc}', f'shell.{bc}.domain.{bc}', f'shell.{bc}.application.{bc}', f'shell.{bc}.')
+        prefixes = (
+            f"shell.domain.{bc}",
+            f"shell.application.{bc}",
+            f"shell.{bc}.domain.{bc}",
+            f"shell.{bc}.application.{bc}",
+            f"shell.{bc}.",
+        )
         if imp.startswith(prefixes):
             return bc
     return None
 
+
 def _is_allowed_cross_bc(imp: str) -> bool:
-    return any(imp == allowed or imp.startswith(allowed + '.') for allowed in _ALLOWED_CROSS_BC)
+    return any(imp == allowed or imp.startswith(allowed + ".") for allowed in _ALLOWED_CROSS_BC)
+
+
 _CROSS_BC_KNOWN_VIOLATIONS: list[str] = []
+
 
 def _bc_source_path(bc: str) -> pathlib.Path:
     """Return the source tree owned by a bounded context."""
     return BASE / bc
+
 
 def _cross_bc_violations() -> list[str]:
     violations: list[str] = []
@@ -44,12 +74,18 @@ def _cross_bc_violations() -> list[str]:
                 target_bc = _is_cross_bc_import(imp, source_bc)
                 if target_bc is None or _is_allowed_cross_bc(imp):
                     continue
-                key = f'{path.relative_to(BASE).as_posix()}: imports {imp!r} (from BC {target_bc})'
+                key = f"{path.relative_to(BASE).as_posix()}: imports {imp!r} (from BC {target_bc})"
                 if not any(key.startswith(k) for k in _CROSS_BC_KNOWN_VIOLATIONS):
                     violations.append(key)
     return violations
 
+
 def test_no_direct_cross_bc_imports() -> None:
     """No BC may import implementation code from another BC in any layer."""
     violations = _cross_bc_violations()
-    assert not violations, architecture_assertion_message('reguła testowana przez test_no_direct_cross_bc_imports', 'warunek zapisany w asercji musi być spełniony', 'Bounded contexts must not import each other directly in domain, application, process, infrastructure, framework, or per-BC bootstrap (use HTTP/event contracts):\n' + '\n'.join(violations))
+    assert not violations, architecture_assertion_message(
+        "reguła testowana przez test_no_direct_cross_bc_imports",
+        "warunek zapisany w asercji musi być spełniony",
+        "Bounded contexts must not import each other directly in domain, application, process, infrastructure, framework, or per-BC bootstrap (use HTTP/event contracts):\n"
+        + "\n".join(violations),
+    )

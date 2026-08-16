@@ -95,9 +95,7 @@ class SessionController:
     async def create_session(
         self, body: ApiCreateSessionRequest, user_id: str
     ) -> ApiCreateSessionResponse:
-        session_id = await self._command_bus.dispatch(
-            OpenSessionCommand(user_id=user_id)
-        )
+        session_id = await self._command_bus.dispatch(OpenSessionCommand(user_id=user_id))
         return ApiCreateSessionResponse(id=str(session_id))
 
     async def change_session(

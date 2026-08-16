@@ -15,6 +15,7 @@ from shell.session_service.bootstrap.session.container.session_core_container im
     configure_session_container,
 )
 from shell.session_service.framework.session.api.app import create_session_app
+from shell.session_service.infrastructure.session.seed import seed_session_dev_data
 from shell.session_service.migrations.baseline import run_session_baseline
 
 
@@ -68,6 +69,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_session_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_session_dev_data(database_url)
         if args.worker:
             await _run_event_worker(container)
         else:

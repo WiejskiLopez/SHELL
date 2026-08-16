@@ -11,6 +11,7 @@ from shell.ingestion_service.bootstrap.ingestion.container.ingestion_core_contai
     configure_ingestion_container,
 )
 from shell.ingestion_service.framework.ingestion.api.app import create_ingestion_app
+from shell.ingestion_service.infrastructure.ingestion.seed import seed_ingestion_dev_data
 from shell.ingestion_service.migrations.baseline import run_ingestion_baseline
 from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
@@ -42,6 +43,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_ingestion_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_ingestion_dev_data(database_url)
         if args.worker:
             await run_delivery_workers(
                 workers=(

@@ -13,6 +13,7 @@ from shell.definition_service.bootstrap.definition.container.definition_core_con
     configure_definition_container,
 )
 from shell.definition_service.framework.definition.api.app import create_definition_app
+from shell.definition_service.infrastructure.definition.seed import seed_definition_dev_data
 from shell.definition_service.migrations.baseline import run_definition_baseline
 from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 from shell.platform.infrastructure.messaging.polling_worker import (
@@ -49,6 +50,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_definition_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_definition_dev_data(database_url)
         if args.worker:
             consumer = container.rabbit_inbox_consumer_factory()
             await consumer.start()

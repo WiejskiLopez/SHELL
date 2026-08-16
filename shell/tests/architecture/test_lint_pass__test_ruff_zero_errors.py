@@ -4,6 +4,7 @@ Reguła: test sprawdza kontrakt architektoniczny lint pass: test ruff zero error
 
 Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -13,11 +14,17 @@ from pathlib import Path
 SHELL_PKG = Path(__file__).resolve().parent.parent.parent
 PROJECT_ROOT = SHELL_PKG.parent
 
+
 def test_ruff_zero_errors() -> None:
     """Fail if ruff check finds any violations in the shell/ package."""
-    result = subprocess.run([sys.executable, '-m', 'ruff', 'check', str(SHELL_PKG)], capture_output=True, text=True, cwd=str(PROJECT_ROOT))
+    result = subprocess.run(
+        [sys.executable, "-m", "ruff", "check", str(SHELL_PKG)],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
     if result.returncode != 0:
         print(result.stdout)
         print(result.stderr, file=sys.stderr)
-        msg = f'ruff check found {result.returncode} error(s) — run `ruff check shell/` locally'
+        msg = f"ruff check found {result.returncode} error(s) — run `ruff check shell/` locally"
         raise AssertionError(msg)

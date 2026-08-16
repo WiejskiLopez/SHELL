@@ -120,6 +120,10 @@ class ShellConfig:
         if env_log_level:
             merged["log_level"] = env_log_level
 
+        env_broker_url = os.environ.get("SHELL_EVENTS_BROKER_URL")
+        if env_broker_url:
+            merged.setdefault("events", {})["broker_url"] = env_broker_url
+
         env_test_db_dir = os.environ.get("SHELL_TEST_DB_DIR")
         if env_test_db_dir:
             merged["test_db_dir"] = env_test_db_dir

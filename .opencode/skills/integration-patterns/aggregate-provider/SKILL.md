@@ -13,8 +13,8 @@ innego agregatu, innego BC, zewnętrznego mikroserwisu lub dowolnego systemu —
 Provider **nigdy nie modyfikuje** źródła: nie tworzy, nie aktualizuje, nie usuwa, nie uruchamia procesu.
 
 ```python
-# shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/graph_execution_definition_provider.py
-class GraphExecutionDefinitionProvider(Protocol):
+# shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/graph_definition_provider.py
+class GraphDefinitionProvider(Protocol):
     async def get_graph_definition(self, definition_id: GraphDefinitionReferenceId) -> GraphDefinitionReference | None: ...
     async def get_graph_definition_by_semantic(self, query: GraphDefinitionSemanticQuery) -> GraphDefinitionReference | None: ...
 ```
@@ -51,7 +51,7 @@ obrębie tego samego BC**. Agregaty są autonomiczne także wewnątrz BC.
 ❌ handler graph_execution → wstrzyknięty GraphExecutionQueryService innego agregatu (ten sam BC!)
 ❌ domain service → źródłowy SqlFooQueryService wprost
 ❌ handler → unit_of_work.repository(ObcyRepository) innego agregatu
-✅ handler graph_execution → GraphExecutionDefinitionProvider (port z ports/)
+✅ handler graph_execution → GraphDefinitionProvider (port z ports/)
         ↕
     adapter (infrastruktura konsumenta) — JEDYNE miejsce które zna QueryService/HTTP źródła
 ```
@@ -64,7 +64,7 @@ adapter** — port i cała logika konsumenta zostają bez zmian.
 
 ```
 shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/
-├── graph_execution_definition_provider.py     # Provider (tylko odczyt)
+├── graph_definition_provider.py     # Provider (tylko odczyt)
 ├── workflow_session_command_port.py           # Command Port (operacja) — obok, ten sam katalog
 └── graph_definition_semantic_query.py         # VO query, jeśli potrzebne
 ```
@@ -79,16 +79,16 @@ shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/
 
 | Artefakt | Wzorzec | Przykład |
 |----------|---------|----------|
-| Port | `<Dane>Provider` | `GraphExecutionDefinitionProvider` |
-| Plik portu | `<dane>_provider.py` | `graph_execution_definition_provider.py` |
-| Adapter | `<PortNazwa><Transport>Adapter` | `GraphExecutionDefinitionProviderHttpAdapter` |
-| Plik adaptera | `<port_nazwa>_<transport>_adapter.py` | `graph_execution_definition_provider_http_adapter.py` |
+| Port | `<Dane>Provider` | `GraphDefinitionProvider` |
+| Plik portu | `<dane>_provider.py` | `graph_definition_provider.py` |
+| Adapter | `<PortNazwa><Transport>Adapter` | `GraphDefinitionProviderHttpAdapter` |
+| Plik adaptera | `<port_nazwa>_<transport>_adapter.py` | `graph_definition_provider_http_adapter.py` |
 
 `<Transport>` w adapterze: `Http` (cross-BC), `Sql`/`Local` (wewnętrzny QueryService), `InMemory`
 (testy). Adapter **dziedziczy po porcie**:
 
 ```python
-class GraphExecutionDefinitionProviderHttpAdapter(GraphExecutionDefinitionProvider):
+class GraphDefinitionProviderHttpAdapter(GraphDefinitionProvider):
     ...
 ```
 
@@ -114,8 +114,8 @@ kontrakty i mappery:
 
 ```
 shell/<bc>/infrastructure/<bc>/<aggregate>/adapters/<port_name>/
-├── <port_name>_http_adapter.py      # GraphExecutionDefinitionProviderHttpAdapter (cross-BC)
-├── <port_name>_sql_adapter.py       # GraphExecutionDefinitionProviderSqlAdapter (lokalny QueryService)
+├── <port_name>_http_adapter.py      # GraphDefinitionProviderHttpAdapter (cross-BC)
+├── <port_name>_sql_adapter.py       # GraphDefinitionProviderSqlAdapter (lokalny QueryService)
 ├── contracts/v1/<nazwa>_response.py # lokalny, wersjonowany model kontraktu (HTTP)
 └── mappers/<nazwa>_response_to_domain.py
 ```
@@ -136,7 +136,7 @@ Adapter lokalny korzysta z QueryService **innego agregatu** (ten sam BC) — jed
 zna źródło:
 
 ```python
-class GraphExecutionDefinitionProviderSqlAdapter(GraphExecutionDefinitionProvider):
+class GraphDefinitionProviderSqlAdapter(GraphDefinitionProvider):
     def __init__(self, query_service: GraphExecutionQueryService) -> None:
         self._query_service = query_service  # jedyne miejsce które zna QueryService źródła
 

@@ -55,7 +55,7 @@ class ReflectiveIntegrationMapper:
                 f"Unsupported domain event module topology: {event_cls.__module__}"
             )
 
-        bc = parts[1][:-len("_service")]
+        bc = parts[1][: -len("_service")]
         agg = parts[5]
         int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
         full_mod = f"shell.{bc}_service.application.{bc}.{agg}.integration_events.{int_file}"

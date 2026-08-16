@@ -29,6 +29,7 @@ from shell.user_service.bootstrap.user.container.user_core_container import (
     configure_user_container,
 )
 from shell.user_service.framework.user.api.app import create_user_app
+from shell.user_service.infrastructure.user.seed import seed_user_dev_data
 from shell.user_service.migrations.baseline import run_user_baseline
 
 
@@ -123,6 +124,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_user_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_user_dev_data(database_url)
         if args.worker:
             await asyncio.gather(_run_outbox_relay(container), _run_command_worker(container))
         else:

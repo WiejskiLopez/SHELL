@@ -4,6 +4,7 @@ Reguła: test sprawdza kontrakt architektoniczny imports: test framework does no
 
 Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 """
+
 from __future__ import annotations
 
 import ast
@@ -16,16 +17,18 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 BASE = pathlib.Path(__file__).resolve().parent.parent.parent
 
+
 def _iter_python_files(layer: str) -> Iterator[pathlib.Path]:
     layer_path = BASE / layer
     if not layer_path.exists():
         return
-    yield from layer_path.rglob('*.py')
+    yield from layer_path.rglob("*.py")
+
 
 def _get_imports(path: pathlib.Path) -> list[str]:
     """Return all imported module prefixes from a Python file."""
     try:
-        tree = ast.parse(path.read_text(encoding='utf-8'))
+        tree = ast.parse(path.read_text(encoding="utf-8"))
     except SyntaxError:
         return []
     imports: list[str] = []
@@ -37,28 +40,83 @@ def _get_imports(path: pathlib.Path) -> list[str]:
             imports.append(node.module)
     return imports
 
+
 def _iter_platform_core_files() -> Iterator[pathlib.Path]:
-    platform_path = BASE / 'platform'
+    platform_path = BASE / "platform"
     if not platform_path.exists():
         return
-    yield from platform_path.rglob('*.py')
+    yield from platform_path.rglob("*.py")
+
+
 _KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset({})
 _KNOWN_APP_VIOLATIONS: frozenset[str] = frozenset({})
-_KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset({'framework/definition/graph_definition/api/router.py', 'framework/platform/api/dependencies.py', 'framework/project/project/api/router.py', 'framework/session/session/api/router.py', 'framework/user/user/api/router.py', 'framework/platform/api/app.py', 'framework/platform/cli/main.py', 'framework/execution/api/routers/envelopes.py', 'framework/execution/api/routers/node_execution.py', 'framework/execution/api/routers/task_executions/__init__.py', 'framework/execution/api/routers/workflows/__init__.py', 'framework/definition/api/routers/definitions/__init__.py', 'framework/session/api/routers/sessions/__init__.py', 'framework/user/api/routers/users/__init__.py', 'framework/project/api/routers/projects/__init__.py'})
-_FORBIDDEN: dict[str, list[str]] = {'domain': ['shell.application', 'shell.process', 'shell.infrastructure', 'shell.framework', 'shell.bootstrap', 'sqlalchemy', 'pydantic', 'fastapi', 'motor'], 'application': ['shell.process', 'shell.infrastructure', 'shell.framework', 'shell.bootstrap', 'sqlalchemy', 'fastapi', 'motor'], 'process': ['shell.infrastructure', 'shell.framework', 'shell.bootstrap', 'sqlalchemy', 'fastapi', 'motor']}
+_KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset(
+    {
+        "framework/definition/graph_definition/api/router.py",
+        "framework/platform/api/dependencies.py",
+        "framework/project/project/api/router.py",
+        "framework/session/session/api/router.py",
+        "framework/user/user/api/router.py",
+        "framework/platform/api/app.py",
+        "framework/platform/cli/main.py",
+        "framework/execution/api/routers/envelopes.py",
+        "framework/execution/api/routers/node_execution.py",
+        "framework/execution/api/routers/task_executions/__init__.py",
+        "framework/execution/api/routers/workflows/__init__.py",
+        "framework/definition/api/routers/definitions/__init__.py",
+        "framework/session/api/routers/sessions/__init__.py",
+        "framework/user/api/routers/users/__init__.py",
+        "framework/project/api/routers/projects/__init__.py",
+    }
+)
+_FORBIDDEN: dict[str, list[str]] = {
+    "domain": [
+        "shell.application",
+        "shell.process",
+        "shell.infrastructure",
+        "shell.framework",
+        "shell.bootstrap",
+        "sqlalchemy",
+        "pydantic",
+        "fastapi",
+        "motor",
+    ],
+    "application": [
+        "shell.process",
+        "shell.infrastructure",
+        "shell.framework",
+        "shell.bootstrap",
+        "sqlalchemy",
+        "fastapi",
+        "motor",
+    ],
+    "process": [
+        "shell.infrastructure",
+        "shell.framework",
+        "shell.bootstrap",
+        "sqlalchemy",
+        "fastapi",
+        "motor",
+    ],
+}
 _INFRA_FRAMEWORK_KNOWN: frozenset[str] = frozenset({})
 _FRAMEWORK_BOOTSTRAP_KNOWN: frozenset[str] = _KNOWN_FRAMEWORK_BOOTSTRAP
 _PLATFORM_KNOWN: frozenset[str] = frozenset({})
 
+
 def test_framework_does_not_import_bootstrap() -> None:
     violations: list[str] = []
-    forbidden = ['shell.bootstrap']
-    for path in _iter_python_files('framework'):
+    forbidden = ["shell.bootstrap"]
+    for path in _iter_python_files("framework"):
         rel = path.relative_to(BASE).as_posix()
         if rel in _FRAMEWORK_BOOTSTRAP_KNOWN:
             continue
         for imp in _get_imports(path):
             for banned in forbidden:
-                if imp == banned or imp.startswith(banned + '.'):
-                    violations.append(f'{rel}: imports {imp!r}')
-    assert not violations, architecture_assertion_message('reguła testowana przez test_framework_does_not_import_bootstrap', 'warunek zapisany w asercji musi być spełniony', 'Framework must not import bootstrap:\n' + '\n'.join(violations))
+                if imp == banned or imp.startswith(banned + "."):
+                    violations.append(f"{rel}: imports {imp!r}")
+    assert not violations, architecture_assertion_message(
+        "reguła testowana przez test_framework_does_not_import_bootstrap",
+        "warunek zapisany w asercji musi być spełniony",
+        "Framework must not import bootstrap:\n" + "\n".join(violations),
+    )

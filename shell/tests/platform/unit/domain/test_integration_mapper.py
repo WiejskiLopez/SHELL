@@ -95,7 +95,9 @@ class TestReflectiveIntegrationMapper:
             aggregate_name = type("n", (), {"value": ""})()
             schema_version = type("v", (), {"value": 1})()
 
-        with pytest.raises(IntegrationMappingError, match="Unsupported domain event module topology"):
+        with pytest.raises(
+            IntegrationMappingError, match="Unsupported domain event module topology"
+        ):
             self._mapper.map(FakeEvent())
 
     def test_unknown_event_type_is_still_a_value_error(self) -> None:

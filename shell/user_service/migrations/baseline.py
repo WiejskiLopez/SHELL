@@ -46,11 +46,12 @@ _USER_TABLES: tuple[Table, ...] = cast(
 )
 
 
-async def run_user_baseline(url: str) -> None:
+async def run_user_baseline(url: str, reset_db: bool = False) -> None:
     """Create the current User schema on a fresh database.
 
     This intentionally creates a new baseline for the standalone User BC.
     migration history. Existing databases require an explicit data migration.
+    When ``reset_db`` is true, all User tables are dropped first.
     """
     engine = create_async_engine(
         url,
@@ -58,6 +59,10 @@ async def run_user_baseline(url: str) -> None:
         connect_args={"check_same_thread": False} if "sqlite" in url else {},
     )
     async with engine.begin() as connection:
+        if reset_db:
+            await connection.run_sync(
+                UserSqlAlchemyModelBase.metadata.drop_all, tables=list(_USER_TABLES)
+            )
         await connection.run_sync(
             UserSqlAlchemyModelBase.metadata.create_all, tables=list(_USER_TABLES)
         )

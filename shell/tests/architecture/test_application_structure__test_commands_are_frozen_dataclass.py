@@ -4,6 +4,7 @@ Reguła: test sprawdza kontrakt architektoniczny application structure: test com
 
 Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 """
+
 from __future__ import annotations
 
 from _arch_helpers import (
@@ -18,9 +19,10 @@ from _arch_helpers import (
 _KNOWN_HANDLER_EXCEPTIONS: frozenset[str] = frozenset({})
 _KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
+
 def test_commands_are_frozen_dataclass() -> None:
     violations: list[str] = []
-    for cmd_dir in (BASE / 'application').rglob('commands'):
+    for cmd_dir in (BASE / "application").rglob("commands"):
         if not cmd_dir.is_dir():
             continue
         for path in iter_py_files(cmd_dir):
@@ -29,5 +31,9 @@ def test_commands_are_frozen_dataclass() -> None:
                 continue
             for node in find_classes(tree):
                 if not is_frozen_dataclass(node):
-                    violations.append(f'{path.relative_to(BASE)}: class {node.name}')
-    assert not violations, architecture_assertion_message('reguła testowana przez test_commands_are_frozen_dataclass', 'warunek zapisany w asercji musi być spełniony', 'Commands must be @dataclass(frozen=True):\n' + '\n'.join(violations))
+                    violations.append(f"{path.relative_to(BASE)}: class {node.name}")
+    assert not violations, architecture_assertion_message(
+        "reguła testowana przez test_commands_are_frozen_dataclass",
+        "warunek zapisany w asercji musi być spełniony",
+        "Commands must be @dataclass(frozen=True):\n" + "\n".join(violations),
+    )

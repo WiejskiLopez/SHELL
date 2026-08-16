@@ -25,7 +25,7 @@ def _load_models() -> None:
             importlib.import_module(module.name)
 
 
-async def run_execution_baseline(url: str) -> None:
+async def run_execution_baseline(url: str, reset_db: bool = False) -> None:
     _load_models()
     tables_by_name: set[Table] = {
         table
@@ -52,6 +52,10 @@ async def run_execution_baseline(url: str) -> None:
         url, future=True, connect_args={"check_same_thread": False} if "sqlite" in url else {}
     )
     async with engine.begin() as connection:
+        if reset_db:
+            await connection.run_sync(
+                ExecutionSqlAlchemyModelBase.metadata.drop_all, tables=list(tables_by_name)
+            )
         await connection.run_sync(
             ExecutionSqlAlchemyModelBase.metadata.create_all, tables=list(tables_by_name)
         )

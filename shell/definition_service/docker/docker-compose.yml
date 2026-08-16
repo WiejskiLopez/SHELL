@@ -11,4 +11,6 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ../../../shell_dev:/app/shell_dev
+      - ./dev_db:/app/shell_dev
+      - ./logs:/app/logs
+      - ./config:/app/config

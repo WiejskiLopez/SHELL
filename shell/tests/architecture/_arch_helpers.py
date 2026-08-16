@@ -20,11 +20,8 @@ def architecture_failure(
     remediation: str | None = None,
 ) -> str:
     """Buduje spójny i użyteczny komunikat dla asercji architektonicznej."""
-    message = (
-        f"Złamana reguła: {rule}\n"
-        f"Powinno być: {expected}\n"
-        "Naruszenia:\n"
-        + "\n".join(violations)
+    message = f"Złamana reguła: {rule}\nPowinno być: {expected}\nNaruszenia:\n" + "\n".join(
+        violations
     )
     if remediation:
         message += f"\nJak naprawić: {remediation}"
@@ -33,11 +30,7 @@ def architecture_failure(
 
 def architecture_assertion_message(rule: str, expected: str, details: object) -> str:
     """Buduje polski komunikat dla pojedynczej asercji architektonicznej."""
-    return (
-        f"Złamana reguła: {rule}\n"
-        f"Powinno być: {expected}\n"
-        f"Naruszenia: {details}"
-    )
+    return f"Złamana reguła: {rule}\nPowinno być: {expected}\nNaruszenia: {details}"
 
 
 _EXCLUDED_DIRS = frozenset(

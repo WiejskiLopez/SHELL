@@ -17,7 +17,7 @@ Nie przenoś do konsumującego BC agregatu, encji, DTO aplikacyjnego, response m
 
 Przykłady nazw:
 
-- `GraphExecutionDefinitionProvider`;
+- `GraphDefinitionProvider`;
 - `SessionQueryProvider`;
 - `UserIdentityProvider`.
 
@@ -25,12 +25,12 @@ Port providera należy do BC, który potrzebuje danych. Jego typy wejściowe i w
 
 ```text
 execution domain port:
-    GraphExecutionDefinitionProvider
-        -> GraphExecutionDefinition
+    GraphDefinitionProvider
+        -> GraphDefinition
 
 execution infrastructure:
-    GraphExecutionDefinitionHttpProvider
-        HTTP response -> local contract V1 -> local mapper -> GraphExecutionDefinition
+    GraphDefinitionHttpProvider
+        HTTP response -> local contract V1 -> local mapper -> GraphDefinition
 ```
 
 Provider nie powinien:

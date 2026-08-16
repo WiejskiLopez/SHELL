@@ -32,15 +32,15 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n=== Krok 4: Build obrazu ===" -ForegroundColor Cyan
-docker compose -f docker/dev/docker-compose.yml build
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml build
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build obrazu nie powiodl sie" -ForegroundColor Red
     exit 1
 }
 
 Write-Host "`n=== Krok 5: Restart kontenera ===" -ForegroundColor Cyan
-docker compose -f docker/dev/docker-compose.yml down --remove-orphans
-docker compose -f docker/dev/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml down --remove-orphans
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Restart kontenera nie powiodl sie" -ForegroundColor Red
     exit 1

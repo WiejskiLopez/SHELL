@@ -13,6 +13,7 @@ from shell.project_service.bootstrap.project.container.project_core_container im
     configure_project_container,
 )
 from shell.project_service.framework.project.project.api.app import create_project_app
+from shell.project_service.infrastructure.project.seed import seed_project_dev_data
 from shell.project_service.migrations.baseline import run_project_baseline
 
 
@@ -42,6 +43,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_project_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_project_dev_data(database_url)
         if args.worker:
             await run_delivery_workers(
                 workers=(

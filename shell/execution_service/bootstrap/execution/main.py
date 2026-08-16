@@ -11,6 +11,7 @@ from shell.execution_service.bootstrap.execution.container.execution_core_contai
     configure_execution_container,
 )
 from shell.execution_service.framework.execution.api.app import create_execution_app
+from shell.execution_service.infrastructure.execution.seed import seed_execution_dev_data
 from shell.execution_service.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
@@ -42,6 +43,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_execution_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_execution_dev_data(database_url)
         if args.worker:
             await run_delivery_workers(
                 workers=(

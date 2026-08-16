@@ -4,6 +4,7 @@ Reguła: test sprawdza kontrakt architektoniczny general conventions: test init 
 
 Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 """
+
 from __future__ import annotations
 
 import ast
@@ -17,11 +18,12 @@ _NOQA_KNOWN_INVALID: frozenset[str] = frozenset({})
 _NOQA_KNOWN_WITHOUT_REASON: frozenset[str] = frozenset({})
 _COMMENT_KNOWN_EXCEPTIONS: frozenset[str] = frozenset({})
 
+
 def test_init_files_only_re_export() -> None:
     violations: list[str] = []
     _INIT_KNOW_DEFINE: set[str] = set()
-    _RESTRICTED_LAYERS = ('domain/', 'application/', 'process/', 'bootstrap/')
-    for init_file in BASE.rglob('__init__.py'):
+    _RESTRICTED_LAYERS = ("domain/", "application/", "process/", "bootstrap/")
+    for init_file in BASE.rglob("__init__.py"):
         rel = init_file.relative_to(BASE).as_posix()
         if not any(rel.startswith(layer) for layer in _RESTRICTED_LAYERS):
             continue
@@ -32,9 +34,14 @@ def test_init_files_only_re_export() -> None:
             continue
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
-                if node.name == 'Base' and 'sql' in str(init_file):
+                if node.name == "Base" and "sql" in str(init_file):
                     continue
-                key = f'{rel}: defines {node.name}'
+                key = f"{rel}: defines {node.name}"
                 if key not in _KNOWN_INIT_DEFINITIONS:
                     violations.append(key)
-    assert not violations, architecture_assertion_message('reguła testowana przez test_init_files_only_re_export', 'warunek zapisany w asercji musi być spełniony', '__init__.py should only re-export, not define classes/functions:\n' + '\n'.join(violations))
+    assert not violations, architecture_assertion_message(
+        "reguła testowana przez test_init_files_only_re_export",
+        "warunek zapisany w asercji musi być spełniony",
+        "__init__.py should only re-export, not define classes/functions:\n"
+        + "\n".join(violations),
+    )

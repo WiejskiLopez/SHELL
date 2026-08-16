@@ -17,7 +17,7 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 
 | SKRÓCONA (ZABRONIONA) | PRAWIDŁOWA |
 |------------------------|------------|
-| `DefinitionProvider` | `GraphExecutionDefinitionProvider` |
+| `DefinitionProvider` | `GraphDefinitionProvider` |
 | `ExecutionChecker` | `SchedulerExecutionChecker` |
 | `NodeNavigator` | `NodeExecutionNavigator` |
 | `NodeWorkspace` | `NodeExecutionWorkspace` |
@@ -129,7 +129,7 @@ Eventy i komendy opisują **fakty biznesowe** w języku domeny:
 | SQL Repository | `Sql + PascalCase` | `SqlWorkflowRepository`, `SqlGraphDefinitionRepository` |
 | InMemory Repository | `InMemory + PascalCase` | `InMemoryWorkflowRepository` |
 | SQL Query Service | `Sql + PascalCase` | `SqlGraphDefinitionQueryService` |
-| Adapter | `PascalCase + Adapter` | `GraphExecutionDefinitionProviderAdapter`, `InvoiceAdapter` |
+| Adapter | `PascalCase + Adapter` | `GraphDefinitionProviderAdapter`, `InvoiceAdapter` |
 | ORM Model | `PascalCase + Model` | `GraphDefinitionModel`, `TaskExecutionModel` |
 
 ## Wzorce dla ID

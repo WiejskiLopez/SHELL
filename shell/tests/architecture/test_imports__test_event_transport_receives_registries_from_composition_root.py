@@ -78,7 +78,9 @@ def test_event_transport_receives_registries_from_composition_root() -> None:
         container = container_type()
         container.config.db_url.from_value("sqlite+aiosqlite:///:memory:")
         processor = container.event_inbox_processor_factory()
-        assert processor._inbox_model is cast(Any, container.persistence_delivery_models().events.inbox)
+        assert processor._inbox_model is cast(
+            "Any", container.persistence_delivery_models().events.inbox
+        )
         assert processor._deserializer._registry == container.event_registry()
 
     assert not hasattr(UserCoreContainer, "event_inbox_processor_factory")

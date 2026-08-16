@@ -10,7 +10,7 @@ Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 from __future__ import annotations
 
 import ast
-import pathlib
+from typing import TYPE_CHECKING
 
 from _arch_helpers import (
     BASE,
@@ -19,6 +19,9 @@ from _arch_helpers import (
     iter_layer_files,
     parse_file,
 )
+
+if TYPE_CHECKING:
+    import pathlib
 
 _REPO_INFO: dict[str, tuple[str, str]] = {}
 

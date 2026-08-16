@@ -13,6 +13,7 @@ from shell.scheduling_service.bootstrap.scheduling.container.scheduling_core_con
     configure_scheduling_container,
 )
 from shell.scheduling_service.framework.scheduling.api.app import create_scheduling_app
+from shell.scheduling_service.infrastructure.scheduling.seed import seed_scheduling_dev_data
 from shell.scheduling_service.migrations.baseline import run_scheduling_baseline
 
 
@@ -42,6 +43,8 @@ def main() -> None:
 
     async def run() -> None:
         await run_scheduling_baseline(database_url)
+        if config.seed_dev_data:
+            await seed_scheduling_dev_data(database_url)
         if args.worker:
             await run_delivery_workers(
                 workers=(

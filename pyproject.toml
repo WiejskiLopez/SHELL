@@ -26,7 +26,6 @@ dependencies = [
 dev = ["pytest>=7"]
 
 [project.scripts]
-shell-seed-dev = "shell.config.seed.dev_data:main"
 shell-retention = "shell.platform.infrastructure.cli.retention:main"
 
 [tool.setuptools.packages.find]
@@ -105,7 +104,6 @@ module = [
     "shell.platform.framework.*",
     "shell.tests.*",
     "shell.tests.shared.*",
-    "shell.config.*",
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false

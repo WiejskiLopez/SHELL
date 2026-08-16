@@ -17,6 +17,10 @@ htmlcov/
 .venv
 *.log
 *.db
-shell_dev/
+shell/*_service/docker/logs/*
+shell/*_service/docker/dev_db/*
+!shell/*_service/docker/logs/.gitkeep
+!shell/*_service/docker/dev_db/.gitkeep
 frontend/
 openapi.json
+docker/dev/db/
