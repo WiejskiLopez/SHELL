@@ -3,5 +3,3 @@
 seed_dev_data: true
 
 log_level: "DEBUG"
-
-test_db_dir: database/dev

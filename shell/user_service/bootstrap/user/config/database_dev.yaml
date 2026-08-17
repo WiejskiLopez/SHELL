@@ -1,1 +1,1 @@
-database_url: "sqlite+aiosqlite:///database/dev/user.db"
+database_url: "sqlite+aiosqlite:///shell/user_service/docker/dev_db/user.db"

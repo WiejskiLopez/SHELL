@@ -1,13 +1,18 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Shell backend orchestrator — uruchamia skrypty poszczegolnych mikroserwisow.
+    Shell backend orchestrator — zbiorczy agregat skryptow per-service.
 
 .DESCRIPTION
-    Ten skrypt NIE uruchamia obrazow bezposrednio. Deleguje do skryptu manage.ps1
-    kazdego mikroserwisu (shell/<service>/docker/scripts/manage.ps1) oraz rabbit
-    (shell/rabbitmq/docker/scripts/manage.ps1). Dzieki temu z tego poziomu mozesz
-    zrestartowac/zdeployowac kazdy mikroserwis z osobna, uzywajac jego wlasnego skryptu.
+    Ten skrypt NIE uruchamia obrazow bezposrednio i NIE ma wlasnej konfiguracji
+    dockerowej. Deleguje do skryptu manage.ps1 kazdego mikroserwisu
+    (shell/<service>/docker/scripts/manage.ps1) oraz rabbit
+    (shell/rabbitmq/docker/scripts/manage.ps1). Kazdy mikroserwis ma wlasny
+    docker-compose.yml, wlasne bazy danych (dev_db) i wlasne skrypty.
+
+    Kazdy skrypt per-service zwraca do tego agregatu status (exit code).
+    Agregat NIE przerywa pracy po bledzie jednego serwisu - kontynuuje z
+    nastepnymi, a na koncu raportuje ktore zakonczyly sie bledem.
 
     Start calosci = uruchomienie manage.ps1 każdego mikroserwisu po kolei.
 
@@ -17,9 +22,9 @@
         .\backend.ps1 restart                  # restart wszystkich
         .\backend.ps1 restart execution        # restart TYLKO execution (przez jego skrypt)
         .\backend.ps1 redeploy definition      # rebuild + recreate TYLKO definition
-        .\backend.ps1 restart rabbit           # restaRT Rabbit
+        .\backend.ps1 restart rabbit           # restart Rabbit
         .\backend.ps1 logs session             # logi session
-        .\backend.ps1 status                   # status calosci
+        .\backend.ps1 status                   # status calosci (status kazdego mikroserwisu)
         .\backend.ps1 test                     # uruchom run_tests.ps1
 #>
 [CmdletBinding()]
@@ -52,9 +57,11 @@ $serviceDirs = [ordered]@{
     rabbit       = "rabbitmq"
 }
 
+$results = @()
+
 function Show-Help {
     Write-Host @"
-Shell backend orchestrator (deleguje do skryptow poszczegolnych mikroserwisow)
+Shell backend orchestrator (zbiorczy agregat skryptow per-service manage.ps1)
 
 Usage:
   .\backend.ps1 <action> [unit] [-Environment dev|prod]
@@ -65,7 +72,7 @@ Actions:
   restart [unit]                restart wszystkich (lub tylko wskazany mikroserwis)
   redeploy <unit>               rebuild + recreate wskazanego mikroserwisu
   logs [unit]                   logi wszystkich (lub jednego)
-  status                        status calosci (docker compose ps)
+  status                        status calosci (status kazdego mikroserwisu)
   test                          uruchom run_tests.ps1
   help                          ten ekran
 
@@ -76,26 +83,10 @@ Kazdy mikroserwis ma wlasny skrypt: shell/<service>/docker/scripts/manage.ps1
 "@
 }
 
-function Invoke-ServiceScript {
-    param(
-        [string]$Name,
-        [string]$ScriptAction
-    )
-
-    if (-not $serviceDirs.Contains($Name)) {
-        Write-Host "Nieznany mikroserwis: '$Name'. Dozwolone: $($serviceDirs.Keys -join ', ')" -ForegroundColor Red
-        exit 1
-    }
-
+function Get-ServiceScript {
+    param([string]$Name)
     $serviceRoot = Join-Path $shellDir $serviceDirs[$Name]
-    $script = Join-Path (Join-Path $serviceRoot "docker") "scripts\manage.ps1"
-    if (-not (Test-Path -LiteralPath $script)) {
-        Write-Host "Brak skryptu mikroserwisu: $script" -ForegroundColor Red
-        exit 1
-    }
-
-    & $script $ScriptAction -Environment $Environment
-    exit $LASTEXITCODE
+    return Join-Path (Join-Path $serviceRoot "docker") "scripts\manage.ps1"
 }
 
 function Invoke-ServiceScriptNoExit {
@@ -104,23 +95,47 @@ function Invoke-ServiceScriptNoExit {
         [string]$ScriptAction
     )
 
-    $serviceRoot = Join-Path $shellDir $serviceDirs[$Name]
-    $script = Join-Path (Join-Path $serviceRoot "docker") "scripts\manage.ps1"
+    $script = Get-ServiceScript -Name $Name
     if (-not (Test-Path -LiteralPath $script)) {
         Write-Host "Brak skryptu mikroserwisu: $script" -ForegroundColor Red
-        exit 1
+        $script:results += [PSCustomObject]@{ Unit = $Name; Action = $ScriptAction; Status = "Brak skryptu" }
+        return
     }
 
     & $script $ScriptAction -Environment $Environment
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Blad skryptu $Name ($ScriptAction): $LASTEXITCODE" -ForegroundColor Red
-        exit $LASTEXITCODE
+    $code = $LASTEXITCODE
+    if ($code -eq 0) {
+        $script:results += [PSCustomObject]@{ Unit = $Name; Action = $ScriptAction; Status = "OK" }
+    }
+    else {
+        $script:results += [PSCustomObject]@{ Unit = $Name; Action = $ScriptAction; Status = "Blad ($code)" }
     }
 }
 
-function Invoke-RabbitScript {
-    param([string]$ScriptAction)
-    Invoke-ServiceScriptNoExit -Name "rabbit" -ScriptAction $ScriptAction
+function Show-Results {
+    Write-Host "`n=== Podsumowanie ===" -ForegroundColor Cyan
+    $failed = @($results | Where-Object { $_.Status -ne "OK" })
+    $passed = @($results | Where-Object { $_.Status -eq "OK" })
+    foreach ($r in $results) {
+        $color = if ($r.Status -eq "OK") { "Green" } else { "Red" }
+        Write-Host ("  {0,-12} {1,-10} {2}" -f $r.Unit, $r.Action, $r.Status) -ForegroundColor $color
+    }
+    Write-Host ("Przeszlo: {0}, bledow: {1}" -f $passed.Count, $failed.Count) -ForegroundColor $(if ($failed.Count -eq 0) { "Green" } else { "Yellow" })
+}
+
+function Invoke-SingleUnit {
+    param(
+        [string]$Name,
+        [string]$ScriptAction
+    )
+
+    if (-not $serviceDirs.Contains($Name)) {
+        Write-Host "Nieznany mikroserwisy: '$Name'. Dozwolone: $($serviceDirs.Keys -join ', ')" -ForegroundColor Red
+        exit 1
+    }
+    $result = Invoke-ServiceScriptNoExit -Name $Name -ScriptAction $ScriptAction
+    Show-Results
+    exit $(if ($script:results[0].Status -eq "OK") { 0 } else { 1 })
 }
 
 if ($Action -eq "help" -or $Action -eq "") {
@@ -142,45 +157,57 @@ switch ($Action) {
     }
 
     "status" {
-        $baseFile = Join-Path $projectRoot "docker\docker-compose.yml"
-        $overrideFile = Join-Path $projectRoot "docker\docker-compose.$Environment.yml"
-        docker compose -f $baseFile -f $overrideFile ps
-        exit $LASTEXITCODE
+        if (-not [string]::IsNullOrWhiteSpace($Unit)) {
+            Invoke-SingleUnit -Name $Unit -ScriptAction "status"
+        }
+        else {
+            foreach ($bc in $serviceDirs.Keys) {
+                Invoke-ServiceScriptNoExit -Name $bc -ScriptAction "status"
+            }
+            Show-Results
+            exit $(if (@($results | Where-Object { $_.Status -ne "OK" }).Count -eq 0) { 0 } else { 1 })
+        }
     }
 
     "up" {
         if (-not [string]::IsNullOrWhiteSpace($Unit)) {
-            Invoke-ServiceScript -Name $Unit -ScriptAction "up"
+            Invoke-SingleUnit -Name $Unit -ScriptAction "up"
         }
         else {
-            Invoke-RabbitScript -ScriptAction "up"
+            Invoke-ServiceScriptNoExit -Name "rabbit" -ScriptAction "up"
             foreach ($bc in $microservices) {
                 Invoke-ServiceScriptNoExit -Name $bc -ScriptAction "up"
             }
+            Show-Results
+            exit $(if (@($results | Where-Object { $_.Status -ne "OK" }).Count -eq 0) { 0 } else { 1 })
         }
     }
 
     "down" {
         if (-not [string]::IsNullOrWhiteSpace($Unit)) {
-            Invoke-ServiceScript -Name $Unit -ScriptAction "down"
+            Invoke-SingleUnit -Name $Unit -ScriptAction "down"
         }
         else {
             foreach ($bc in $microservices) {
                 Invoke-ServiceScriptNoExit -Name $bc -ScriptAction "down"
             }
-            Invoke-RabbitScript -ScriptAction "down"
+            Invoke-ServiceScriptNoExit -Name "rabbit" -ScriptAction "down"
+            Show-Results
+            exit $(if (@($results | Where-Object { $_.Status -ne "OK" }).Count -eq 0) { 0 } else { 1 })
         }
     }
 
     "restart" {
         if (-not [string]::IsNullOrWhiteSpace($Unit)) {
-            Invoke-ServiceScript -Name $Unit -ScriptAction "restart"
+            Invoke-SingleUnit -Name $Unit -ScriptAction "restart"
         }
         else {
             foreach ($bc in $microservices) {
                 Invoke-ServiceScriptNoExit -Name $bc -ScriptAction "restart"
             }
-            Invoke-RabbitScript -ScriptAction "restart"
+            Invoke-ServiceScriptNoExit -Name "rabbit" -ScriptAction "restart"
+            Show-Results
+            exit $(if (@($results | Where-Object { $_.Status -ne "OK" }).Count -eq 0) { 0 } else { 1 })
         }
     }
 
@@ -189,7 +216,7 @@ switch ($Action) {
             Write-Host "redeploy wymaga wskazania mikroserwisu: <bc> | rabbit" -ForegroundColor Red
             exit 1
         }
-        Invoke-ServiceScript -Name $Unit -ScriptAction "redeploy"
+        Invoke-SingleUnit -Name $Unit -ScriptAction "redeploy"
     }
 
     "logs" {
@@ -197,6 +224,6 @@ switch ($Action) {
             Write-Host "logs wymaga wskazania mikroserwisu: <bc> | rabbit" -ForegroundColor Red
             exit 1
         }
-        Invoke-ServiceScript -Name $Unit -ScriptAction "logs"
+        Invoke-SingleUnit -Name $Unit -ScriptAction "logs"
     }
 }

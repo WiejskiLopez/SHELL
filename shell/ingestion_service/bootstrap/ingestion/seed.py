@@ -1,7 +1,7 @@
 """CLI entry point for seeding the Ingestion bounded context dev data.
 
 Usage:
-    python -m shell.ingestion_service.bootstrap.ingestion.seed --url sqlite+aiosqlite:///database/dev/ingestion.db
+    python -m shell.ingestion_service.bootstrap.ingestion.seed --url sqlite+aiosqlite:///shell/ingestion_service/docker/dev_db/ingestion.db
     python -m shell.ingestion_service.bootstrap.ingestion.seed --reset-db
     python -m shell.ingestion_service.bootstrap.ingestion.seed  # uses BC dev config
 """

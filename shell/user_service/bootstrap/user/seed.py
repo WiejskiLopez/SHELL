@@ -1,7 +1,7 @@
 """CLI entry point for seeding the User bounded context dev data.
 
 Usage:
-    python -m shell.user_service.bootstrap.user.seed --url sqlite+aiosqlite:///database/dev/user.db
+    python -m shell.user_service.bootstrap.user.seed --url sqlite+aiosqlite:///shell/user_service/docker/dev_db/user.db
     python -m shell.user_service.bootstrap.user.seed --reset-db
     python -m shell.user_service.bootstrap.user.seed  # uses BC dev config
 """

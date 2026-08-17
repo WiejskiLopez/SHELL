@@ -1,8 +1,13 @@
+name: shell-user
+
 services:
-  shell-user-service:
+  shell-user-api:
     build:
       context: ../../..
       dockerfile: shell/user_service/docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
     ports:
       - "8001:8001"
     healthcheck:
@@ -10,7 +15,40 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
       - ./config:/app/config
+    networks:
+      - shell-net
+
+  shell-user-worker:
+    build:
+      context: ../../..
+      dockerfile: shell/user_service/docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+    command:
+      - python
+      - -m
+      - shell.user_service.bootstrap.user.main
+      - --worker
+      - --db-url
+      - sqlite+aiosqlite:///shell_dev/user.db
+      - --api-key
+      - dev-user-key
+    volumes:
+      - ./dev_db:/app/shell_dev
+      - ./logs:/app/logs
+      - ./config:/app/config
+    depends_on:
+      shell-user-api:
+        condition: service_healthy
+    networks:
+      - shell-net
+
+networks:
+  shell-net:
+    name: shell-net

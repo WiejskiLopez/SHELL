@@ -1,7 +1,7 @@
 """CLI entry point for seeding the Scheduling bounded context dev data.
 
 Usage:
-    python -m shell.scheduling_service.bootstrap.scheduling.seed --url sqlite+aiosqlite:///database/dev/scheduling.db
+    python -m shell.scheduling_service.bootstrap.scheduling.seed --url sqlite+aiosqlite:///shell/scheduling_service/docker/dev_db/scheduling.db
     python -m shell.scheduling_service.bootstrap.scheduling.seed --reset-db
     python -m shell.scheduling_service.bootstrap.scheduling.seed  # uses BC dev config
 """

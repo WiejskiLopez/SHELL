@@ -1,8 +1,13 @@
+name: shell-definition
+
 services:
-  shell-definition-service:
+  shell-definition-api:
     build:
       context: ../../..
       dockerfile: shell/definition_service/docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
     ports:
       - "8002:8002"
     healthcheck:
@@ -10,7 +15,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
       - ./config:/app/config
+    networks:
+      - shell-net
+
+  shell-definition-worker:
+    build:
+      context: ../../..
+      dockerfile: shell/definition_service/docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+    command:
+      - python
+      - -m
+      - shell.definition_service.bootstrap.definition.main
+      - --worker
+      - --db-url
+      - sqlite+aiosqlite:///shell_dev/definition.db
+    volumes:
+      - ./dev_db:/app/shell_dev
+      - ./logs:/app/logs
+      - ./config:/app/config
+    depends_on:
+      shell-definition-api:
+        condition: service_healthy
+    networks:
+      - shell-net
+
+networks:
+  shell-net:
+    name: shell-net

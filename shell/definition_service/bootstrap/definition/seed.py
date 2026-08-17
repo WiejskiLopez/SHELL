@@ -1,7 +1,7 @@
 """CLI entry point for seeding the Definition bounded context dev data.
 
 Usage:
-    python -m shell.definition_service.bootstrap.definition.seed --url sqlite+aiosqlite:///database/dev/definition.db
+    python -m shell.definition_service.bootstrap.definition.seed --url sqlite+aiosqlite:///shell/definition_service/docker/dev_db/definition.db
     python -m shell.definition_service.bootstrap.definition.seed --reset-db
     python -m shell.definition_service.bootstrap.definition.seed  # uses BC dev config
 """

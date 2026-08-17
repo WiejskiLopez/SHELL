@@ -6,7 +6,7 @@ Exercise the complete pipeline the way it works between two real bounded context
       → RabbitInboxConsumer (session) → inbox_event (session) → EventInboxProcessor
       → AuthSessionCreatedEventHandler → opens a Session → outbox_event (session).
 
-Requires the RabbitMQ container from ``shell/rabbitmq/docker-compose.yml``; skipped
+Requires the RabbitMQ container from ``shell/rabbitmq/docker/docker-compose.yml``; skipped
 automatically when ``RABBIT_TEST_URL`` is not set.
 """
 
@@ -58,7 +58,7 @@ _rabbit_available = os.environ.get("RABBIT_TEST_URL") is not None
 
 skip_no_rabbit = pytest.mark.skipif(
     not _rabbit_available,
-    reason="RABBIT_TEST_URL not set — start shell/rabbitmq/docker-compose.yml to enable",
+    reason="RABBIT_TEST_URL not set — start shell/rabbitmq/docker/docker-compose.yml to enable",
 )
 
 USER_QUEUE = "shell-session-event-inbox"

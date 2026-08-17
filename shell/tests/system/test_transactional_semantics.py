@@ -43,7 +43,7 @@ _rabbit_available = os.environ.get("RABBIT_TEST_URL") is not None
 
 skip_no_rabbit = pytest.mark.skipif(
     not _rabbit_available,
-    reason="RABBIT_TEST_URL not set — start shell/rabbitmq/docker-compose.yml to enable",
+    reason="RABBIT_TEST_URL not set — start shell/rabbitmq/docker/docker-compose.yml to enable",
 )
 
 QUEUE = "shell-system-transaction-inbox"

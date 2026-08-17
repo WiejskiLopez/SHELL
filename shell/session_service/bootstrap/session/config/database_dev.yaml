@@ -1,1 +1,1 @@
-database_url: "sqlite+aiosqlite:///database/dev/session.db"
+database_url: "sqlite+aiosqlite:///shell/session_service/docker/dev_db/session.db"

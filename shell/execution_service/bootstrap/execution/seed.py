@@ -1,7 +1,7 @@
 """CLI entry point for seeding the Execution bounded context dev data.
 
 Usage:
-    python -m shell.execution_service.bootstrap.execution.seed --url sqlite+aiosqlite:///database/dev/execution.db
+    python -m shell.execution_service.bootstrap.execution.seed --url sqlite+aiosqlite:///shell/execution_service/docker/dev_db/execution.db
     python -m shell.execution_service.bootstrap.execution.seed --reset-db
     python -m shell.execution_service.bootstrap.execution.seed  # uses BC dev config
 """

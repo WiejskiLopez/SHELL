@@ -1,8 +1,13 @@
+name: shell-scheduling
+
 services:
-  shell-scheduling-service:
+  shell-scheduling-api:
     build:
       context: ../../..
       dockerfile: shell/scheduling_service/docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
     ports:
       - "8006:8006"
     healthcheck:
@@ -10,7 +15,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
       - ./config:/app/config
+    networks:
+      - shell-net
+
+  shell-scheduling-worker:
+    build:
+      context: ../../..
+      dockerfile: shell/scheduling_service/docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+    command:
+      - python
+      - -m
+      - shell.scheduling_service.bootstrap.scheduling.main
+      - --worker
+      - --db-url
+      - sqlite+aiosqlite:///shell_dev/scheduling.db
+    volumes:
+      - ./dev_db:/app/shell_dev
+      - ./logs:/app/logs
+      - ./config:/app/config
+    depends_on:
+      shell-scheduling-api:
+        condition: service_healthy
+    networks:
+      - shell-net
+
+networks:
+  shell-net:
+    name: shell-net

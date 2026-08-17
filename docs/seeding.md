@@ -43,7 +43,7 @@ async def seed_<bc>_dev_data(url: str) -> None
 Każdy BC seeduje się sam przez CLI:
 
 ```powershell
-python -m shell.user_service.bootstrap.user.seed --url sqlite+aiosqlite:///database/dev/user.db
+python -m shell.user_service.bootstrap.user.seed --url sqlite+aiosqlite:///shell/user_service/docker/dev_db/user.db
 python -m shell.session_service.bootstrap.session.seed
 python -m shell.definition_service.bootstrap.definition.seed
 python -m shell.execution_service.bootstrap.execution.seed

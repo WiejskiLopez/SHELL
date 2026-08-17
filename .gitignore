@@ -21,6 +21,9 @@ shell/*_service/docker/logs/*
 shell/*_service/docker/dev_db/*
 !shell/*_service/docker/logs/.gitkeep
 !shell/*_service/docker/dev_db/.gitkeep
+shell/rabbitmq/docker/logs/*
+shell/rabbitmq/docker/dev_mq/*
+!shell/rabbitmq/docker/logs/.gitkeep
+!shell/rabbitmq/docker/dev_mq/.gitkeep
 frontend/
 openapi.json
-docker/dev/db/

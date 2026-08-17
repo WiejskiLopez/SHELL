@@ -1,1 +1,1 @@
-database_url: "sqlite+aiosqlite:///database/dev/scheduling.db"
+database_url: "sqlite+aiosqlite:///shell/scheduling_service/docker/dev_db/scheduling.db"

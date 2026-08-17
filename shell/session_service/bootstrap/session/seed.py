@@ -1,7 +1,7 @@
 """CLI entry point for seeding the Session bounded context dev data.
 
 Usage:
-    python -m shell.session_service.bootstrap.session.seed --url sqlite+aiosqlite:///database/dev/session.db
+    python -m shell.session_service.bootstrap.session.seed --url sqlite+aiosqlite:///shell/session_service/docker/dev_db/session.db
     python -m shell.session_service.bootstrap.session.seed --reset-db
     python -m shell.session_service.bootstrap.session.seed  # uses BC dev config
 """

@@ -29,6 +29,7 @@ def main() -> None:
     database_url = args.db_url or config.database_url
     container = SchedulingCoreContainer()
     container.config.db_url.from_value(database_url)
+    container.config.broker_url.from_value(config.events.broker_url)
     container.config.worker_heartbeat_interval_seconds.from_value(
         config.events.worker_heartbeat_interval_seconds
     )

@@ -1,7 +1,7 @@
 """CLI entry point for seeding the Project bounded context dev data.
 
 Usage:
-    python -m shell.project_service.bootstrap.project.seed --url sqlite+aiosqlite:///database/dev/project.db
+    python -m shell.project_service.bootstrap.project.seed --url sqlite+aiosqlite:///shell/project_service/docker/dev_db/project.db
     python -m shell.project_service.bootstrap.project.seed --reset-db
     python -m shell.project_service.bootstrap.project.seed  # uses BC dev config
 """
