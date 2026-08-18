@@ -10,7 +10,7 @@ __all__ = [
 
 
 class StdlibLogger:
-    """Implements application/ports/ports.Logger using Python stdlib logging."""
+    """Implements application/ports/logger.Logger using stdlib logging."""
 
     def __init__(self, name: str = "shell") -> None:
         self._log = logging.getLogger(name)

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from shell.platform.application.ports.ports import Logger
+    from shell.platform.application.ports.logger import Logger
 
 
 class LoggingEventPublisher:

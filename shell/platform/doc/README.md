@@ -80,7 +80,7 @@ DDD, CQRS, transactional outbox, inbox z lease, at-least-once).
 - [integration-mapper](integration-mapper.md) — ReflectiveIntegrationMapper
 - [logging](logging.md) — Logowanie, JSON formatter, audyt
 - [configuration](configuration.md) — Konfiguracja (YAML + env)
-- [cli-tools](cli-tools.md) — Narzędzia CLI (`shell-retention`)
+- [cli-tools](cli-tools.md) — Wspólne narzędzia CLI i service-owned retention
 
 ---
 

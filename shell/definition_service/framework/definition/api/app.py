@@ -13,9 +13,16 @@ from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.framework.api.openapi import configure_openapi
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
+
+
+DEFINITION_OPENAPI_TAGS = (
+    {"name": "GraphDefinitions", "description": "Graph definition operations."},
+    {"name": "Health", "description": "Service health and readiness."},
+)
 
 
 def create_definition_app(core_container: ContainerProtocol) -> FastAPI:
@@ -27,6 +34,7 @@ def create_definition_app(core_container: ContainerProtocol) -> FastAPI:
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     app.include_router(graph_definitions_router, prefix="/api/v1")
+    configure_openapi(app, tags=DEFINITION_OPENAPI_TAGS)
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:

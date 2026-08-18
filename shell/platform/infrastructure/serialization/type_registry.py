@@ -8,4 +8,11 @@ if TYPE_CHECKING:
 
 def build_type_registry(types: Iterable[type]) -> dict[str, type]:
     """Build a deserialization registry keyed by class name."""
-    return {item.__name__: item for item in types}
+    registry: dict[str, type] = {}
+    for item in types:
+        name = item.__name__
+        existing = registry.get(name)
+        if existing is not None and existing is not item:
+            raise ValueError(f"Duplicate registry key: {name}")
+        registry[name] = item
+    return registry

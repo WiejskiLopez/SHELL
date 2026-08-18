@@ -189,7 +189,7 @@ class TestRetentionCli:
         tmp_path,
     ) -> None:
         from shell.platform.infrastructure.cli.retention import (
-            purge_for_bounded_context,
+            purge_with_models,
         )
 
         # The CLI loads the definition BC persistence models and its own URL.
@@ -215,9 +215,10 @@ class TestRetentionCli:
             processed_at=now - timedelta(days=400),
         )
 
-        report = await purge_for_bounded_context(
-            "definition_service",
-            url,
+        report = await purge_with_models(
+            session_factory,
+            _INBOX_MODEL,
+            _PROCESSED_DELIVERY_MODEL,
             dead_letter_retention_days=90,
             processed_delivery_retention_days=30,
         )

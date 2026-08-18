@@ -2,11 +2,11 @@
 
 ## Cel / Co realizuje
 
-Warstwa `shell/platform/framework/cli/` dostarcza wspólny szkielet entrypointów: `build_parser()`/`parse_args()` (wspólne flagi argparse) oraz `main()` — główny dispatcher trybów. `shell/platform/infrastructure/cli/retention.py` implementuje narzędzie `shell-retention` — kontrolowaną, audytowalną czystkę wierszy DLQ i `processed_delivery` per bounded context, z dynamicznym importem modeli BC (CLI bootstrap bez statycznych zależności platformy od BC).
+Warstwa `shell/platform/framework/cli/` dostarcza wspólny szkielet entrypointów. `shell/platform/infrastructure/cli/retention.py` dostarcza neutralny runner retention i funkcję `purge_with_models()`. Właściciel usługi przekazuje własne modele delivery przez service-owned entry point.
 
 ## Problem
 
-Każdy proces SHELL (node runner, retention, migracje, API) potrzebuje spójnego zestawu flag (identyfikacja węzła, parametry wykonania, routing) bez kopiowania kodu argparse. Z drugiej strony narzędzia operacyjne, jak retention, muszą działać na modelach dowolnego BC, ale platforma nie może statycznie importować konkretnych bounded contexts — stąd dynamiczny import. Wreszcie procesy te trzeba uruchamiać jawnie (cron/scheduler) z czytelnym raportem.
+Każdy proces SHELL potrzebuje spójnego zestawu flag bez kopiowania kodu argparse. Narzędzie retention musi działać na modelach dowolnej usługi, ale platforma nie może znać jej nazwy ani ścieżki importu. Dlatego modele są przekazywane jawnie przez wrapper właściciela usługi.
 
 ## Realizacja techniczna
 
@@ -27,28 +27,22 @@ Każdy proces SHELL (node runner, retention, migracje, API) potrzebuje spójnego
 
 `main(argv=None) -> int` — entrypoint, w którym pierwszy argument pozycyjny jest trybem/subkomendą. Obecna implementacja jest szkieletowa: brak argumentów → wypisanie `"Usage: shell <mode> [options]"` do `stderr` i `return 1`; nieznany tryb → `"Unknown mode: ..."` i `return 1`. Docelowo ma dyspozytować do per-mode command handlerów.
 
-### `infrastructure/cli/retention.py` (`shell-retention`)
+### `infrastructure/cli/retention.py`
 
-Moduł uruchamiany jako `python -m shell.platform.infrastructure.cli.retention`:
+Platforma udostępnia **`purge_with_models(session_factory, inbox_model, processed_delivery_model, *, dead_letter_retention_days=90, processed_delivery_retention_days=30) -> RetentionReport`**. Funkcja buduje `DeliveryRetentionService` z modeli przekazanych przez caller i nie wykonuje żadnego importu usługi.
 
-**`_models_for(bc)`** — dynamiczny import modeli BC:
-`module_name = f"shell.{bc}.infrastructure.{bc}.persistence.sql.models.base"` → `importlib.import_module` → zwraca `module.PERSISTENCE_DELIVERY_MODELS`. Stała `_BCS` wymienia dozwolone BC: `definition`, `execution`, `ingestion`, `project`, `scheduling`, `session`, `user`.
-
-**`purge_for_bounded_context(bounded_context, db_url, *, dead_letter_retention_days=90, processed_delivery_retention_days=30) -> RetentionReport`** — testowalny entrypoint:
-
-1. `models = _models_for(bounded_context)`;
-2. tworzy `DeliveryRetentionService(build_session_factory(db_url), models.events.inbox, models.processed_delivery, dead_letter_retention_days=..., processed_delivery_retention_days=...)` (`DeliveryRetentionService` i `RetentionReport` z `shell/platform/infrastructure/messaging/inbox/delivery_retention_service.py`);
-3. `await service.purge_expired()`.
+**`run_retention_cli(service_name, models)`** dostarcza wspólny parser i raportowanie dla cienkich wrapperów service-owned. `service_name` jest wyłącznie etykietą raportu przekazaną przez właściciela; platforma nie utrzymuje listy dozwolonych usług.
 
 `RetentionReport` (frozen dataclass) raportuje: `purged_dead_letter`, `purged_processed_delivery`, `kept_dead_letter`, `kept_processed_delivery`, `detail`.
 
-**`main()`** — argparse: `--bc` (required, choices `_BCS`), `--db-url` (default `SHELL_DATABASE_URL` albo `sqlite+aiosqlite:///shell-{bc}.db`), `--dead-letter-days` (90), `--processed-delivery-days` (30). Po uruchomieniu `asyncio.run(purge_for_bounded_context(...))` wypisuje linię raportu (`retention bc=... purged_dead_letter=... ...`), którą scheduler może przechwycić jako metrykę (patrz [retention](retention.md)).
+Każdy service posiada własny wrapper, na przykład `shell-retention-definition`, który importuje własne `PERSISTENCE_DELIVERY_MODELS` i wywołuje `run_retention_cli("definition_service", PERSISTENCE_DELIVERY_MODELS)`. Komendy nie mają `--bc`; mają tylko `--db-url`, `--dead-letter-days` i `--processed-delivery-days`.
 
 ## Kluczowe pliki
 
 - `shell/platform/framework/cli/main.py`
 - `shell/platform/framework/cli/parser.py`
 - `shell/platform/infrastructure/cli/retention.py`
+- `shell/*_service/framework/*/cli/retention.py`
 - `shell/platform/infrastructure/messaging/inbox/delivery_retention_service.py`
 - `shell/platform/infrastructure/persistence/sql/__init__.py` (`build_session_factory`)
 

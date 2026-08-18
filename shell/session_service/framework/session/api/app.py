@@ -11,11 +11,18 @@ from shell.platform.framework.api.middleware.correlation_id import (
     CorrelationIdMiddleware,
 )
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.framework.api.openapi import configure_openapi
 from shell.platform.framework.api.readiness import create_readiness_router
 from shell.session_service.framework.session.session.api.router import router as sessions_router
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
+
+
+SESSION_OPENAPI_TAGS = (
+    {"name": "Sessions", "description": "Session lifecycle operations."},
+    {"name": "Health", "description": "Service health and readiness."},
+)
 
 
 def create_session_app(core_container: ContainerProtocol) -> FastAPI:
@@ -27,6 +34,7 @@ def create_session_app(core_container: ContainerProtocol) -> FastAPI:
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     app.include_router(sessions_router, prefix="/api/v1")
+    configure_openapi(app, tags=SESSION_OPENAPI_TAGS)
 
     readiness_probe = getattr(core_container, "readiness_probe", None)
     if readiness_probe is not None:

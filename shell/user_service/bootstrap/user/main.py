@@ -28,7 +28,11 @@ from shell.user_service.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
 )
-from shell.user_service.framework.user.api.app import create_user_app
+from shell.user_service.framework.user.api.app import (
+    USER_PUBLIC_EXACT,
+    USER_PUBLIC_PREFIX,
+    create_user_app,
+)
 from shell.user_service.infrastructure.user.seed import seed_user_dev_data
 from shell.user_service.migrations.baseline import run_user_baseline
 
@@ -111,6 +115,8 @@ def main() -> None:
     app = create_user_app(
         container,
         api_key=config.api_key if args.api_key is None else args.api_key,
+        public_exact=USER_PUBLIC_EXACT,
+        public_prefix=USER_PUBLIC_PREFIX,
     )
 
     server = uvicorn.Server(

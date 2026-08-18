@@ -25,9 +25,20 @@ from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.framework.api.openapi import configure_openapi
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
+
+
+EXECUTION_OPENAPI_TAGS = (
+    {"name": "Workflows", "description": "Workflow execution operations."},
+    {"name": "Task Executions", "description": "Task execution operations."},
+    {"name": "NodeExecutions", "description": "Node execution result operations."},
+    {"name": "EdgeExecutions", "description": "Workflow edge execution operations."},
+    {"name": "EdgeLinkExecutions", "description": "Workflow edge link operations."},
+    {"name": "Health", "description": "Service health and readiness."},
+)
 
 
 def create_execution_app(
@@ -48,6 +59,11 @@ def create_execution_app(
         app.include_router(workflows_router, prefix="/api/v1")
         app.include_router(task_executions_router, prefix="/api/v1")
         app.include_router(node_execution_router, prefix="/api/v1")
+
+    configure_openapi(
+        app,
+        tags=EXECUTION_OPENAPI_TAGS if include_routes else EXECUTION_OPENAPI_TAGS[-1:],
+    )
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:

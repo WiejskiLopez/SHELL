@@ -21,10 +21,12 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
+    from shell.execution_service.domain.execution.aggregates.agent_config_execution.value_objects.config_data import (
+        ConfigData,
+    )
     from shell.execution_service.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
         AgentExecutionId,
     )
-    from shell.platform.domain.value_objects.config_data import ConfigData
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 

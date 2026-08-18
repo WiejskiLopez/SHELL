@@ -16,26 +16,13 @@ from shell.platform.framework.api.principal import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Collection
 
     from starlette.types import ASGIApp, Receive, Scope, Send
 
 
 class _QueryBus(Protocol):
     async def dispatch(self, query: object) -> object: ...
-
-
-PUBLIC_EXACT = frozenset(
-    {
-        "/health",
-        "/api",
-        "/api/v1/users/by-email",
-        "/api/v1/auth_session/login",
-        "/api/v1/auth_session/me",
-        "/api/v1/auth_session/logout",
-    }
-)
-PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
 class AuthMiddleware:
@@ -45,11 +32,15 @@ class AuthMiddleware:
         api_key: str = "",
         jwt_secret: str = "",
         session_query_factory: Callable[[str], object] | None = None,
+        public_exact: Collection[str] | None = None,
+        public_prefix: Collection[str] | None = None,
     ) -> None:
         self.app = app
         self._api_key = api_key
         self._jwt_secret = jwt_secret
         self._session_query_factory = session_query_factory
+        self._public_exact = frozenset(public_exact or ())
+        self._public_prefix = frozenset(public_prefix or ())
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -80,9 +71,9 @@ class AuthMiddleware:
         await self.app(scope, receive, send)
 
     def _is_public_path(self, path: str) -> bool:
-        if path in PUBLIC_EXACT:
+        if path in self._public_exact:
             return True
-        return any(path.startswith(prefix) for prefix in PUBLIC_PREFIX)
+        return any(path.startswith(prefix) for prefix in self._public_prefix)
 
     async def _resolve_principal(
         self, scope: Scope, headers: dict[bytes, bytes]

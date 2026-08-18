@@ -1,0 +1,29 @@
+name: shell-rabbitmq
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: shell-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: shell
+      RABBITMQ_DEFAULT_PASS: shell
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - ./dev_mq:/var/lib/rabbitmq
+      - ./logs:/var/log/rabbitmq
+      - ./config:/etc/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - shell-net
+
+networks:
+  shell-net:
+    name: shell-net

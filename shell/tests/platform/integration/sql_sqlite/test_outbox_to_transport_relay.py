@@ -59,6 +59,20 @@ class FlakyTimeoutTransport:
         self.delivered.append(envelope)
 
 
+class AcceptedThenTimeoutTransport:
+    """Records broker acceptance before the producer observes a timeout."""
+
+    def __init__(self) -> None:
+        self.attempts = 0
+        self.delivered: list[DeliveryEnvelope] = []
+
+    async def deliver(self, envelope: DeliveryEnvelope) -> None:
+        self.attempts += 1
+        self.delivered.append(envelope)
+        if self.attempts == 1:
+            raise TimeoutError("broker response was lost")
+
+
 class TestOutboxToTransportRelay:
     async def test_delivers_pending_and_marks_published(
         self,
@@ -182,3 +196,47 @@ class TestOutboxToTransportRelay:
         async with isolated() as session:
             rows = (await session.execute(select(_OUTBOX_MODEL))).scalars().all()
         assert rows[0].published_at is not None
+
+    async def test_ambiguous_transport_result_keeps_at_least_once_delivery(
+        self,
+        session_factory: async_sessionmaker,
+        tmp_path,
+    ) -> None:
+        url = f"sqlite+aiosqlite:///{tmp_path / 'relay-ambiguous.db'}"
+        engine = create_async_engine(url)
+        async with engine.begin() as connection:
+            await connection.run_sync(EVENT_DELIVERY_MODELS.outbox.metadata.create_all)
+        await engine.dispose()
+        isolated = build_session_factory(url)
+
+        await SqlEventOutboxPublisher(isolated, EVENT_DELIVERY_MODELS).publish(
+            [
+                TaskExecutionCreatedEvent.now(
+                    task_execution_id=TaskExecutionId.generate(),
+                    now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+                )
+            ]
+        )
+
+        transport = AcceptedThenTimeoutTransport()
+        relay = OutboxToTransportRelay(
+            isolated,
+            EVENT_DELIVERY_MODELS,
+            transport,
+            kind="event",
+        )
+
+        with pytest.raises(TimeoutError):
+            await relay.run_once()
+
+        async with isolated() as session:
+            row = (await session.execute(select(_OUTBOX_MODEL))).scalar_one()
+            assert row.published_at is None
+
+        assert len(transport.delivered) == 1
+        assert await relay.run_once() == 1
+        assert len(transport.delivered) == 2
+
+        async with isolated() as session:
+            row = (await session.execute(select(_OUTBOX_MODEL))).scalar_one()
+            assert row.published_at is not None

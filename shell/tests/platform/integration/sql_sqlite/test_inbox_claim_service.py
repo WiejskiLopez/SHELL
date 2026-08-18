@@ -5,10 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.infrastructure.messaging.inbox import InboxClaimService
+from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import InboxProcessorBase
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
 )
@@ -19,6 +20,20 @@ if TYPE_CHECKING:
     from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import InboxStateModel
 
 _INBOX_MODEL: type[InboxStateModel] = cast("type[InboxStateModel]", EVENT_DELIVERY_MODELS.inbox)
+
+
+class _FenceProbe(InboxProcessorBase):
+    def _deserialize(self, row: object) -> object | None:
+        return object()
+
+    async def _dispatch(self, domain_object: object) -> None:
+        return None
+
+    def _causation_value(self, domain_object: object, row: object) -> str:
+        return "cause"
+
+    def _type_name(self, row: object) -> str:
+        return "SampleEvent"
 
 
 async def _add_event(
@@ -184,3 +199,43 @@ class TestInboxClaimService:
         )
         assert len(await first.claim_batch()) == 1
         assert await second.claim_batch() == []
+
+    async def test_old_worker_cannot_ack_after_lease_takeover(
+        self,
+        session_factory: async_sessionmaker,
+    ) -> None:
+        await _add_event(session_factory, "event-fenced")
+        first = _FenceProbe(
+            session_factory,
+            _INBOX_MODEL,
+            worker_id="worker-1",
+            lease_duration_seconds=30,
+        )
+        second = InboxClaimService(
+            session_factory,
+            _INBOX_MODEL,
+            worker_id="worker-2",
+            lease_duration_seconds=30,
+        )
+
+        assert len(await first._claim_service.claim_batch()) == 1
+
+        async with session_factory() as session:
+            await session.execute(
+                update(_INBOX_MODEL)
+                .where(_INBOX_MODEL.id == "event-fenced")
+                .values(lease_until=datetime.now(tz=UTC) - timedelta(minutes=1))
+            )
+            await session.commit()
+
+        claimed_by_second = await second.claim_batch()
+        assert len(claimed_by_second) == 1
+
+        async with session_factory() as session:
+            acknowledged = await first._acknowledge_in_session(session, "event-fenced")
+            await session.commit()
+
+        assert acknowledged is False
+        row = await _read_status(session_factory, "event-fenced")
+        assert row.status == InboxStatus.PROCESSING.value
+        assert row.claimed_by == "worker-2"

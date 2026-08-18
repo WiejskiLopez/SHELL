@@ -52,10 +52,9 @@ montować middleware samodzielnie, np. `create_execution_app` dodaje
 
 ### AuthMiddleware — `shell/platform/framework/api/middleware/api_key.py`
 
-- Lista ścieżek publicznych: `PUBLIC_EXACT` (`/health`, `/api`,
-  `/api/v1/users/by-email`, `/api/v1/auth_session/login`,
-  `/api/v1/auth_session/me`, `/api/v1/auth_session/logout`) oraz `PUBLIC_PREFIX`
-  (`/docs`, `/redoc`, `/openapi.json`).
+- Polityka ścieżek publicznych jest przekazywana do konstruktora jako
+  niemutowalne `public_exact` i `public_prefix`. Brak konfiguracji oznacza
+  fail-closed; wyjątki publiczne należą do właściwego service factory.
 - Dla pozostałych ścieżek `_resolve_principal` próbuje kolejno:
   1. **Sesja** — ciasteczko `shell_session` (`_session_token` przez `SimpleCookie`);
      zapytanie o sesję przez `query_bus.dispatch(session_query_factory(token))`

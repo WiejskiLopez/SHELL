@@ -28,14 +28,14 @@ Każdy endpoint MUSI mieć przypisany tag. Tagi są w PascalCase, odpowiadają B
 ### Gdzie zmieniać
 
 - **Router tag**: w `shell/framework/<bc>/<aggregate>/api/router.py` — `APIRouter(tags=["TagName"])`
-- **OpenAPI metadata**: w `shell/platform/framework/api/openapi.py` — w liście `OPENAPI_TAGS`
+- **OpenAPI metadata**: w konkretnym service factory, przez neutralne `configure_openapi()` z `shell/platform/framework/api/openapi.py`
 - **Health endpoint**: w `shell/platform/framework/api/app.py` — `@app.get("/health", tags=["Health"])`
 - **Per-BC app fabryki**: w `shell/framework/**/api/app.py` — `@app.get("/health", tags=["Health"])`
 
 ### Zasady dodawania nowego tagu
 
-1. Dodać do `OPENAPI_TAGS` w `openapi.py`
-2. Użyć w routerze: `APIRouter(tags=["NewTag"])`
+1. Użyć w routerze: `APIRouter(tags=["NewTag"])`
+2. Dodać opis tagu do katalogu OpenAPI właściwego service factory
 3. Frontend dostosuje `orval.config.ts` po stronie frontendu
 
 ## 2. OpenAPI Spec — generowanie i publikacja
@@ -204,7 +204,7 @@ Tagi OpenAPI są niezależne od prefixu URL. Jeden router = jeden tag, ale tag n
 - [ ] Dodać endpoint w `router.py` z `tags=["ExistingTag"]`
 - [ ] Dodać Pydantic `BaseModel` dla request/response (nie importować domenowych VO!)
 - [ ] Użyć `response_model=` w dekoratorze
-- [ ] Jeśli nowy BC → dodać `OPENAPI_TAGS` w `openapi.py`
+- [ ] Jeśli nowy service → dodać opis tagu w jego factory i przekazać go do `configure_openapi()`
 - [ ] Jeśli nowy BC → frontend doda wpis w `orval.config.ts`
 - [ ] Bumpnąć wersję (git tag) przed publikacją
 

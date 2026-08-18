@@ -9,9 +9,16 @@ from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.framework.api.openapi import configure_openapi
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
+
+
+INGESTION_OPENAPI_TAGS = (
+    {"name": "Ingestions", "description": "Message routing operations."},
+    {"name": "Health", "description": "Service health and readiness."},
+)
 
 
 def create_ingestion_app(container: ContainerProtocol) -> FastAPI:
@@ -20,6 +27,7 @@ def create_ingestion_app(container: ContainerProtocol) -> FastAPI:
     app.add_middleware(CorrelationIdMiddleware)
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
     app.include_router(router, prefix="/api/v1")
+    configure_openapi(app, tags=INGESTION_OPENAPI_TAGS)
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:

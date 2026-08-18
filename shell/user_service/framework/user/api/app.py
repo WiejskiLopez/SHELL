@@ -13,6 +13,7 @@ from shell.platform.framework.api.middleware.correlation_id import (
     CorrelationIdMiddleware,
 )
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.framework.api.openapi import configure_openapi
 from shell.user_service.application.user.auth_session.queries.get_current_auth_session_query import (
     GetCurrentAuthSessionQuery,
 )
@@ -20,7 +21,27 @@ from shell.user_service.framework.user.auth_session.api.router import router as 
 from shell.user_service.framework.user.user.api.router import router as users_router
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from shell.platform.framework.api.dependencies import ContainerProtocol
+
+
+USER_PUBLIC_EXACT = frozenset(
+    {
+        "/health",
+        "/api",
+        "/api/v1/users/by-email",
+        "/api/v1/auth_session/login",
+        "/api/v1/auth_session/me",
+        "/api/v1/auth_session/logout",
+    }
+)
+USER_PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
+USER_OPENAPI_TAGS = (
+    {"name": "Users", "description": "User management operations."},
+    {"name": "AuthSessions", "description": "Authentication session operations."},
+    {"name": "Health", "description": "Service health and readiness."},
+)
 
 
 def create_user_app(
@@ -28,6 +49,8 @@ def create_user_app(
     *,
     api_key: str = "",
     jwt_secret: str = "",
+    public_exact: Collection[str] | None = None,
+    public_prefix: Collection[str] | None = None,
 ) -> FastAPI:
     """Tworzy aplikację FastAPI dla BC User."""
     app = FastAPI(title="shell — user", version="0.1.0")
@@ -39,11 +62,14 @@ def create_user_app(
         api_key=api_key,
         jwt_secret=jwt_secret,
         session_query_factory=lambda token: GetCurrentAuthSessionQuery(token=token),
+        public_exact=USER_PUBLIC_EXACT if public_exact is None else public_exact,
+        public_prefix=USER_PUBLIC_PREFIX if public_prefix is None else public_prefix,
     )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     app.include_router(users_router, prefix="/api/v1")
     app.include_router(auth_sessions_router, prefix="/api/v1")
+    configure_openapi(app, tags=USER_OPENAPI_TAGS)
     mount_readiness(app, core_container)
 
     @app.get("/health", tags=["Health"])

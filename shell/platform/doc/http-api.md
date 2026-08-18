@@ -88,12 +88,10 @@ API_LATEST_VERSION = API_VERSION_REGISTRY.latest             # "v1"
 
 ### OpenAPI — `openapi.py`
 
-`configure_openapi` w `shell/platform/framework/api/openapi.py` ustawia
-`app.title = "SHELL Control Plane API"`, `app.version = "0.1.0"`, opis oraz
-`app.openapi_tags = OPENAPI_TAGS` — listę tagów (`Users`, `Sessions`,
-`GraphDefinitions`, `Workflows`, `NodeExecutions`, `EdgeExecutions`,
-`EdgeLinkExecutions`, `Projects`, `Ingestions`, `SchedulerDefinitions`,
-`SchedulerJobs`, `SchedulerExecutions`, `Health`).
+`configure_openapi` w `shell/platform/framework/api/openapi.py` jest neutralnym
+mechanizmem przyjmującym opcjonalne `title`, `version`, `description` i `tags`.
+Opisy tagów są własnością service factory, który przekazuje wyłącznie tagi swoich
+routerów. Platforma nie posiada globalnej listy BC.
 
 `_inject_common_schemas` (w `setup.py`) nadpisuje `app.openapi` customową funkcją,
 która po wygenerowaniu schematu przez `get_openapi` dokłada do

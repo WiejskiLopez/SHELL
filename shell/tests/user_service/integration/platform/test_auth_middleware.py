@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import time
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
+import jwt
 import pytest
 
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
@@ -86,3 +88,46 @@ async def test_api_key_resolves_system_principal() -> None:
     )
 
     assert principal == Principal(subject_id="system", kind=PrincipalKind.SYSTEM)
+
+
+def test_auth_middleware_is_fail_closed_without_public_path_configuration() -> None:
+    middleware = AuthMiddleware(app=cast("ASGIApp", SimpleNamespace()))
+
+    assert middleware._is_public_path("/health") is False
+    assert middleware._is_public_path("/docs") is False
+
+
+def test_auth_middleware_uses_exact_and_prefix_public_path_configuration() -> None:
+    middleware = AuthMiddleware(
+        app=cast("ASGIApp", SimpleNamespace()),
+        public_exact=frozenset({"/health"}),
+        public_prefix=frozenset({"/docs"}),
+    )
+
+    assert middleware._is_public_path("/health") is True
+    assert middleware._is_public_path("/docs") is True
+    assert middleware._is_public_path("/docs/openapi.json") is True
+    assert middleware._is_public_path("/health/details") is False
+
+
+@pytest.mark.asyncio
+async def test_auth_middleware_rejects_invalid_jwt_variants() -> None:
+    middleware = AuthMiddleware(
+        app=cast("ASGIApp", SimpleNamespace()),
+        jwt_secret="s" * 32,
+    )
+    now = int(time.time())
+    secret = "s" * 32
+    other_secret = "o" * 32
+
+    valid = jwt.encode({"sub": "user-1", "exp": now + 60}, secret, algorithm="HS256")
+    expired = jwt.encode({"sub": "user-1", "exp": now - 60}, secret, algorithm="HS256")
+    missing_subject = jwt.encode({"exp": now + 60}, secret, algorithm="HS256")
+    wrong_secret = jwt.encode({"sub": "user-1", "exp": now + 60}, other_secret, algorithm="HS256")
+    unsigned = jwt.encode({"sub": "user-1", "exp": now + 60}, key="", algorithm="none")
+
+    assert await middleware._validate_jwt(valid) == "user-1"
+    assert await middleware._validate_jwt(expired) is None
+    assert await middleware._validate_jwt(missing_subject) is None
+    assert await middleware._validate_jwt(wrong_secret) is None
+    assert await middleware._validate_jwt(unsigned) is None

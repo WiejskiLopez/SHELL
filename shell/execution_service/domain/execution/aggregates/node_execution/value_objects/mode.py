@@ -1,9 +1,4 @@
-"""Mode — execution mode of a node.
-
-Mode and NodeRole are different concepts with different semantics.
-Mode represents the execution mode (agent, router, tasker, etc.)
-while NodeRole represents the role in a workflow graph.
-"""
+"""Execution mode of a node."""
 
 from __future__ import annotations
 

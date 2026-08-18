@@ -14,8 +14,8 @@ if TYPE_CHECKING:
     from shell.execution_service.application.execution.edge_execution.commands.delete_edge_execution_command import (
         DeleteEdgeExecutionCommand,
     )
+    from shell.platform.application.ports.logger import Logger
     from shell.platform.application.ports.unit_of_work import UnitOfWork
-    from shell.platform.domain.ports.log import Logger
     from shell.platform.domain.ports.time import Clock
 
 from shell.execution_service.domain.execution.aggregates.edge_execution.exceptions.edge_execution_not_found_error import (

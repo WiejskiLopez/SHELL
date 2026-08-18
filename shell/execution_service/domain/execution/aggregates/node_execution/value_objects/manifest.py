@@ -9,7 +9,9 @@ from shell.platform.domain.base.value_object import ValueObject
 from shell.platform.domain.exceptions.domain_error import DomainError
 
 if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.mode import Mode
+    from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.mode import (
+        Mode,
+    )
 
 
 @dataclass(frozen=True, slots=True)

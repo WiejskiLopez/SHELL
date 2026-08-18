@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from shell.platform.framework.api.health import mount_readiness
+from shell.platform.framework.api.openapi import configure_openapi
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.router import (
     router as scheduler_definition_router,
 )
@@ -13,6 +14,13 @@ from shell.scheduling_service.framework.scheduling.scheduler_job.api.router impo
     router as scheduler_job_router,
 )
 
+SCHEDULING_OPENAPI_TAGS = (
+    {"name": "SchedulerDefinitions", "description": "Scheduler definition operations."},
+    {"name": "SchedulerJobs", "description": "Scheduler job operations."},
+    {"name": "SchedulerExecutions", "description": "Scheduler execution operations."},
+    {"name": "Health", "description": "Service health and readiness."},
+)
+
 
 def create_scheduling_app(container: object | None = None) -> FastAPI:
     app = FastAPI(title="shell - scheduling", version="0.1.0")
@@ -21,6 +29,7 @@ def create_scheduling_app(container: object | None = None) -> FastAPI:
         app.include_router(scheduler_definition_router, prefix="/api/v1")
         app.include_router(scheduler_execution_router, prefix="/api/v1")
         app.include_router(scheduler_job_router, prefix="/api/v1")
+    configure_openapi(app, tags=SCHEDULING_OPENAPI_TAGS)
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:

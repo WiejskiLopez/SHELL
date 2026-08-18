@@ -1,22 +1,11 @@
-"""shell-retention — controlled cleanup of DLQ and processed_delivery rows.
-
-Runs the bounded-context retention policy as an explicit, auditable task
-(ref4.md Krok 6): purges only rows older than the configured window and prints
-the resulting report so a scheduler/cron can capture the metric.
-
-Example:
-    shell-retention --bc session --db-url sqlite+aiosqlite:///session.db \
-        --dead-letter-days 90 --processed-delivery-days 30
-"""
+"""Generic retention CLI primitives for service-owned entry points."""
 
 from __future__ import annotations
 
 import argparse
 import asyncio
-import importlib
-import logging
 import os
-from typing import Any, cast
+from typing import Any
 
 from shell.platform.infrastructure.messaging.inbox.delivery_retention_service import (
     DeliveryRetentionService,
@@ -24,86 +13,59 @@ from shell.platform.infrastructure.messaging.inbox.delivery_retention_service im
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 
-logger = logging.getLogger(__name__)
 
-_BCS = (
-    "definition_service",
-    "execution_service",
-    "ingestion_service",
-    "project_service",
-    "scheduling_service",
-    "session_service",
-    "user_service",
-)
-
-
-def _models_for(bc: str) -> Any:
-    """Import a BC's persistence delivery models via importlib (CLI bootstrap tool).
-
-    Dynamic import keeps the platform free of static bounded-context imports.
-    """
-    layer = bc.removesuffix("_service")
-    module_name = f"shell.{bc}.infrastructure.{layer}.persistence.sql.models.base"
-    module = cast("Any", importlib.import_module(module_name))
-    return module.PERSISTENCE_DELIVERY_MODELS
-
-
-async def purge_for_bounded_context(
-    bounded_context: str,
-    db_url: str,
+async def purge_with_models(
+    session_factory: Any,
+    inbox_model: type[Any],
+    processed_delivery_model: type[Any],
     *,
     dead_letter_retention_days: int = 90,
     processed_delivery_retention_days: int = 30,
 ) -> RetentionReport:
-    """Run the retention policy for one bounded context (testable entrypoint)."""
-    models = _models_for(bounded_context)
+    """Run retention using models supplied by the owning service."""
     service = DeliveryRetentionService(
-        build_session_factory(db_url),
-        cast("type[Any]", models.events.inbox),
-        cast("type[Any]", models.processed_delivery),
+        session_factory,
+        inbox_model,
+        processed_delivery_model,
         dead_letter_retention_days=dead_letter_retention_days,
         processed_delivery_retention_days=processed_delivery_retention_days,
     )
     return await service.purge_expired()
 
 
-def main() -> None:
+def run_retention_cli(service_name: str, models: Any) -> None:
+    """Run the shared retention CLI with service-owned delivery models."""
     parser = argparse.ArgumentParser(
-        prog="shell-retention",
-        description="Purge expired DLQ and processed_delivery rows for a bounded context.",
+        prog=f"shell-retention-{service_name.removesuffix('_service')}",
+        description="Purge expired DLQ and processed_delivery rows.",
     )
-    parser.add_argument("--bc", required=True, choices=_BCS, help="bounded context name")
     parser.add_argument("--db-url", default=None, help="database URL (default: SHELL_DATABASE_URL)")
     parser.add_argument("--dead-letter-days", type=int, default=90)
     parser.add_argument("--processed-delivery-days", type=int, default=30)
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO)
-
     db_url = (
         args.db_url
         or os.environ.get("SHELL_DATABASE_URL")
-        or f"sqlite+aiosqlite:///shell-{args.bc}.db"
+        or f"sqlite+aiosqlite:///{service_name}.db"
     )
     report = asyncio.run(
-        purge_for_bounded_context(
-            args.bc,
-            db_url,
+        purge_with_models(
+            build_session_factory(db_url),
+            models.events.inbox,
+            models.processed_delivery,
             dead_letter_retention_days=args.dead_letter_days,
             processed_delivery_retention_days=args.processed_delivery_days,
         )
     )
     print(
-        "retention bc=%s purged_dead_letter=%s purged_processed_delivery=%s "
-        "kept_dead_letter=%s kept_processed_delivery=%s detail=%s",
-        args.bc,
-        report.purged_dead_letter,
-        report.purged_processed_delivery,
-        report.kept_dead_letter,
-        report.kept_processed_delivery,
-        report.detail,
+        f"retention service={service_name} "
+        f"purged_dead_letter={report.purged_dead_letter} "
+        f"purged_processed_delivery={report.purged_processed_delivery} "
+        f"kept_dead_letter={report.kept_dead_letter} "
+        f"kept_processed_delivery={report.kept_processed_delivery} "
+        f"detail={report.detail}"
     )
 
 
-if __name__ == "__main__":
-    main()
+__all__ = ["purge_with_models", "run_retention_cli"]

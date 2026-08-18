@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-`DeliveryRetentionService` (klasa w `shell/platform/infrastructure/messaging/inbox/delivery_retention_service.py`) wykonuje ograniczoną retencję/usuwanie przeterminowanych wierszy dwóch tabel delivery: DLQ inbox (wiersze `DEAD_LETTER` starsze niż okno) oraz tabeli deduplikacji `processed_delivery` (wiersze starsze niż okno). Zwraca obiekt `RetentionReport` z liczbami usuniętych i pozostawionych wierszy oraz cutoffami. Retencja jest uruchamiana jawnie przez narzędzie CLI `shell-retention` (`shell/platform/infrastructure/cli/retention.py`) per bounded context.
+`DeliveryRetentionService` (klasa w `shell/platform/infrastructure/messaging/inbox/delivery_retention_service.py`) wykonuje ograniczoną retencję/usuwanie przeterminowanych wierszy dwóch tabel delivery: DLQ inbox oraz `processed_delivery`. Zwraca `RetentionReport` z licznikami i cutoffami. Mechanizm jest wspólny, natomiast modele i entry point należą do konkretnej usługi.
 
 ## Problem
 
@@ -39,19 +39,15 @@ class RetentionReport:
 
 `detail` zawiera cutoffy w ISO: `dead_letter_cutoff` i `processed_delivery_cutoff`.
 
-CLI `shell-retention` (`shell/platform/infrastructure/cli/retention.py`):
+Platforma udostępnia `purge_with_models(session_factory, inbox_model, processed_delivery_model, ...)` oraz wspólny `run_retention_cli(service_name, models)`. Service-owned wrappery importują własne `PERSISTENCE_DELIVERY_MODELS` i przekazują je do platformy.
 
-- `_BCS` — lista dozwolonych bounded contexts: `definition`, `execution`, `ingestion`, `project`, `scheduling`, `session`, `user`;
-- `_models_for(bc)` — dynamiczny import `shell.{bc}.infrastructure.{bc}.persistence.sql.models.base` przez `importlib.import_module`, pobiera `module.PERSISTENCE_DELIVERY_MODELS` (dynamiczny import utrzymuje platformę wolną od statycznych zależności od BC);
-- `purge_for_bounded_context(bounded_context, db_url, *, dead_letter_retention_days=90, processed_delivery_retention_days=30) -> RetentionReport` — testowalny entrypoint budujący `DeliveryRetentionService` na `build_session_factory(db_url)` z modelami `models.events.inbox` i `models.processed_delivery`;
-- `main()` — argparse: `--bc` (wymagany, `choices=_BCS`), `--db-url` (domyślnie `SHELL_DATABASE_URL` z env, a potem `sqlite+aiosqlite:///shell-{bc}.db`), `--dead-letter-days` (90), `--processed-delivery-days` (30); uruchamia `purge_for_bounded_context` przez `asyncio.run` i wypisuje raport w formacie `retention bc=%s purged_dead_letter=%s purged_processed_delivery=%s kept_dead_letter=%s kept_processed_delivery=%s detail=%s`.
-
-Przykład wywołania: `shell-retention --bc session --db-url sqlite+aiosqlite:///session.db --dead-letter-days 90 --processed-delivery-days 30`.
+Przykłady wywołania: `shell-retention-session --db-url sqlite+aiosqlite:///session.db` oraz `shell-retention-user --dead-letter-days 90 --processed-delivery-days 30`.
 
 ## Kluczowe pliki
 
 - `shell/platform/infrastructure/messaging/inbox/delivery_retention_service.py`
 - `shell/platform/infrastructure/cli/retention.py`
+- `shell/*_service/framework/*/cli/retention.py`
 - `shell/platform/infrastructure/persistence/sql/__init__.py` (`build_session_factory`)
 - `shell/platform/infrastructure/messaging/inbox/inbox_claim_service.py` (`InboxStateModel`)
 
