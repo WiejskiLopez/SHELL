@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from shell.platform.application.ports.unit_of_work import UnitOfWork
+from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
     SchedulerDefinitionRepository,
 )

@@ -1,4 +1,4 @@
-active_profile: dev
+active_profile: prod
 events:
   inbox_batch_size: 50
   outbox_batch_size: 100

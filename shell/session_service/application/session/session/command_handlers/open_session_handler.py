@@ -13,7 +13,9 @@ from shell.session_service.domain.session.aggregates.session.value_objects.sessi
 from shell.session_service.domain.session.value_objects.user_id_ref import UserIdRef
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.ports import Clock, IdGenerator, UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.identity import IdGenerator
+    from shell.platform.domain.ports.time import Clock
     from shell.session_service.application.session.session.commands.open_session_command import (
         OpenSessionCommand,
     )

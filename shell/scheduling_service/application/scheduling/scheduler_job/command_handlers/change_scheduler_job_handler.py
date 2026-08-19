@@ -11,7 +11,7 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.value_o
 )
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
     from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
         ChangeSchedulerJobCommand,

@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, Protocol, cast
 from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
     InboxProcessorBase,
 )
-from shell.platform.infrastructure.serialization.message_deserializer import MessageDeserializer
+from shell.platform.infrastructure.serialization.message.deserializer import MessageDeserializer
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.platform.application.ports.messaging import MessagePublisher
+    from shell.platform.application.ports.messaging.message_publisher import MessagePublisher
     from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
         EnvelopeValidationPolicy,
         EnvelopeValidator,

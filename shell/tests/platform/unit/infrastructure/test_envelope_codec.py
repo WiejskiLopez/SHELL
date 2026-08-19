@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.platform.application.ports.delivery_transport import DeliveryEnvelope
+from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
 from shell.platform.infrastructure.messaging.transport import EnvelopeCodec
 
 

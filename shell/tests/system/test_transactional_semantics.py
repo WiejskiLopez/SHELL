@@ -195,7 +195,7 @@ async def _publish_event(envelope: object) -> None:
 def _login_envelope() -> object:
     from datetime import UTC, datetime
 
-    from shell.platform.application.ports.delivery_transport import DeliveryEnvelope
+    from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
 
     return DeliveryEnvelope(
         kind="event",

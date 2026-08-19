@@ -6,7 +6,7 @@ from pathlib import Path
 
 import uvicorn
 
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
 from shell.scheduling_service.bootstrap.scheduling.container.scheduling_core_container import (
     SchedulingCoreContainer,
@@ -25,16 +25,19 @@ def main() -> None:
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--worker-interval", type=float, default=1.0)
     args = parser.parse_args()
-    config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
-    database_url = args.db_url or config.database_url
+    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    deployment = config.deployment
+    runtime = config.platform_runtime
+    service = config.service
+    database_url = args.db_url or deployment.database_url
     container = SchedulingCoreContainer()
     container.config.db_url.from_value(database_url)
-    container.config.broker_url.from_value(config.events.broker_url)
+    container.config.broker_url.from_value(runtime.events.broker_url)
     container.config.worker_heartbeat_interval_seconds.from_value(
-        config.events.worker_heartbeat_interval_seconds
+        runtime.events.worker_heartbeat_interval_seconds
     )
     container.config.worker_max_batch_time_seconds.from_value(
-        config.events.worker_max_batch_time_seconds
+        runtime.events.worker_max_batch_time_seconds
     )
     container.config.worker_id.from_value("scheduling-event-processor")
     container.config.command_worker_id.from_value("scheduling-command-processor")
@@ -44,7 +47,7 @@ def main() -> None:
 
     async def run() -> None:
         await run_scheduling_baseline(database_url)
-        if config.seed_dev_data:
+        if service.seed_dev_data:
             await seed_scheduling_dev_data(database_url)
         if args.worker:
             await run_delivery_workers(
@@ -62,7 +65,7 @@ def main() -> None:
                 ),
                 session_factory=container.session_factory(),
                 heartbeat_model=container.persistence_delivery_models().worker_heartbeat,
-                poll_interval_seconds=args.worker_interval,
+                poll_interval_seconds=runtime.events.worker_poll_interval,
             )
         else:
             await server.serve()

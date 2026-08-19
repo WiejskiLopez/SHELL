@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from shell.execution_service.application.execution.workflow.commands.delete_workflow_command import (
         DeleteWorkflowCommand,
     )
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
 
 

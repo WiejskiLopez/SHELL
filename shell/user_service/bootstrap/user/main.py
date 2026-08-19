@@ -14,7 +14,7 @@ if TYPE_CHECKING:
         OutboxToTransportRelay,
     )
 
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_event_inbox_worker
 from shell.platform.infrastructure.messaging.inbox.inbox_batch_result import (
     InboxBatchResult,
@@ -57,7 +57,8 @@ class _PollingOutboxRelay:
 
 async def _run_outbox_relay(container: UserCoreContainer) -> None:
     """Periodically deliver the User BC outbox to the broker (Faza 9)."""
-    config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    runtime = config.platform_runtime
     worker_id = "user-outbox-relay"
     heartbeat = WorkerHeartbeatRecorder(
         container.session_factory(),
@@ -68,7 +69,7 @@ async def _run_outbox_relay(container: UserCoreContainer) -> None:
         _PollingOutboxRelay(container.outbox_to_transport_relay_factory()),
         PollingWorkerConfig(
             worker_id=worker_id,
-            poll_interval_seconds=config.events.worker_poll_interval,
+            poll_interval_seconds=runtime.events.worker_poll_interval,
         ),
         heartbeat=heartbeat.beat,
     )
@@ -76,14 +77,15 @@ async def _run_outbox_relay(container: UserCoreContainer) -> None:
 
 
 async def _run_command_worker(container: UserCoreContainer) -> None:
-    config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    runtime = config.platform_runtime
     await run_event_inbox_worker(
         consumer=container.rabbit_command_inbox_consumer_factory(),
         processor=container.command_inbox_processor_factory(),
         session_factory=container.session_factory(),
         heartbeat_model=container.persistence_delivery_models().worker_heartbeat,
         worker_id=container.config.command_worker_id(),
-        poll_interval_seconds=config.events.worker_poll_interval,
+        poll_interval_seconds=runtime.events.worker_poll_interval,
     )
 
 
@@ -97,24 +99,28 @@ def main() -> None:
     parser.add_argument("--worker", action="store_true")
     args = parser.parse_args()
 
-    config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
-    database_url = args.db_url or config.database_url
+    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    deployment = config.deployment
+    runtime = config.platform_runtime
+    service = config.service
+    auth = config.auth
+    database_url = args.db_url or deployment.database_url
 
     container = UserCoreContainer()
     container.config.db_url.from_value(database_url)
-    container.config.broker_url.from_value(config.events.broker_url)
+    container.config.broker_url.from_value(runtime.events.broker_url)
     container.config.worker_id.from_value("user-outbox-relay")
     container.config.command_worker_id.from_value("user-command-processor")
     container.config.worker_heartbeat_interval_seconds.from_value(
-        config.events.worker_heartbeat_interval_seconds
+        runtime.events.worker_heartbeat_interval_seconds
     )
     container.config.worker_max_batch_time_seconds.from_value(
-        config.events.worker_max_batch_time_seconds
+        runtime.events.worker_max_batch_time_seconds
     )
     configure_user_container(container)
     app = create_user_app(
         container,
-        api_key=config.api_key if args.api_key is None else args.api_key,
+        api_key=auth.api_key if args.api_key is None else args.api_key,
         public_exact=USER_PUBLIC_EXACT,
         public_prefix=USER_PUBLIC_PREFIX,
     )
@@ -130,7 +136,7 @@ def main() -> None:
 
     async def run() -> None:
         await run_user_baseline(database_url)
-        if config.seed_dev_data:
+        if service.seed_dev_data:
             await seed_user_dev_data(database_url)
         if args.worker:
             await asyncio.gather(_run_outbox_relay(container), _run_command_worker(container))

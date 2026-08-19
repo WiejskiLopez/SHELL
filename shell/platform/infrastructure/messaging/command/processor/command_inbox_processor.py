@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Protocol, cast
 from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
     InboxProcessorBase,
 )
-from shell.platform.infrastructure.messaging.serialization.command_deserializer import (
+from shell.platform.infrastructure.serialization.command.deserializer import (
     CommandDeserializer,
 )
 

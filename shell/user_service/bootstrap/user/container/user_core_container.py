@@ -29,7 +29,7 @@ from shell.platform.infrastructure.metrics.logging_metrics_backend import (
     LoggingMetricsBackend,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.platform.infrastructure.serialization.command_registry import (
+from shell.platform.infrastructure.serialization.registries.command_registry import (
     build_command_registry,
     discover_command_types,
 )

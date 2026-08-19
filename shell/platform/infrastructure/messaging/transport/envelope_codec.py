@@ -6,7 +6,7 @@ import json
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, cast
 
-from shell.platform.application.ports.delivery_transport import (
+from shell.platform.application.ports.transport.delivery_transport import (
     DeliveryEnvelope,
 )
 

@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     )
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.platform.application.ports.delivery_transport import DeliveryEnvelope
+    from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
     from shell.platform.infrastructure.persistence.sql.models.command_delivery import (
         CommandDeliveryModels,
     )

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
     from sqlalchemy.orm import Mapped
 
-    from shell.platform.application.ports.messaging import MessagePublisher
+    from shell.platform.application.ports.messaging.message_publisher import MessagePublisher
     from shell.platform.infrastructure.persistence.sql.models.message_delivery import (
         MessageDeliveryModels,
     )

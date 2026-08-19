@@ -39,21 +39,17 @@ class DomainEventSerializer:
         payload: dict[str, object],
         schema_version: int = 1,
     ) -> object:
-        kwargs: dict[str, Any] = {
-            "schema_version": SchemaVersion(schema_version),
-        }
+        kwargs: dict[str, Any] = {"schema_version": SchemaVersion(schema_version)}
         for f in dataclasses.fields(event_cls):
             if f.name == "schema_version":
                 continue
             if f.name == "occurred_at":
                 f_type = f.type
-                if isinstance(f_type, str):
-                    kwargs["occurred_at"] = occurred_at
-                else:
-                    kwargs["occurred_at"] = CreatedAt.from_datetime(occurred_at)
+                kwargs["occurred_at"] = (
+                    occurred_at if isinstance(f_type, str) else CreatedAt.from_datetime(occurred_at)
+                )
             else:
-                raw = payload.get(f.name)
-                kwargs[f.name] = self._deserialize_value(raw, cast("type", f.type))
+                kwargs[f.name] = self._deserialize_value(payload.get(f.name), cast("type", f.type))
         return event_cls(**kwargs)
 
     def _serialize_value(self, value: object) -> object:
@@ -85,9 +81,11 @@ class DomainEventSerializer:
         if origin is list:
             args = getattr(target_type, "__args__", ())
             inner = args[0] if args else str
-            if isinstance(value, list):
-                return [self._deserialize_value(item, inner) for item in value]
-            return []
+            return (
+                [self._deserialize_value(item, inner) for item in value]
+                if isinstance(value, list)
+                else []
+            )
         if origin is dict:
             return dict(value) if isinstance(value, dict) else {}
         if target_type is str:
@@ -97,31 +95,25 @@ class DomainEventSerializer:
         if target_type is float:
             return float(str(value)) if not isinstance(value, float) else value
         if target_type is bool:
-            if isinstance(value, str):
-                return value.lower() in ("true", "1", "yes")
-            return bool(value)
+            return value.lower() in ("true", "1", "yes") if isinstance(value, str) else bool(value)
         if target_type is datetime:
-            if isinstance(value, str):
-                return datetime.fromisoformat(value)
-            return value
+            return datetime.fromisoformat(value) if isinstance(value, str) else value
         if target_type is CreatedAt:
             if isinstance(value, str):
                 return CreatedAt.from_datetime(datetime.fromisoformat(value))
-            if isinstance(value, datetime):
-                return CreatedAt.from_datetime(value)
-            return value
+            return CreatedAt.from_datetime(value) if isinstance(value, datetime) else value
         if isinstance(value, (str, int, float, bool)) and dataclasses.is_dataclass(target_type):
-            _fields = dataclasses.fields(target_type)
-            if len(_fields) == 1 and (
+            fields = dataclasses.fields(target_type)
+            if len(fields) == 1 and (
                 not hasattr(target_type, "__dataclass_params__")
                 or not target_type.__dataclass_params__.kw_only
             ):
                 return target_type(value)  # type: ignore[call-arg]
         if dataclasses.is_dataclass(target_type) and isinstance(value, dict):
-            init_kwargs = {}
-            for f in dataclasses.fields(target_type):
-                init_kwargs[f.name] = self._deserialize_value(
-                    value.get(f.name), cast("type", f.type)
-                )
-            return target_type(**init_kwargs)
+            return target_type(
+                **{
+                    f.name: self._deserialize_value(value.get(f.name), cast("type", f.type))
+                    for f in dataclasses.fields(target_type)
+                }
+            )
         return value

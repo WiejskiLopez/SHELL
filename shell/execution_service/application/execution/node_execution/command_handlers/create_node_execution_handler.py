@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from shell.execution_service.application.execution.node_execution.commands.create_node_execution_command import (
         CreateNodeExecutionCommand,
     )
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import Identity  # type: ignore[attr-defined]
     from shell.platform.domain.ports.time import Time  # type: ignore[attr-defined]
 

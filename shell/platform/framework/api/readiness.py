@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Response
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.readiness import ReadinessProbe
+    from shell.platform.application.ports.runtime.readiness import ReadinessProbe
 
 
 def create_readiness_router(probe: ReadinessProbe) -> APIRouter:

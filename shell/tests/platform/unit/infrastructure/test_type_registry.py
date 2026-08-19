@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.platform.infrastructure.serialization.type_registry import build_type_registry
+from shell.platform.infrastructure.serialization.registries.type_registry import build_type_registry
 
 
 def test_type_registry_rejects_duplicate_class_names() -> None:

@@ -1,10 +1,3 @@
-"""ReadinessProbe — real readiness beyond liveness.
-
-``/health`` answers "is the process alive". ``/readiness`` answers "can this
-process do useful work right now": database reachable, migrations applied,
-worker making progress, backlog under a safe threshold.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass, field

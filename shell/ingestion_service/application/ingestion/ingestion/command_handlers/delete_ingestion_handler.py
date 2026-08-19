@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from shell.ingestion_service.application.ingestion.ingestion.commands.delete_ingestion_command import (
         DeleteIngestionCommand,
     )
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
 
 

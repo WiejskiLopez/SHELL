@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from sqlalchemy import func, select, text
 
-from shell.platform.application.ports.readiness import ReadinessProbe, ReadinessReport
+from shell.platform.application.ports.runtime.readiness import ReadinessProbe, ReadinessReport
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 
 if TYPE_CHECKING:

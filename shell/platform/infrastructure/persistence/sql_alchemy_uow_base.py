@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy.orm.exc import StaleDataError
 
-from shell.platform.application.ports.unit_of_work import UnitOfWork
+from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
 from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )

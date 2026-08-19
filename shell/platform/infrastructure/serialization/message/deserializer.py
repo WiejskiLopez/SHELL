@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from shell.platform.infrastructure.serialization import DomainMessageSerializer
+from shell.platform.infrastructure.serialization.message.serializer import DomainMessageSerializer
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 
 class MessageDeserializer:
     def __init__(
-        self,
-        registry: dict[str, type] | None = None,
-        upcaster: PayloadUpcaster | None = None,
+        self, registry: dict[str, type] | None = None, upcaster: PayloadUpcaster | None = None
     ) -> None:
         self._registry = registry or {}
         self._upcaster = upcaster
@@ -31,17 +29,13 @@ class MessageDeserializer:
         schema_version: int = 1,
     ) -> object | None:
         message_cls = self._registry.get(message_type)
-
         if not message_cls:
             logger.error("Unknown message type: %s", message_type)
             return None
-
         try:
             if self._upcaster is not None:
                 payload, schema_version = self._upcaster.upcast(
-                    message_type,
-                    schema_version,
-                    payload,
+                    message_type, schema_version, payload
                 )
             return self._serializer.from_payload(
                 message_cls=message_cls,
@@ -49,6 +43,6 @@ class MessageDeserializer:
                 payload=payload,
                 schema_version=schema_version,
             )
-        except (KeyError, ValueError, TypeError) as e:
-            logger.error("Failed to deserialize message %s: %s", message_type, e)
+        except (KeyError, ValueError, TypeError) as exc:
+            logger.error("Failed to deserialize message %s: %s", message_type, exc)
             return None

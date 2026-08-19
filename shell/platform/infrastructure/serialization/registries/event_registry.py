@@ -1,5 +1,3 @@
-"""Platform helper for building an event deserialization registry."""
-
 from __future__ import annotations
 
 import importlib
@@ -7,7 +5,7 @@ import inspect
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shell.platform.infrastructure.serialization.type_registry import build_type_registry
+from shell.platform.infrastructure.serialization.registries.type_registry import build_type_registry
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -23,7 +21,6 @@ def discover_event_types(package_name: str, base_type: type) -> tuple[type, ...]
     package = importlib.import_module(package_name)
     package_paths = getattr(package, "__path__", ())
     event_types: list[type] = []
-
     for package_path in package_paths:
         root = Path(package_path)
         for module_path in root.rglob("integration_events/*.py"):
@@ -40,5 +37,4 @@ def discover_event_types(package_name: str, base_type: type) -> tuple[type, ...]
                     and candidate.__module__ == module.__name__
                 ):
                     event_types.append(candidate)
-
     return tuple(event_types)

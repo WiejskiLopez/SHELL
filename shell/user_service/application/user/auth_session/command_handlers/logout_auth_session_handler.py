@@ -9,7 +9,7 @@ from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_se
 )
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
     from shell.user_service.application.user.auth_session.commands.logout_auth_session_command import (
         LogoutAuthSessionCommand,

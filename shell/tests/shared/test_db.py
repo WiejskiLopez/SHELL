@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -10,19 +9,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import pytest
 
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.tests.shared.test_config import resolve_test_db_dir
 
 
 def _resolve_test_db_dir() -> str | None:
-    """Return test_db_dir from env var or ShellConfig YAML, or None."""
-    env_dir = os.environ.get("SHELL_TEST_DB_DIR")
-    if env_dir:
-        return env_dir
-    try:
-        config = ShellConfig.from_environment()
-        return config.test_db_dir
-    except Exception:
-        return None
+    """Return the explicit test database directory, or None."""
+    return resolve_test_db_dir()
 
 
 def build_db_url(

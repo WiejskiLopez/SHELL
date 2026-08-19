@@ -7,7 +7,7 @@ the processor's transaction (different DB / non-shared UoW): such a handler
 writes a ``processed_delivery`` row atomically with its own change and the
 processor consults it before dispatch, so a redelivery is a no-op.
 
-Implements :class:`shell.platform.application.ports.delivery_dedup_store.DeliveryDedupStore`:
+Implements :class:`shell.platform.application.ports.transport.delivery_dedup_store.DeliveryDedupStore`:
 
 - ``is_duplicate`` / ``mark_processed`` resolve their session from the active
   delivery session scope (safe inside a handler running under the processor);

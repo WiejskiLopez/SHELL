@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -12,13 +11,13 @@ from shell.execution_service.bootstrap.execution.container.execution_core_contai
 from shell.execution_service.framework.execution.api.app import create_execution_app
 from shell.execution_service.migrations.baseline import run_execution_baseline
 from shell.platform.framework.api.principal import Principal, PrincipalKind
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 from shell.session_service.bootstrap.session.container.session_core_container import (
     SessionCoreContainer,
     configure_session_container,
 )
 from shell.session_service.framework.session.api.app import create_session_app
 from shell.session_service.migrations.baseline import run_session_baseline
+from shell.tests.shared.test_config import resolve_test_db_dir
 
 if TYPE_CHECKING:
     from fastapi import Request
@@ -27,15 +26,8 @@ TEST_API_KEY = "test-api-key"
 
 
 def _test_db_dir() -> str | None:
-    """Resolve test DB directory from env var or YAML config."""
-    env_dir = os.environ.get("SHELL_TEST_DB_DIR")
-    if env_dir:
-        return env_dir
-    try:
-        config = ShellConfig.from_environment()
-        return config.test_db_dir
-    except Exception:
-        return None
+    """Resolve the explicit test DB directory from the test environment."""
+    return resolve_test_db_dir()
 
 
 def _resolve_db_path(db_name: str = "test.db") -> str:

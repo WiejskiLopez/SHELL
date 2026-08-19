@@ -105,13 +105,15 @@ _PLATFORM_KNOWN: frozenset[str] = frozenset({})
 
 
 def test_event_registry_builder_is_platform_owned() -> None:
-    platform_registry = BASE / "platform" / "infrastructure" / "serialization" / "event_registry.py"
+    platform_registry = (
+        BASE / "platform" / "infrastructure" / "serialization" / "registries" / "event_registry.py"
+    )
     assert platform_registry.exists(), architecture_assertion_message(
         "reguła testowana przez test_event_registry_builder_is_platform_owned",
         "warunek zapisany w asercji musi być spełniony",
         "Event registry builder must remain in platform",
     )
-    assert "shell.platform.infrastructure.serialization.type_registry" in _get_imports(
+    assert "shell.platform.infrastructure.serialization.registries.type_registry" in _get_imports(
         platform_registry
     ), architecture_assertion_message(
         "reguła testowana przez test_event_registry_builder_is_platform_owned",

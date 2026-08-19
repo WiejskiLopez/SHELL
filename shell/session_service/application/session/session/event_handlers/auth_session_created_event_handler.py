@@ -27,8 +27,9 @@ from shell.session_service.domain.session.aggregates.session.value_objects.sessi
 from shell.session_service.domain.session.value_objects.user_id_ref import UserIdRef
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.ports import Clock, IdGenerator
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.identity import IdGenerator
+    from shell.platform.domain.ports.time import Clock
     from shell.user_service.application.user.auth_session.integration_events.auth_session_created_integration_event import (
         AuthSessionCreatedIntegrationEvent,
     )

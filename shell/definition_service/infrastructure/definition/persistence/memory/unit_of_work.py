@@ -54,7 +54,7 @@ from shell.definition_service.infrastructure.definition.node_link_definition.per
 from shell.definition_service.infrastructure.definition.runner_config.persistence.memory.in_memory_runner_config_repository import (
     InMemoryRunnerConfigRepository,
 )
-from shell.platform.application.ports.unit_of_work import UnitOfWork
+from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:

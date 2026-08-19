@@ -1,5 +1,3 @@
-"""Platform helper for discovering bounded-context message contracts."""
-
 from __future__ import annotations
 
 import importlib
@@ -7,7 +5,7 @@ import inspect
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shell.platform.infrastructure.serialization.type_registry import build_type_registry
+from shell.platform.infrastructure.serialization.registries.type_registry import build_type_registry
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

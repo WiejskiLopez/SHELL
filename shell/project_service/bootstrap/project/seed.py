@@ -13,16 +13,17 @@ import asyncio
 import os
 from pathlib import Path
 
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.project_service.infrastructure.project.seed import seed_project_dev_data
 
 
 def main() -> None:
-    config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    deployment = config.deployment
     parser = argparse.ArgumentParser(description="Seed Project BC dev data")
     parser.add_argument(
         "--url",
-        default=os.environ.get("SHELL_DATABASE_URL") or config.database_url,
+        default=os.environ.get("SHELL_DATABASE_URL") or deployment.database_url,
         help="Database URL (default: SHELL_DATABASE_URL env or BC dev config)",
     )
     parser.add_argument(

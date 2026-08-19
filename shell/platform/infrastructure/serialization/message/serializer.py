@@ -18,8 +18,7 @@ class DomainMessageSerializer:
         for f in dataclasses.fields(message):  # type: ignore[arg-type]
             if f.name in ("occurred_at", "schema_version"):
                 continue
-            raw = getattr(message, f.name)
-            payload[f.name] = self._serialize_value(raw)
+            payload[f.name] = self._serialize_value(getattr(message, f.name))
         return payload
 
     def to_outbox_payload(self, message: object) -> dict[str, object]:
@@ -40,22 +39,15 @@ class DomainMessageSerializer:
         payload: dict[str, object],
         schema_version: int = 1,
     ) -> object:
-        kwargs: dict[str, Any] = {
-            "schema_version": SchemaVersion(schema_version),
-        }
+        kwargs: dict[str, Any] = {"schema_version": SchemaVersion(schema_version)}
         type_hints = self._resolve_hints(message_cls)
         for f in dataclasses.fields(message_cls):
             if f.name == "schema_version":
                 continue
-            if f.name == "occurred_at":
-                kwargs["occurred_at"] = self._deserialize_value(
-                    occurred_at, type_hints.get(f.name, cast("type", f.type))
-                )
-            else:
-                raw = payload.get(f.name)
-                kwargs[f.name] = self._deserialize_value(
-                    raw, type_hints.get(f.name, cast("type", f.type))
-                )
+            target_type = type_hints.get(f.name, cast("type", f.type))
+            kwargs[f.name] = self._deserialize_value(
+                occurred_at if f.name == "occurred_at" else payload.get(f.name), target_type
+            )
         return message_cls(**kwargs)
 
     def _resolve_hints(self, cls: type) -> dict[str, type]:
@@ -93,9 +85,11 @@ class DomainMessageSerializer:
         if origin is list:
             args = getattr(target_type, "__args__", ())
             inner = args[0] if args else str
-            if isinstance(value, list):
-                return [self._deserialize_value(item, inner) for item in value]
-            return []
+            return (
+                [self._deserialize_value(item, inner) for item in value]
+                if isinstance(value, list)
+                else []
+            )
         if origin is dict:
             return dict(value) if isinstance(value, dict) else {}
         if target_type is str:
@@ -105,40 +99,35 @@ class DomainMessageSerializer:
         if target_type is float:
             return float(str(value)) if not isinstance(value, float) else value
         if target_type is bool:
-            if isinstance(value, str):
-                return value.lower() in ("true", "1", "yes")
-            return bool(value)
+            return value.lower() in ("true", "1", "yes") if isinstance(value, str) else bool(value)
         if target_type is datetime:
-            if isinstance(value, str):
-                return datetime.fromisoformat(value)
-            return value
+            return datetime.fromisoformat(value) if isinstance(value, str) else value
         if target_type is CreatedAt:
             if isinstance(value, str):
                 return CreatedAt.from_datetime(datetime.fromisoformat(value))
-            if isinstance(value, datetime):
-                return CreatedAt.from_datetime(value)
-            return value
+            return CreatedAt.from_datetime(value) if isinstance(value, datetime) else value
         if target_type is OccurredAt:
             if isinstance(value, str):
                 return OccurredAt.from_datetime(datetime.fromisoformat(value))
-            if isinstance(value, datetime):
-                return OccurredAt.from_datetime(value)
-            return value
+            return OccurredAt.from_datetime(value) if isinstance(value, datetime) else value
         if isinstance(value, (str, int, float, bool)) and dataclasses.is_dataclass(target_type):
-            _fields = dataclasses.fields(target_type)
-            if len(_fields) == 1 and (
+            fields = dataclasses.fields(target_type)
+            if len(fields) == 1 and (
                 not hasattr(target_type, "__dataclass_params__")
                 or not target_type.__dataclass_params__.kw_only
             ):
-                inner_hints = self._resolve_hints(target_type)
-                inner_type = inner_hints.get(_fields[0].name, cast("type", _fields[0].type))
+                inner_type = self._resolve_hints(target_type).get(
+                    fields[0].name, cast("type", fields[0].type)
+                )
                 return target_type(self._deserialize_value(value, inner_type))  # type: ignore[call-arg]
         if dataclasses.is_dataclass(target_type) and isinstance(value, dict):
-            init_kwargs = {}
-            inner_hints = self._resolve_hints(target_type)
-            for f in dataclasses.fields(target_type):
-                init_kwargs[f.name] = self._deserialize_value(
-                    value.get(f.name), inner_hints.get(f.name, cast("type", f.type))
-                )
-            return target_type(**init_kwargs)
+            hints = self._resolve_hints(target_type)
+            return target_type(
+                **{
+                    f.name: self._deserialize_value(
+                        value.get(f.name), hints.get(f.name, cast("type", f.type))
+                    )
+                    for f in dataclasses.fields(target_type)
+                }
+            )
         return value

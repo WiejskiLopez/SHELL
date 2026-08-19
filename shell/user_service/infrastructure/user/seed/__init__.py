@@ -7,7 +7,7 @@ and development/demo data seeding. Both are idempotent.
 
 from __future__ import annotations
 
-from shell.platform.application.ports.seed import SeedProvider
+from shell.platform.application.ports.runtime.seed import SeedProvider
 from shell.platform.infrastructure.persistence.sql.seed_helpers import run_seed_into
 from shell.user_service.infrastructure.user.seed.dev import seed_dev_sync
 from shell.user_service.migrations.baseline import run_user_baseline

@@ -1,6 +1,6 @@
 """LoggingMetricsBackend — dependency-free MetricsBackend adapter.
 
-Implements :class:`shell.platform.application.ports.metrics.MetricsBackend` by
+Implements :class:`shell.platform.application.ports.runtime.metrics.MetricsBackend` by
 logging every snapshot. Used until a real backend (Prometheus, etc.) is wired;
 keeps the platform free of a concrete metrics dependency (ref4.md Krok 4).
 """

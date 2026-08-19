@@ -10,7 +10,7 @@ from __future__ import annotations
 from shell.definition_service.infrastructure.definition.seed.base import seed_base_sync
 from shell.definition_service.infrastructure.definition.seed.dev import seed_dev_sync
 from shell.definition_service.migrations.baseline import run_definition_baseline
-from shell.platform.application.ports.seed import SeedProvider
+from shell.platform.application.ports.runtime.seed import SeedProvider
 from shell.platform.infrastructure.persistence.sql.seed_helpers import run_seed_into
 
 

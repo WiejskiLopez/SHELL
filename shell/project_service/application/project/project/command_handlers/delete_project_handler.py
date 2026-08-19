@@ -11,7 +11,7 @@ from shell.project_service.domain.project.aggregates.project.value_objects.proje
 )
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
     from shell.project_service.application.project.project.commands.delete_project_command import (
         DeleteProjectCommand,

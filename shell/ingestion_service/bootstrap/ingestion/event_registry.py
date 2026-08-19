@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from shell.ingestion_service.bootstrap.ingestion.contract_catalog import INGESTION_CONTRACT_CATALOG
 from shell.platform.application.events import IntegrationEvent
-from shell.platform.infrastructure.serialization.event_registry import (
+from shell.platform.infrastructure.serialization.registries.event_registry import (
     build_event_registry,
     discover_event_types,
 )

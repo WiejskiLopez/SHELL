@@ -11,8 +11,8 @@ from shell.definition_service.application.definition.graph_definition.integratio
 from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
-from shell.platform.infrastructure.serialization.event_deserializer import EventDeserializer
-from shell.platform.infrastructure.serialization.event_serializer import DomainEventSerializer
+from shell.platform.infrastructure.serialization.event.deserializer import EventDeserializer
+from shell.platform.infrastructure.serialization.event.serializer import DomainEventSerializer
 
 
 def test_definition_event_round_trips_through_its_registry() -> None:

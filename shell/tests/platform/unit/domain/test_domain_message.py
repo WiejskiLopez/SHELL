@@ -20,8 +20,8 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.serialization.message_deserializer import MessageDeserializer
-from shell.platform.infrastructure.serialization.message_serializer import DomainMessageSerializer
+from shell.platform.infrastructure.serialization.message.deserializer import MessageDeserializer
+from shell.platform.infrastructure.serialization.message.serializer import DomainMessageSerializer
 from shell.platform.types import JsonStr
 
 

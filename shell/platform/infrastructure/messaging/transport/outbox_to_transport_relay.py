@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
     from sqlalchemy.orm import Mapped
 
-    from shell.platform.application.ports.delivery_transport import (
+    from shell.platform.application.ports.transport.delivery_transport import (
         DeliveryEnvelope,
         DeliveryKind,
         DeliveryTransport,
@@ -108,7 +108,7 @@ class OutboxToTransportRelay:
             return len(rows)
 
     def _to_envelope(self, row: object) -> DeliveryEnvelope:
-        from shell.platform.application.ports.delivery_transport import DeliveryEnvelope
+        from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
 
         typed_row = cast("DeliveryOutboxRow", row)
         delivery_type = cast("str", getattr(typed_row, f"{self._kind}_type"))

@@ -16,7 +16,8 @@ from shell.project_service.domain.project.aggregates.project.value_objects.proje
 from shell.project_service.domain.project.aggregates.project.value_objects.repo_url import RepoUrl
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.ports import Clock, UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.time import Clock
     from shell.project_service.application.project.project.commands.change_project_command import (
         ChangeProjectCommand,
     )

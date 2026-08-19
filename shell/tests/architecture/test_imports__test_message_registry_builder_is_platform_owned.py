@@ -106,7 +106,12 @@ _PLATFORM_KNOWN: frozenset[str] = frozenset({})
 
 def test_message_registry_builder_is_platform_owned() -> None:
     platform_registry = (
-        BASE / "platform" / "infrastructure" / "serialization" / "message_registry.py"
+        BASE
+        / "platform"
+        / "infrastructure"
+        / "serialization"
+        / "registries"
+        / "message_registry.py"
     )
     bc_registry = BASE / "messaging" / "bootstrap" / "messaging" / "message_registry.py"
     assert platform_registry.exists(), architecture_assertion_message(

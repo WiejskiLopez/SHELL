@@ -68,7 +68,7 @@ from shell.execution_service.infrastructure.execution.workflow.persistence.memor
 from shell.execution_service.infrastructure.execution.workflow_state.persistence.memory.in_memory_workflow_state_repository import (
     InMemoryWorkflowStateRepository,
 )
-from shell.platform.application.ports.unit_of_work import UnitOfWork
+from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

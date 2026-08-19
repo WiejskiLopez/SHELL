@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shell.platform.infrastructure.serialization.command_registry import (
+from shell.platform.infrastructure.serialization.registries.command_registry import (
     build_command_registry,
 )
 

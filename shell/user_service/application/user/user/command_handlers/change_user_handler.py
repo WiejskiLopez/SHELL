@@ -10,7 +10,7 @@ from shell.user_service.domain.user.value_objects.user_email import UserEmail
 from shell.user_service.domain.user.value_objects.user_id import UserId
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
     from shell.user_service.application.user.user.commands.change_user_command import (
         ChangeUserCommand,

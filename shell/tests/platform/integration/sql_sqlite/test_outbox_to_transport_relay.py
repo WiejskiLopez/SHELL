@@ -26,7 +26,7 @@ from shell.tests.platform.integration.platform_delivery_models import (
 )
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.delivery_transport import DeliveryEnvelope
+    from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

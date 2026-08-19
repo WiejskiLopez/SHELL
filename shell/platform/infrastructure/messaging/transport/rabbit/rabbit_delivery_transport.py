@@ -23,7 +23,7 @@ from shell.platform.infrastructure.messaging.transport.envelope_codec import Env
 if TYPE_CHECKING:
     from aio_pika.abc import AbstractChannel, AbstractRobustConnection
 
-    from shell.platform.application.ports.delivery_transport import DeliveryEnvelope
+    from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
 
 logger = logging.getLogger(__name__)
 
