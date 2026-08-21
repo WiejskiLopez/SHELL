@@ -228,7 +228,7 @@ Money = NewType("Money", Decimal)
 
 Protokół w Pythonie (`typing.Protocol`) używa **strukturalnego subtypowania** — klasa implementująca nie musi jawnie dziedziczyć po protokole, wystarczy że ma zgodne sygnatury metod. To oznacza, że:
 
-- `__bases__` nie zawiera `Protocol` (nie ma dziedziczenia)
+- `__bases__` opisuje dziedziczenie klas i protokolow.
 - `isinstance()` nie działa bez `@runtime_checkable`
 - Jedynym wiarygodnym narzędziem weryfikacji jest **mypy --strict**
 
@@ -343,6 +343,6 @@ Razem tworzą **trójwarstwowy firewall** dla architektury:
 
 ```
 import-linter  →  "nie możesz zaimportować sqlalchemy w domain"
-pytest + AST   →  "domain nie ma sqlalchemy w żadnym pliku"
+pytest + AST   →  "domain pozostaje niezalezny od sqlalchemy"
 mypy strict    →  "nawet jeśli zaimportowałeś, typ sqlalchemy nie może być użyty w portach"
 ```

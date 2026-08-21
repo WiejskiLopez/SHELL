@@ -151,7 +151,7 @@ async def handle(self, command: CompleteOrderCommand) -> str:
 
 - Wszystko czego agregat wymaga do podjęcia decyzji (kalkulacje, walidacje krzyżowe, dane z innych agregatów/subdomen/mikroserwisów) jest dostarczane przez **porty zewnętrzne** (Provider dla odczytu, Command Port dla operacji).
 - Handler wstrzykuje implementacje tych portów, wywołuje je przed metodą agregatu i przekazuje wyniki (Value Objecty) jako parametry.
-- Agregat **nie ma bezpośrednich zależności do portów infrastrukturalnych** — dostaje wszystkie dane jako parametry wywołania.
+- Agregat korzysta z danych przekazanych przez parametry wywołania, a porty infrastrukturalne pozostaja w warstwie aplikacji.
 - Definicje portów i adapterów opisują wzorce Aggregate Provider (odczyt) i Command Port (operacje).
 
 ## Zero decyzji w handlerze
@@ -214,7 +214,7 @@ async def handle(self, command: SomeCommand) -> None:
 - **Błędy domenowe** (`DomainError`) — propagują do frameworka, handler nie łapie.
 - **Błędy infrastrukturalne** (`RepositoryException`) — propagują, handler nie łapie.
 - **Jedyny wyjątek**: `ConcurrentModificationError` (optymistyczne blokowanie) — może być złapany dla retry/logowania.
-- Handler nie ma bloków `try/except` na logikę biznesową.
+- Handler przekazuje bledy logiki biznesowej do warstwy domenowej.
 
 ## Lokalizacja
 

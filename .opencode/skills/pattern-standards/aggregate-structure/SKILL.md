@@ -80,7 +80,7 @@ def start(self) -> None:
 
 ### Zasady sekwencji
 
-- **Guard clause zawsze pierwszy** — nie ma sensu mutować stanu jeśli invariant jest naruszony.
+- **Guard clause zawsze pierwszy** — mutacja stanu zachodzi po potwierdzeniu invariantu.
 - **Mutacja przed eventem** — event rejestruje fakt po zmianie stanu.
 - **Event bezwarunkowo** — jeśli metoda reprezentuje przejście stanu, event musi być zawsze emitowany. Nie uzależniaj emisji od parametrów.
 

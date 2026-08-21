@@ -29,13 +29,13 @@ class WorkflowStartedEvent(DomainEvent):
 
 - Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_name`, `occurred_at`, `schema_version`.
 
-> **Uwaga**: `correlation_id` i `causation_id` NIE są polami `DomainEvent` — są dodawane dopiero w `IntegrationEvent` (warstwa aplikacji). Tracing context jest ustawiany przez `ContextVar` w `EventInboxProcessor` i zapisywany w outbox/inbox jako osobne kolumny, nie w evencie.
+> **Uwaga**: `correlation_id` i `causation_id` należą do metadata IntegrationEvent. Tracing context jest ustawiany przez `ContextVar` w `EventInboxProcessor` i zapisywany w outbox/inbox jako osobne kolumny.
 
 ## ⚠️ Primitive Obsession
 
 Wszystkie pola eventu (poza metadanymi z bazy) muszą być ValueObjectami.
 
-ZABRONIONE:
+Przyklad pol prymitywnych:
 ```python
 @dataclass
 class TaskCreatedEvent(DomainEvent):
@@ -45,7 +45,7 @@ class TaskCreatedEvent(DomainEvent):
     config: dict[str, object]  # ZŁO: dict zamiast StateData
 ```
 
-DOZWOLONE:
+Przyklad pol Value Object:
 ```python
 @dataclass
 class TaskCreatedEvent(DomainEvent):
@@ -56,8 +56,8 @@ class TaskCreatedEvent(DomainEvent):
 
 ## Payload
 
-- Zawiera tylko fakty (co się stało), nigdy instrukcje (co ma się stać).
-- Typy: wyłącznie VO domenowe. Nigdy referencje do agregatów, nigdy typy proste.
+- Zawiera fakty opisujace zaszle zdarzenie.
+- Typy payloadu sa domenowymi Value Objectami i identyfikatorami kontraktu.
 
 ```python
 # Dobrze (fakt)

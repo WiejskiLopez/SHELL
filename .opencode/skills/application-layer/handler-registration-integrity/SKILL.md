@@ -15,7 +15,7 @@ Gdy `event_factory.py` woła:
 event_bus.subscribe(GraphExecutionSubGraphSettledEvent, events.handle_sub_graph_settled_factory)
 ```
 
-ale w `event_container.py` nie ma:
+`event_container.py` powinien zawierac:
 
 ```python
 handle_sub_graph_settled_factory = providers.Factory(...)

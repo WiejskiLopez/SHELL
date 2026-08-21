@@ -190,7 +190,7 @@ class OrderConfirmedEvent(DomainEvent):
 - Dane mogą się zmienić między emisją a konsumpcją (konsument chce najnowszą wersję)
 
 **Gruby event** gdy:
-- Konsument jest w innym BC i nie ma dostępu do repozytoriów źródła
+- Konsument dziala w innym BC i korzysta z publicznego kontraktu zamiast repozytoriow zrodla
 - Event jest źródłem danych do budowania read modelu (projekcji)
 - Chcesz uniknąć N+1 (konsument nie musi wołać źródła po więcej danych)
 

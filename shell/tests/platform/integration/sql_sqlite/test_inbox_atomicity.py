@@ -26,6 +26,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
@@ -144,6 +147,7 @@ class TestAtomicity:
 
         uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
+            mapper=ReflectiveIntegrationMapper(),
             models=PERSISTENCE_DELIVERY_MODELS,
         )
         bus = StagingBus(CommitHandler(uow))
@@ -174,6 +178,7 @@ class TestAtomicity:
 
         uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
+            mapper=ReflectiveIntegrationMapper(),
             models=PERSISTENCE_DELIVERY_MODELS,
         )
         bus = StagingBus(RollbackHandler(uow))
@@ -270,6 +275,7 @@ class TestProcessedDeliveryAtomicWrite:
 
         uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
+            mapper=ReflectiveIntegrationMapper(),
             models=PERSISTENCE_DELIVERY_MODELS,
         )
         bus = StagingBus(_CommitHandler(uow))
@@ -310,6 +316,7 @@ class TestProcessedDeliveryAtomicWrite:
 
         first_uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
+            mapper=ReflectiveIntegrationMapper(),
             models=PERSISTENCE_DELIVERY_MODELS,
         )
         first_bus = StagingBus(_CommitHandler(first_uow))
@@ -339,6 +346,7 @@ class TestProcessedDeliveryAtomicWrite:
 
         second_uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
+            mapper=ReflectiveIntegrationMapper(),
             models=PERSISTENCE_DELIVERY_MODELS,
         )
         second_bus = StagingBus(_CommitHandler(second_uow))

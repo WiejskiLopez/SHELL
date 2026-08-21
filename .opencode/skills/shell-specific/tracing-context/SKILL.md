@@ -86,7 +86,7 @@ Funkcje dostępu (z tego samego modułu):
 
 `Envelope.correlation_id` jest przekazywane przez `transport_metadata["correlation_id"]`
 - Ustawiane w `SqlAlchemyUnitOfWork.commit()` przy `Envelope.from_message(correlation_id=get_correlation_id())`
-- Nie ma osobnej kolumny w `outbox_message`/`inbox_message` — żyje w JSON envelope
+- W `outbox_message`/`inbox_message` metadata zyje w JSON envelope.
 
 ## Reguły (invariants)
 

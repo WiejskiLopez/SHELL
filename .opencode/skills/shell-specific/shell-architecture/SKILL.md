@@ -34,7 +34,7 @@ Nie używamy wspólnych top-level pakietów `shell/domain`, `shell/application`,
     używa tych samych klas platformy z własnym `DATABASE_URL`, własną sesją oraz
     własnymi migracjami. Tabele o tych samych nazwach są wtedy tabelami w różnych
     bazach.
-- Nie istnieje tryb monolityczny ani wspólny composition root dla wielu BC.
+- Kazdy bounded context posiada wlasny composition root i samodzielny lifecycle wdrozenia.
 - Komunikacja między BC przebiega przez publiczne kontrakty HTTP lub eventowe.
 
 Testy mają tę samą granicę własności:

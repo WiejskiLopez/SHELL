@@ -7,7 +7,7 @@ Saga: sekwencja wielu transakcji na różnych agregatach, z kompensacją gdy co�
 
 ## Choreografia — przepływ przez eventy
 
-Każdy krok subskrybuje event poprzedniego i emituje event dla następnego. Nie ma centralnego stanu sagi.
+Każdy krok subskrybuje event poprzedniego i emituje event dla następnego. Choreografia rozdziela stan procesu pomiedzy uczestnikow.
 
 ```
 Handler A: subskrybuje OrderPlacedEvent
@@ -60,7 +60,7 @@ class ReserveStockOnInvoiceCreatedHandler:
 - Trudno zrozumieć całość — logika rozproszona po N handlerach
 - Ciężko dodać timeout "jeśli płatność nie przyjdzie w 5 minut → anuluj"
 - Trudno testować cały flow
-- Nie ma jednego miejsca gdzie widać stan całego procesu
+- Orkiestracja tworzy jedno miejsce obserwacji stanu całego procesu.
 
 ## Orkiestracja — centralny Saga Manager
 

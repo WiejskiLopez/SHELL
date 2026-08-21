@@ -1,6 +1,6 @@
 ---
 name: query-handler-structure
-description: Reguły struktury Query Handler — read-only, QueryService, zwraca DTO, zakaz modyfikacji stanu.
+description: Reguły struktury Query Handler — odczyt danych przez QueryService i zwrot DTO.
 ---
 
 # Query Handler Structure
@@ -10,7 +10,7 @@ description: Reguły struktury Query Handler — read-only, QueryService, zwraca
 ## Definicja
 
 - Query Handler to komponent warstwy aplikacyjnej, który przyjmuje zapytanie (Query), odczytuje dane przez QueryService i zwraca DTO/read model.
-- Nie modyfikuje stanu — to CQRS read side.
+- Odczytuje dane i zwraca DTO jako CQRS read side.
 
 ## Klasa
 
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 ## Metoda handle
 
 - Pojedyncza `async handle(self, query: TQuery) -> TDto | list[TDto] | None`.
-- Zwraca DTO/read model — nigdy encji domenowych (to narusza warstwy).
+- Zwraca DTO/read model nalezacy do warstwy aplikacji.
 
 ```python
 async def handle(self, query: WorkflowGetByIdQuery) -> WorkflowDto | None:
@@ -40,7 +40,7 @@ async def handle(self, query: WorkflowGetByIdQuery) -> WorkflowDto | None:
 
 ## Query Service — lokalizacja per agregat
 
-Query Service nie jest jeden na cały BC. Służy do czytania danych bezpośrednio przez SQL/ORM (read model), bez łądowania agregatów. Grupuje się je per agregat w folderze `query_services/<nazwa_agregatu>/`:
+Query Service jest organizowany per agregat. Czyta dane bezposrednio przez SQL/ORM jako read model i grupuje serwisy w folderze `query_services/<nazwa_agregatu>/`:
 
 ```
 shell/application/<bc>/
@@ -72,8 +72,8 @@ shell/application/
 1. **Per agregat, nie per BC** — query services są grupowane po agregacie, nie po bounded context. Folder `query_services/<agregat>/` zawiera wszystkie serwisy odczytu dla danego agregatu.
 2. **Łatwa ekstrakcja** — jeśli agregat zostanie wydzielony do osobnego mikroserwisu, cały folder `query_services/<agregat>/` jest przenoszony wraz z handlerami, co minimalizuje koszt migracji.
 3. **Jeden serwis = grupa powiązanych zapytań** — serwis może mieć wiele metod (list, detail, history), ale wszystkie dotyczą tego samego read modelu / agregatu.
-4. **Bez UoW, bez eventów** — Query Service czyta, nie modyfikuje.
-5. **Zwraca DTO** — nigdy encji domenowych.
+4. **Read model** — Query Service czyta dane i zwraca DTO.
+5. **Odpowiedzialnosc aplikacyjna** — Query Handler korzysta z DTO/read model.
 
 ```python
 # shell/application/execution/query_services/workflow/workflow_list_service.py
@@ -88,10 +88,10 @@ class WorkflowListService:
         ...
 ```
 
-## Bez side effects
+## Odczyt bez efektow ubocznych
 
 - Handler zapytania NIGDY nie modyfikuje stanu.
-- Brak UoW, brak `stage_events`, brak zapisów.
+- Query Handler korzysta z QueryService i zwraca wynik odczytu.
 - Tylko odczyt.
 
 ## Stateless

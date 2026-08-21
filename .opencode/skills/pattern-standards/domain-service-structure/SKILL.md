@@ -10,7 +10,7 @@ description: Reguły struktury Domain Service — stateless, operacje wieloagreg
 ## Definicja
 
 - Domain Service to statelessowa operacja domenowa, która nie pasuje naturalnie do żadnej Entity ani Value Object.
-- Używaj gdy: logika operuje na wielu agregatach tego samego BC, wymaga algorytmu/kalkulacji, potrzebuje koordynacji między encjami w jednej transakcji, albo nie ma stanu/tożsamości.
+- Używaj gdy: logika operuje na wielu agregatach tego samego BC, wymaga algorytmu/kalkulacji, potrzebuje koordynacji między encjami w jednej transakcji i zachowuje statelessowy lifecycle.
 
 ## Klasa
 

@@ -7,6 +7,9 @@ from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
     CommandInboxProcessor,
 )
@@ -160,19 +163,23 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         max_backlog=1000,
         worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
     )
+    integration_mapper = providers.Singleton(ReflectiveIntegrationMapper)
     scheduler_definition_uow_factory = providers.Factory(
         SqlAlchemySchedulerDefinitionUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     scheduler_execution_uow_factory = providers.Factory(
         SqlAlchemySchedulerExecutionUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     scheduler_job_uow_factory = providers.Factory(
         SqlAlchemySchedulerJobUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     clock_factory = providers.Factory(SystemClock)

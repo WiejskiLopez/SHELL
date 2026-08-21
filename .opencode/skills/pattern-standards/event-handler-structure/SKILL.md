@@ -24,12 +24,12 @@ description: Reguły struktury Event Handler — subskrypcja eventów, idempoten
 
 ## Integration Events — per‑BC
 
-Integracja między Bounded Contextami odbywa się przez **integration events** definiowane **per BC** w `shell/application/<bc>/<aggregate>/integration_events/`. Każdy BC posiada własne integration events — nie ma wspólnego katalogu.
+Integracja między Bounded Contextami odbywa się przez **integration events** definiowane **per BC** w `shell/application/<bc>/<aggregate>/integration_events/`. Kazdy BC posiada wlasny katalog publicznych integration events.
 
 ### Zasady
 
 1. Integration event rozszerza `IntegrationEvent` (klasa w `shell/platform/application/events/integration_event.py`)
-2. Używa tylko `str`, `int`, `bool`, `datetime` — nigdy VOs domenowych
+2. Uzywa typow transportowych `str`, `int`, `bool`, `datetime`
 3. Definiowany w `shell/application/<produkujący_bc>/<aggregate>/integration_events/`
 4. Konsument importuje z tego samego miejsca (produkujący BC jest właścicielem DTO)
 5. Mapaowanie domain → integration event robi `ReflectiveIntegrationMapper` automatycznie
@@ -48,7 +48,7 @@ class UserLoginSucceededIntegrationEvent(IntegrationEvent):
     user_id: str
 ```
 
-> **Uwaga**: pola `event_id`–`schema_version` to envelope dziedziczony z `IntegrationEvent`. W praktyce wypełnia je `ReflectiveIntegrationMapper` — handler nie tworzy integration eventów ręcznie.
+> **Uwaga**: pola `event_id`–`schema_version` to envelope dziedziczony z `IntegrationEvent`. W praktyce wypelnia je `ReflectiveIntegrationMapper`, a handler korzysta z gotowego kontraktu.
 
 ## Pełny przepływ eventu
 
@@ -277,7 +277,7 @@ Nazwa handlera = nazwa eventu bez `Event` + `Handler`:
 
 ---
 
-## Agregat nie istnieje — tworzenie vs błąd
+## Obsluga stanu agregatu — tworzenie vs blad
 
 - Jeśli event jest **triggerem utworzenia agregatu** (np. login → session) — brak istniejącego agregatu jest normalnym przypadkiem: **utwórz nowy**.
 - Jeśli event jest **reakcją na zmianę istniejącego agregatu** (np. `WorkflowStarted` → task execution) — brak agregatu to błąd: **rzuć wyjątek**.

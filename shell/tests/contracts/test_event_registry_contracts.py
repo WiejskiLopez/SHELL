@@ -11,8 +11,10 @@ from shell.definition_service.application.definition.graph_definition.integratio
 from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
-from shell.platform.infrastructure.serialization.event.deserializer import EventDeserializer
-from shell.platform.infrastructure.serialization.event.serializer import DomainEventSerializer
+from shell.platform.infrastructure.serialization.event.event_deserializer import EventDeserializer
+from shell.platform.infrastructure.serialization.event.event_envelope_serializer import (
+    EventEnvelopeSerializer,
+)
 
 
 def test_definition_event_round_trips_through_its_registry() -> None:
@@ -26,8 +28,7 @@ def test_definition_event_round_trips_through_its_registry() -> None:
         schema_version=1,
         graph_definition_id="graph-1",
     )
-    serializer = DomainEventSerializer()
-    outbox_payload = serializer.to_outbox_payload(event)
+    outbox_payload = EventEnvelopeSerializer().to_outbox_payload(event)
 
     restored = EventDeserializer(build_definition_event_registry()).deserialize(
         cast("str", outbox_payload["event_type"]),

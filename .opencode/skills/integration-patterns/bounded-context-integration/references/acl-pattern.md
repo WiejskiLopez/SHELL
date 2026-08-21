@@ -6,7 +6,7 @@ ACL izoluje Twój BC od zewnętrznego systemu którego model danych jest "zepsut
 
 **Użyj ACL gdy:**
 - System zewnętrzny używa modelu danych niezgodnego z ubiquitous language Twojego BC
-- System zewnętrzny nie ma stabilnego API (zmiany bez wersjonowania)
+- System zewnetrzny udostepnia zmienny API i stosuje zmiany bez wersjonowania
 - Integrujesz się z legacy systemem który nie może być zmodyfikowany
 - System zewnętrzny używa formatów danych które nie pasują do Twojego modelu (XML, CSV, fixed-width)
 - Migrujesz z legacy na nowy system (strangler fig)

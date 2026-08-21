@@ -9,11 +9,11 @@ description: Reguły struktury Value Object — dziedziczenie po ValueObject, fr
 
 ## Definicja
 
-- W warstwie domenowej nie wolno używać typów prostych (`str`, `int`, `float`, `bool`, `bytes`, `Any`) ani kolekcji (`dict`, `list`, `set`) bezpośrednio jako pól encji, agregatów, eventów, komend czy portów repozytoriów.
-- `dict` jest ZABRONIONE w każdym wariancie — nawet `dict[str, object]` to nie ValueObject.
-- `list`/`tuple` są dozwolone TYLKO jako kolekcje ValueObjectów: `list[SomeVO]`, `tuple[SomeId]`.
-- `datetime` jest dozwolone wyłącznie jako znacznik czasu created_at/occurred_at.
-- Każde pojęcie biznesowe MUSI być opakowane w Value Object.
+- Warstwa domenowa stosuje Value Objecty jako typy pol encji, agregatow, eventow, komend i portow repozytoriow.
+- Value Object reprezentuje jedno pojecie biznesowe i jego walidacje.
+- Kolekcja Value Objectow korzysta z typow `list[SomeVO]` albo `tuple[SomeId]`.
+- `datetime` reprezentuje znacznik czasu `created_at` albo `occurred_at`.
+- Kazde pojecie biznesowe ma dedykowany Value Object.
 
 Testy weryfikujące (w `shell/tests/platform/architecture/test_domain_structure.py`):
 - `test_entity_aggregate_fields_have_domain_types`
@@ -70,7 +70,7 @@ class Version(ValueObject):
 
 ## Sygnatury
 
-- Wszystkie metody w warstwie domenowej (encje, agregaty, serwisy domenowe) używają VO w argumentach i typach zwracanych — nigdy typów prostych.
+- Wszystkie metody w warstwie domenowej (encje, agregaty, serwisy domenowe) używają Value Objectow w argumentach i typach zwracanych.
 
 ```python
 # Dobrze

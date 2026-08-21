@@ -5,7 +5,7 @@ description: Reguły struktury Saga i Process Manager — choreografia vs orkies
 
 # Saga / Process Manager Structure
 
-> **⚠️ UWAGA**: SHELL ma przewidzianą architekturę dla sag (`shell/process/`), ale **NIE MA jeszcze żadnej implementacji**. Poniższe reguły są wzorcem docelowym — struktura katalogów istnieje, ale sagi nie są zaimplementowane.
+> **Zakres docelowy**: architektura sag korzysta z warstwy `shell/process/`. Ponizsze reguly definiuja wzorzec docelowy.
 
 ## Definicja
 
@@ -15,7 +15,7 @@ description: Reguły struktury Saga i Process Manager — choreografia vs orkies
 
 - Decentralna, przez eventy.
 - Każdy uczestnik reaguje na eventy i emituje własne.
-- Brak centralnego koordynatora.
+- Choreografia rozdziela koordynacje pomiedzy uczestnikow.
 - Używaj dla prostych, liniowych przepływów (<= 5 kroków).
 
 ```python

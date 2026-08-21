@@ -38,16 +38,16 @@ async def handle(self, event: WorkflowStartedEvent) -> None:
         await unit_of_work.save(WorkflowRepository, workflow)
 ```
 
-## ⚠️ Ograniczenia obecnej implementacji
+## ⚠️ Zakres obecnej implementacji
 
-- **Brak idempotency key**: obecnie nie ma mechanizmu idempotency key na poziomie handlera. Replay tego samego eventu może wyprodukować inne eventy (np. za pierwszym razem `SessionOpenedEvent`, za drugim `SessionUpdatedEvent`). Docelowo każdy handler powinien sprawdzać czy agregat jest już w stanie docelowym i skipować jeśli tak.
-- **Brak dedykowanego DLQ**: po przekroczeniu max_retries event jest oznaczany `processed_at` w tej samej tabeli inbox (tombstone). Nie ma osobnej tabeli DLQ ani mechanizmu reprocessingu.
+- **Idempotency key**: identyfikator idempotencji jest kierunkiem rozwoju dla handlerow i zewnetrznych API.
+- **DLQ**: po przekroczeniu max_retries event korzysta z tombstone `processed_at` w tabeli inbox. Dedykowana tabela DLQ i reprocessing sa kierunkiem rozwoju.
 
 ## Kluczowe zasady
 
-- Deduplikacja na poziomie infrastruktury (EventInboxProcessor) — handler nie sprawdza inboxa.
+- Deduplikacja na poziomie infrastruktury (EventInboxProcessor) skupia logike inboxa poza handlerem.
 - Idempotentność na poziomie domeny — agregat sam decyduje czy operacja jest dozwolona.
-- Handler nie sprawdza stanu agregatu — deleguje do domeny.
-- Brak agregatu to błąd — handler rzuca wyjątkiem, nie loguje warninga i nie ignoruje.
+- Handler deleguje sprawdzenie stanu agregatu do domeny.
+- Brak agregatu uruchamia obsluge wyjatku domenowego.
 - Optimistic locking (`ConcurrentModificationError`) zabezpiecza przed race conditions na poziomie repozytorium.
 - Idempotency key dla API zewnętrznych.

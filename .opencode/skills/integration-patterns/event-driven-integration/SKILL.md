@@ -110,18 +110,18 @@ Idempotentność na dwóch poziomach:
 
 ## Saga — choreografia vs orkiestracja
 
-> **TODO**: W SHELL architektura przewiduje sagę w warstwie `shell/process/`, ale NIE MA jeszcze żadnej implementacji. Poniższy opis jest wzorcem docelowym.
+> **Zakres**: Architektura SHELL przewiduje sagę w warstwie `shell/process/`. Poniższy opis definiuje wzorzec docelowy.
 
 Saga to wzorzec realizacji długotrwałego procesu biznesowego przez sekwencję lokalnych transakcji. Każdy krok to osobna transakcja na pojedynczym agregacie.
 
 ### Choreografia (event-driven saga)
 
-Każdy krok słucha eventów poprzedniego i emituje event dla następnego. Nie ma centralnego koordynatora.
+Każdy krok słucha eventów poprzedniego i emituje event dla następnego. Choreografia rozdziela koordynacje pomiedzy uczestnikow.
 
 **Kiedy użyć:**
 - Prosty flow liniowy (≤ 5 kroków)
 - Wszystkie kroki w jednym bounded context
-- Nie ma potrzeby timeoutów / kompensacji na poziomie całej sagi
+- Prosty flow korzysta z lokalnych transakcji i lokalnej obsługi błędów.
 
 ### Orkiestracja (orchestration-based saga)
 

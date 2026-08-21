@@ -1,21 +1,21 @@
 ---
 name: domain-service
-description: Zasady projektowania Domain Services w DDD — logika domenowa która nie mieści się w Encji ani VO, procesy wieloagregatowe, kalkulacje, koordynacja. Używaj gdy logika biznesowa wymaga współpracy wielu agregatów, zewnętrznych wyliczeń lub algorytmów które nie pasują do pojedynczej encji.
+description: Zasady projektowania Domain Services w DDD — statelessowe operacje domenowe, procesy wieloagregatowe, kalkulacje i koordynacja. Uzywaj gdy logika biznesowa wymaga wspolpracy wielu agregatow, zewnetrznych wyliczen lub algorytmow.
 ---
 
 # Domain Services w Enterprise DDD
 
 ## 1. Kiedy Używać Domain Service
 
-Domain Service to **statelessowa operacja domenowa**, która nie pasuje naturalnie do żadnej Entity ani Value Object. Używaj go gdy:
+Domain Service to **statelessowa operacja domenowa**, ktora wspolpracuje z encjami i Value Objectami przez jawny kontrakt. Uzywaj go gdy:
 
 - Logika operuje na **wielu agregatach** tego samego Bounded Context
-- Logika wymaga **algorytmu lub kalkulacji** która nie jest naturalną odpowiedzialnością encji
+- Logika wymaga **algorytmu lub kalkulacji** realizowanej przez Domain Service
 - Potrzebujesz **koordynacji między encjami** w ramach jednej transakcji
-- Logika **nie ma własnego stanu** ani tożsamości
+- Logika operacji korzysta z lokalnego stanu przekazanego przez parametry i zachowuje statelessowy lifecycle
 
 ```python
-# ŹLE — logika wyciekła do handlera aplikacyjnego
+# Przyklad rozdzielenia logiki domenowej od handlera aplikacyjnego
 class CreateExecutionHandler:
     async def handle(self, create_command: CreateCommand) -> None:
         graph = await self.graph_repo.get(create_command.graph_id)

@@ -7,6 +7,9 @@ from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
     CommandInboxProcessor,
 )
@@ -147,9 +150,11 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         max_backlog=1000,
         worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
     )
+    integration_mapper = providers.Singleton(ReflectiveIntegrationMapper)
     unit_of_work_factory = providers.Factory(
         SqlAlchemyProjectUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     clock_factory = providers.Factory(SystemClock)

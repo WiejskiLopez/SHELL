@@ -20,7 +20,7 @@ domain/ ← application/ ← infrastructure/ ← framework/ ← bootstrap/
 
 - `domain/` nigdy nie importuje: `sqlalchemy`, `pydantic`, `fastapi`, `motor`, `shell.application`, `shell.infrastructure`, `shell.framework`, `shell.bootstrap`
 - `application/` nigdy nie importuje: `sqlalchemy`, `fastapi`, `motor`, `shell.infrastructure`, `shell.framework`, `shell.bootstrap`
-- Żadna warstwa nie ma bezpośredniej wiedzy o innych warstwach poza dozwolonym kierunkiem zależności
+- Kazda warstwa korzysta z zaleznosci zgodnie z dozwolonym kierunkiem architektury
 - Wszystkie zależności między warstwami idą przez porty (Protocol) — nigdy przez konkretne implementacje
 
 Reguły te są egzekwowane statycznie przez `tests/platform/architecture/` i `import-linter`. Zanim zaproponujesz import, który przekracza warstwę, sprawdź czy nie istnieje już port dla tej zależności.

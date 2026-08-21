@@ -13,26 +13,23 @@ Encja jest jedynym typem domenowym, który ma **tożsamość**. Dwie encje z tym
 
 Child entity:
 - Ma lokalną tożsamość (ID) — ale tylko w kontekście rodzica
-- Nie istnieje samodzielnie — zawsze jest wewnątrz agregatu
+- Child entity zyje wewnatrz agregatu i korzysta z jego lifecycle.
 - Modyfikowana wyłącznie przez metody Aggregate Root
 - Może mieć własne Value Object ID
 
-## 3. Encje Nie Mają Własnych Repozytoriów
+## 3. Repozytorium Encji
 
-Tylko Aggregate Root ma repozytorium. Child entities są zapisywane i odczytywane wyłącznie przez repozytorium agregatu (jako część grafu obiektów). Jeśli child entity wymaga osobnego repozytorium — to znak, że powinna być osobnym agregatem.
+Aggregate Root posiada repozytorium. Child entities sa zapisywane i odczytywane przez repozytorium agregatu jako czesc grafu obiektow. Osobne repozytorium child entity wskazuje granice osobnego agregatu.
 
-## 4. Encje Nie Zawierają Logiki Infrastrukturalnej
+## 4. Czysta Logika Encji
 
-Encje to czysty kod domenowy:
-- Brak importów ORM (SQLAlchemy itp.)
-- Brak adnotacji serializacyjnych
-- Brak zależności od `shell.infrastructure.*`
+Encje zawieraja czysty kod domenowy. Ich implementacja korzysta z domenowych typow i zachowan.
 
 ## ⚠️ 5. Primitive Obsession — w encji tylko ValueObjecty
 
-Encja (zarówno Aggregate Root jak i child entity) NIGDY nie używa typów prostych do przechowywania stanu.
+Encja przechowuje stan w Value Objectach, Entity, identyfikatorach domenowych i kolekcjach tych typow.
 
-ZABRONIONE:
+Przyklad stanu prymitywnego:
 ```python
 # child entity z typami prostymi — ZŁO
 class WorkflowSkill(Entity[WorkflowSkillId]):
@@ -41,7 +38,7 @@ class WorkflowSkill(Entity[WorkflowSkillId]):
     _enabled: bool          # ZŁO: bool zamiast SkillStatus
 ```
 
-DOZWOLONE:
+Przyklad stanu domenowego:
 ```python
 # child entity z ValueObjectami — DOBRZE
 class WorkflowSkill(Entity[WorkflowSkillId]):
@@ -58,5 +55,5 @@ Test weryfikujący: `test_entity_aggregate_fields_have_domain_types`.
 
 Podczas dodawania nowej encji:
 - [ ] Leży w `entities/` wewnątrz agregatu
-- [ ] Brak zależności od ORM / infrastruktury
-- [ ] Nie ma własnego repozytorium (chyba że to Aggregate Root)
+- [ ] Czysty kod domenowy korzystajacy z Value Objectow i encji
+- [ ] Repozytorium nalezy do Aggregate Root

@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Protocol, cast
 from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
     InboxProcessorBase,
 )
-from shell.platform.infrastructure.serialization.message.deserializer import MessageDeserializer
+from shell.platform.infrastructure.serialization.message.message_deserializer import (
+    MessageDeserializer,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

@@ -11,7 +11,7 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.serialization.event.deserializer import EventDeserializer
+from shell.platform.infrastructure.serialization.event.event_deserializer import EventDeserializer
 from shell.platform.infrastructure.serialization.upcaster import PayloadTransform, PayloadUpcaster
 
 

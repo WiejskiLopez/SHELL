@@ -11,7 +11,7 @@ W tej architekturze **Command Handler** i **Query Handler** pełnią rolę Appli
 
 ## 2. Odpowiedzialność Application Service
 
-Application Service **koordynuje**, ale nie zawiera logiki biznesowej. Jego odpowiedzialność:
+Application Service **koordynuje** przypadek uzycia. Reguly biznesowe sa realizowane przez agregaty i Domain Services. Jego odpowiedzialność:
 
 1. **Odebranie komendy** (DTO)
 2. **Mapowanie na obiekty domenowe** (przez mapper)
@@ -21,9 +21,9 @@ Application Service **koordynuje**, ale nie zawiera logiki biznesowej. Jego odpo
 6. **Zarządzanie transakcją** (UoW)
 7. **Mapowanie wyniku na DTO** (dla query)
 
-## 3. Application Service Nie Zawiera Logiki Biznesowej
+## 3. Application Service Koordynuje Przypadek Uzycia
 
-Jeśli w handlerze pojawia się **if/else** z regułami biznesowymi → przenieś do Domain Service lub agregatu.
+Decyzje biznesowe sa realizowane przez Domain Service lub agregat. Handler koordynuje wejscie, porty, transakcje i zapis wyniku.
 
 ## 4. Transaction Script vs Domain Model
 
@@ -61,7 +61,8 @@ Testy Application Services używają InMemory implementacji — testują koordyn
 W tym projekcie Command Handler (Application Service dla komend) podlega rygorystycznym regułom:
 - Modyfikuje **max jeden agregat** domenowy.
 - Ładuje agregat z repozytorium, dostarcza mu dane przez serwisy domenowe (porty w module agregatu), woła metodę agregatu z kompletem parametrów.
-- **Zero decyzji biznesowych** — brak `if/else`, brak wyboru między ścieżkami.
+- Decyzje biznesowe realizuje agregat lub Domain Service.
+- Handler koordynuje jedna sciezke przypadku uzycia i zapisuje eventy w tej samej transakcji.
 - Zapis + eventy w tej samej transakcji.
 
 > Szczegółowe reguły struktury → [command-handler-structure](../../pattern-standards/command-handler-structure/SKILL.md)
@@ -70,7 +71,7 @@ W tym projekcie Command Handler (Application Service dla komend) podlega rygorys
 
 Projektując Application Service (Handler):
 - [ ] Jeden Use Case = jeden handler
-- [ ] Handler koordynuje, nie zawiera logiki biznesowej
+- [ ] Handler koordynuje przypadek uzycia
 - [ ] Logika biznesowa w agregacie / Domain Service
 - [ ] Walidacja wejściowa przed przekazaniem do domeny
 - [ ] Autoryzacja sprawdzana przed operacją

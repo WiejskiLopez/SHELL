@@ -15,7 +15,7 @@ description: Reguły struktury invariantów domenowych i Rule Object — guard c
 ## Guard clauses
 
 - Każda metoda modyfikująca stan agregatu zaczyna się od guard clauses — sprawdzenia invariantów przed zmianą.
-- Fail-fast — nie ma sensu kontynuować jeśli invariant jest naruszony.
+- Fail-fast — wykonanie zatrzymuje sie przy naruszeniu invariantu.
 
 ```python
 def start(self) -> None:

@@ -37,7 +37,7 @@ To nie są sugestie ani zalecenia — to **bezwzględnie egzekwowane reguły bez
 
 Wszystkie powyższe są **bezwzględnie zabronione** — również w handlerach, serwisach, testach, fixture'ach, conftestach, containerach DI, adapterach i całej infrastrukturze.
 
-To oznacza również, że **nie ma listy "dozwolonych skrótów"** — lista wyjątków poniżej jest wyczerpująca i zamknięta.
+To oznacza również, że lista dopuszczonych skrotow jest wyczerpujaca i zamknieta.
 
 ## Przykłady ZABRONIONE
 

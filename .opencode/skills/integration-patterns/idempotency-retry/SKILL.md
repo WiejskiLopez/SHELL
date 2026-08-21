@@ -23,7 +23,7 @@ retry_backoff_seconds: int = 30  # stałe opóźnienie, nie skalowane
 - Po nieudanej próbie: `retry_count++`, `last_attempted_at = now`
 - Kolejna próba możliwa dopiero po `retry_backoff_seconds` od `last_attempted_at`
 - Po przekroczeniu `max_retries`: event oznaczany `processed_at = now` (tombstone — log + brak dalszych prób)
-- Brak osobnej tabeli DLQ — event zostaje w inbox z `processed_at`
+- Tombstone DLQ korzysta z wiersza inbox z `processed_at`.
 
 **TODO**: exponential backoff (2^attempt), jitter, dedykowana tabela DLQ.
 
@@ -32,15 +32,15 @@ retry_backoff_seconds: int = 30  # stałe opóźnienie, nie skalowane
 | Klasa | Lokalizacja | Opis |
 |-------|-------------|------|
 | `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Retry + backoff + tombstone DLQ |
-| `EventOutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/event_outbox_to_inbox_relay.py` | Brak retry — propaguje błąd |
+| `EventOutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/event_outbox_to_inbox_relay.py` | Propaguje blad relay do warstwy nadrzednej |
 | `OutboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/outbox_event.py` | Model outbox |
 | `InboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/inbox_event.py` | Model inbox z kolumnami retry |
 
-**TODO**: brak dedykowanych katalogów `retry/`, `circuit_breaker/`, `dlq/` — to wszystko jest inline w event_inbox_processor.py.
+**Zakres implementacji**: retry, backoff i tombstone sa skupione w `event_inbox_processor.py`. Dedykowane katalogi sa kierunkiem dalszego rozwoju.
 
-## 4. Circuit Breaker — niezaimplementowany
+## 4. Circuit Breaker — kierunek rozwoju
 
-**TODO**: SHELL nie ma implementacji Circuit Breaker. Brak klas, brak adapterów, brak konfiguracji. Wzorzec opisany w `retry-circuit-breaker-pattern` jest wyłącznie aspiracyjny.
+Wzorzec `retry-circuit-breaker-pattern` opisuje docelowy model Circuit Breaker dla zewnetrznych zasobow. Implementacja wymaga dedykowanych klas, adapterow i konfiguracji.
 
 ## 5. Podsumowanie — Checklista
 
@@ -49,5 +49,5 @@ Implementując niezawodność:
 - [ ] Exponential backoff (obecnie fixed 30s)
 - [ ] Dedykowana tabela DLQ
 - [ ] Circuit breaker dla zewnętrznych zasobów
-- [ ] Retry dla EventOutboxToInboxRelay (obecnie brak)
+- [ ] Retry dla EventOutboxToInboxRelay
 - [ ] Monitoring i alerting na DLQ

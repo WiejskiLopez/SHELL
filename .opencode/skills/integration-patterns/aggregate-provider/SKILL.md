@@ -10,7 +10,7 @@ description: Wzorzec Provider — porty tylko-do-odczytu danych dostarczanych ag
 **Provider** to port (Protocol) przez który agregat pobiera dane z zewnętrznego źródła —
 innego agregatu, innego BC, zewnętrznego mikroserwisu lub dowolnego systemu — wyłącznie **do odczytu**.
 
-Provider **nigdy nie modyfikuje** źródła: nie tworzy, nie aktualizuje, nie usuwa, nie uruchamia procesu.
+Provider udostepnia odczyt danych z zewnetrznego zrodla. Operacje tworzenia, aktualizacji, usuwania i uruchamiania procesu należą do Command Port.
 
 ```python
 # shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/graph_definition_provider.py
@@ -43,14 +43,9 @@ Jeśli port ma **dowolny** element mutujący — nazwa musi wskazywać operację
 
 ## 3. Obowiązkowość portu — kardynalna reguła
 
-**Zero bezpośredniego wstrzykiwania.** Konsument (handler, domain service, inny agregat) nigdy nie
-wstrzykuje bezpośrednio QueryService, Repository, serwisu ani agregatu źródłowego — **również w
-obrębie tego samego BC**. Agregaty są autonomiczne także wewnątrz BC.
+Konsument korzysta z portu Provider, a adapter portu zna QueryService, Repository albo kontrakt HTTP zrodla. Agregaty zachowuja autonomie wewnatrz BC.
 
 ```
-❌ handler graph_execution → wstrzyknięty GraphExecutionQueryService innego agregatu (ten sam BC!)
-❌ domain service → źródłowy SqlFooQueryService wprost
-❌ handler → unit_of_work.repository(ObcyRepository) innego agregatu
 ✅ handler graph_execution → GraphDefinitionProvider (port z ports/)
         ↕
     adapter (infrastruktura konsumenta) — JEDYNE miejsce które zna QueryService/HTTP źródła

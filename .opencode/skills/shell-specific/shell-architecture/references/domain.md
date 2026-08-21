@@ -52,8 +52,8 @@ shell/domain/
 - Obowiązkowo `__slots__`
 - Child entity: ma lokalną tożsamość tylko w kontekście rodzica
 - Modyfikowana wyłącznie przez metody Aggregate Root
-- Nie ma własnego repozytorium
-- Brak importów ORM/infrastruktury
+- Repozytorium nalezy do Aggregate Root
+- Kod domenowy korzysta z czystych typow domenowych
 
 ### Value Object
 - Dziedziczy po `ValueObject` z `shell.domain.platform.base.value_object`

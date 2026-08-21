@@ -25,10 +25,7 @@ class WorkflowSessionCommandPort(Protocol):
 
 ## 2. Obowiązkowość portu
 
-Konsument (handler, domain service, inny agregat) nigdy nie wstrzykuje bezpośrednio serwisu komend,
-repozytorium, agregatu źródłowego ani adaptera — również w obrębie tego samego BC. Adapter to
-jedyny komponent który zna serwis/HTTP kontrakt źródła. Wydzielenie agregatu na osobny mikroserwis
-zmienia tylko adapter.
+Konsument korzysta z Command Port, a adapter portu zna serwis lub kontrakt HTTP zrodla. Wydzielenie agregatu na osobny mikroserwis zachowuje port i logike konsumenta, a zmienia adapter.
 
 ```
 ❌ handler graph_execution → wstrzyknięty WorkflowSessionCommandService innego agregatu
@@ -46,9 +43,8 @@ shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/
 
 - Katalog `ports/` jest per agregat konsumujący, nigdy per źródło. Współdzielą go porty operacji
   (ten wzorzec) i porty odczytu (wzorzec Aggregate Provider).
-- Port jest **własnością konsumenta** — nie leży w BC źródłowym.
-- Port operuje na **własnych typach konsumenta** (VO, ID, lokalne wynik/status). Nigdy na obcych
-  agregatach ani DTO źródła.
+- Port jest **własnością konsumenta**.
+- Port operuje na **własnych typach konsumenta** (VO, ID, lokalne wynik/status).
 
 ## 4. Nazewnictwo
 
@@ -71,8 +67,7 @@ class WorkflowSessionCommandPortHttpAdapter(WorkflowSessionCommandPort):
 ## 5. Reguły kontraktu
 
 1. **Własność konsumenta** — port definiuje agregat który zleca operację.
-2. **Kontrakt zwraca lokalny wynik** — wynik operacji, identyfikator, status lub `None`. Nigdy obcy
-   agregat.
+2. **Kontrakt zwraca lokalny wynik** — wynik operacji, identyfikator, status lub `None`.
 3. **Async** — każda metoda portu jest `async`.
 4. **VO konsumenta w sygnaturach** — bez typów prostych.
 5. **Mapowanie w adapterze** — adapter mapuje lokalną komendę → wersjonowany request źródła;

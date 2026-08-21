@@ -28,9 +28,9 @@ Zadaj pytanie: *"Która encja jest właścicielem pozostałych? Która encja 'rz
 Właściciel (root) jest Aggregate Root. Encje które nie mogą istnieć bez roota są wewnątrz tego samego agregatu.
 
 ```
-Order → OrderItem     (item nie istnieje bez zamówienia)
-Workflow → Cursor     (kursor nie istnieje bez workflow)
-Graph → Node          (node nie istnieje bez grafu)
+Order → OrderItem     (item zyje w granicy zamowienia)
+Workflow → Cursor     (kursor zyje w granicy workflow)
+Graph → Node          (node zyje w granicy grafu)
 ```
 
 Encje które mogą istnieć niezależnie → osobne agregaty.

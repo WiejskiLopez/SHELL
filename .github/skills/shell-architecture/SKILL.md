@@ -11,11 +11,14 @@ This file is an adapter, not a second architecture manual. Read the canonical sk
 
 Load the narrowest topology skill for the task:
 
-- [Package topology](../../../.opencode/skills/shell-specific/package-topology/SKILL.md) — file placement and package ownership;
-- [Platform boundary](../../../.opencode/skills/shell-specific/platform-boundary/SKILL.md) — generic platform contracts and primitives;
-- [Bounded-context boundary](../../../.opencode/skills/shell-specific/bounded-context-boundary/SKILL.md) — BC dependencies, composition roots, and standalone services;
-- [Test topology](../../../.opencode/skills/shell-specific/test-topology/SKILL.md) — platform, BC, contract, system, shared, and architecture tests;
-- [Integration contracts](../../../.opencode/skills/shell-specific/integration-contracts/SKILL.md) — HTTP and event boundaries between BCs.
+
+Load the semantic contract skill matching the object being designed or reviewed:
+
+- `.opencode/skills/architectural-discipline/message-semantics/SKILL.md` — passive data messages;
+- `.opencode/skills/architectural-discipline/command-semantics/SKILL.md` — operation intents;
+- `.opencode/skills/architectural-discipline/event-semantics/SKILL.md` — facts that already happened.
+- `.opencode/skills/architectural-discipline/affirmative-facts/SKILL.md` — affirmative, verifiable facts in skills.
+- `.opencode/skills/integration-patterns/integration-event/SKILL.md` — public IntegrationEvent contracts, payload and envelope metadata.
 
 Then load the narrowest additional skill required by the task:
 

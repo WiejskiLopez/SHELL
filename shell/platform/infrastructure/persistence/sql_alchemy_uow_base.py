@@ -7,27 +7,27 @@ zwracając słownik {DomainPort -> SqlAdapter} dla własnych agregatów.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy.orm.exc import StaleDataError
 
 from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
+from shell.platform.domain.events import DomainEvent
 from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.platform.infrastructure.context import (
-    get_causation_id,
-    get_correlation_id,
     get_session_scope,
 )
-from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+    IntegrationEventSerializer,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.platform.domain.events import DomainEvent
     from shell.platform.infrastructure.persistence.sql.models.persistence_delivery import (
         PersistenceDeliveryModels,
     )
@@ -43,11 +43,13 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
+        mapper: Any,
         models: PersistenceDeliveryModels | None = None,
-        mapper: Any | None = None,
     ) -> None:
         if models is None:
             raise ValueError("SqlAlchemyUnitOfWorkBase requires a persistence delivery bundle")
+        if mapper is None:
+            raise ValueError("SqlAlchemyUnitOfWorkBase requires an integration mapper")
         self._factory = session_factory
         self._mapper = mapper
         self._models = models
@@ -91,7 +93,10 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         raise ValueError(msg)
 
     def stage_events(self, events: Sequence[object]) -> None:
-        self._staged_events.extend(events)  # type: ignore[arg-type]
+        invalid = [event for event in events if not isinstance(event, DomainEvent)]
+        if invalid:
+            raise TypeError("SqlAlchemyUnitOfWorkBase stages DomainEvent instances only")
+        self._staged_events.extend(cast("Sequence[DomainEvent]", events))
 
     def stage_messages(self, messages: list[object]) -> None:
         self._staged_messages.extend(messages)
@@ -100,11 +105,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         repo: Any = self.repository(repo_type)
         await repo.save(aggregate)
         domain_events = aggregate.pull_events()  # type: ignore[attr-defined]
-        if self._mapper is not None:
-            mapped = [self._mapper.map(e) for e in domain_events]
-            self.stage_events(mapped)
-        else:
-            self.stage_events(domain_events)
+        self.stage_events(domain_events)
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWorkBase:
         scope = get_session_scope()
@@ -152,22 +153,19 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     async def _write_staged_outbox(self) -> None:
         if self._session is None:
             return
-        serializer = DomainEventSerializer()
-        for event in self._staged_events:
-            raw_occurred_at = (
-                event.occurred_at.value
-                if hasattr(event.occurred_at, "value")
-                else event.occurred_at
-            )
-            event_type = type(event).__name__
-            payload = serializer.to_payload(event)
+        serializer = IntegrationEventSerializer()
+        for domain_event in self._staged_events:
+            integration_event = self._mapper.map(domain_event)
+            raw_occurred_at = integration_event.occurred_at
+            event_type = type(integration_event).__name__
+            payload = serializer.to_payload(integration_event)
             outbox = self._models.events.outbox(
                 id=str(uuid.uuid4()),
                 event_type=event_type,
                 occurred_at=raw_occurred_at,
                 payload=payload,
-                correlation_id=get_correlation_id(),
-                causation_id=get_causation_id(),
+                correlation_id=integration_event.correlation_id,
+                causation_id=integration_event.causation_id,
             )
             self._session.add(outbox)
             self._session.add(

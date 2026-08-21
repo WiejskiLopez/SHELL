@@ -250,4 +250,4 @@ class TestLayerImportRules:
 # CI              → blokada PR
 ```
 
-`import-linter` jest **najszybszym i najbardziej zero-false-positive** narzędziem do weryfikacji zależności warstwowych. Jego wynik to lista plików i linii — nie ma interpretacji, są fakty.
+`import-linter` jest **najszybszym i najbardziej zero-false-positive** narzędziem do weryfikacji zależności warstwowych. Jego wynik to lista plików i linii reprezentujaca fakty.

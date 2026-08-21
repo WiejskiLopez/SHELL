@@ -59,5 +59,5 @@ class OwnerSpecification(Specification[Workflow]):
 
 ## Bezpieczeństwo
 
-- Nie ma zależności infrastrukturalnych.
+- Specyfikacja korzysta z czystych typow domenowych.
 - Testowana w isolation (unit test).

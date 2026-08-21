@@ -25,13 +25,13 @@ Sygnały że agregat jest za duży:
 
 Invariant to reguła biznesowa która MUSI być spełniona zawsze, bez żadnego okna czasowego. Jeśli dwie encje muszą być spójne natychmiast (w tej samej transakcji) — są w tym samym agregacie. Jeśli mogą być spójne ostatecznie (eventual consistency) — są w różnych agregatach.
 
-### 3. Czy referencje między agregatami są przez ID?
+### 3. Referencje miedzy agregatami sa przez ID
 
-Agregat A nigdy nie trzyma referencji do obiektu agregatu B. Trzyma tylko `B_id`. Relacje między agregatami nawigujesz przez repository, nie przez object graph.
+Agregat A przechowuje referencje do agregatu B poprzez `B_id`. Relacje miedzy agregatami nawiguje repository.
 
 ### ⚠️ 5. Primitive Obsession — w agregacie tylko ValueObjecty
 
-Agregat NIGDY nie używa typów prostych jako typów swoich pól instancyjnych.
+Agregat przechowuje stan w Value Objectach, encjach, identyfikatorach domenowych i kolekcjach tych typow.
 
 ZABRONIONE:
 ```python

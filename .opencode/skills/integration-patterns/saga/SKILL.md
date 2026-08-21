@@ -5,7 +5,7 @@ description: Wzorzec Saga w architekturze event-driven — koordynacja długotrw
 
 # Saga / Process Manager w Enterprise DDD
 
-> **⚠️ UWAGA**: SHELL ma przewidzianą warstwę `shell/process/` dla sag, ale **NIE MA jeszcze żadnej implementacji**. Poniższe opisy są wzorcem docelowym.
+> **Zakres**: `shell/process/` jest miejscem dla implementacji sag. Ponizsze opisy definiuja wzorzec docelowy.
 
 ## 1. Kiedy Używać Sagi
 

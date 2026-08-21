@@ -86,7 +86,7 @@ python -m pytest shell/tests/...integration/... -v
 
 ## Reguła 5: Nie modyfikuj opuszczonych (orphan) tabel bez modelu
 
-Jeśli istnieje tabela w `versions/` ale nie ma dla niej modelu SQLAlchemy:
+Tabela w `versions/` korzysta z odpowiadajacego modelu SQLAlchemy:
 - To jest **orphan table** — nikt z niej nie czyta ani nie pisze przez ORM
 - Można ją usunąć w nowej migracji, albo zignorować
 - Nie twórz nowego modelu dla takiej tabeli — zrefactoruj ją do wzorca `direction`/`state_data`

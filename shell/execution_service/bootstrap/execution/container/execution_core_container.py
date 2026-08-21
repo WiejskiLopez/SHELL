@@ -219,6 +219,9 @@ from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
     CommandInboxProcessor,
 )
@@ -317,19 +320,23 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         max_backlog=1000,
         worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
     )
+    integration_mapper = providers.Singleton(ReflectiveIntegrationMapper)
     edge_execution_uow_factory = providers.Factory(
         SqlAlchemyEdgeExecutionUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     edge_link_execution_uow_factory = providers.Factory(
         SqlAlchemyEdgeLinkExecutionUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     node_execution_uow_factory = providers.Factory(
         SqlAlchemyNodeExecutionUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
 
@@ -353,11 +360,13 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     workflow_uow_factory = providers.Factory(
         SqlAlchemyWorkflowUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     task_execution_uow_factory = providers.Factory(
         SqlAlchemyTaskExecutionUnitOfWork,
         session_factory=session_factory,
+        mapper=integration_mapper,
         models=persistence_delivery_models,
     )
     create_workflow_handler_factory = providers.Factory(

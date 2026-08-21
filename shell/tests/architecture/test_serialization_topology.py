@@ -17,10 +17,16 @@ SERIALIZATION = ROOT / "platform" / "infrastructure" / "serialization"
 
 def test_serialization_has_canonical_grouped_topology() -> None:
     expected = (
-        SERIALIZATION / "event" / "serializer.py",
-        SERIALIZATION / "event" / "deserializer.py",
-        SERIALIZATION / "message" / "serializer.py",
-        SERIALIZATION / "message" / "deserializer.py",
+        SERIALIZATION / "event" / "domain_event_serializer.py",
+        SERIALIZATION / "event" / "event_deserializer.py",
+        SERIALIZATION / "event" / "event_envelope_serializer.py",
+        SERIALIZATION / "message" / "domain_message_serializer.py",
+        SERIALIZATION / "message" / "message_deserializer.py",
+        SERIALIZATION / "message" / "message_envelope_serializer.py",
+        SERIALIZATION / "payload" / "payload_object_deserializer.py",
+        SERIALIZATION / "payload" / "payload_type_hints_resolver.py",
+        SERIALIZATION / "payload" / "payload_value_deserializer.py",
+        SERIALIZATION / "payload" / "payload_value_serializer.py",
         SERIALIZATION / "command" / "deserializer.py",
         SERIALIZATION / "registries" / "type_registry.py",
         SERIALIZATION / "registries" / "event_registry.py",
@@ -30,6 +36,10 @@ def test_serialization_has_canonical_grouped_topology() -> None:
         SERIALIZATION / "uow_serializer.py",
     )
     old_paths = (
+        SERIALIZATION / "event" / "serializer.py",
+        SERIALIZATION / "event" / "deserializer.py",
+        SERIALIZATION / "message" / "serializer.py",
+        SERIALIZATION / "message" / "deserializer.py",
         SERIALIZATION / "event_serializer.py",
         SERIALIZATION / "event_deserializer.py",
         SERIALIZATION / "message_serializer.py",

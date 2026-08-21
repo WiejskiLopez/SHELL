@@ -184,7 +184,7 @@ Przed commitem sprawdź wszystkie zmienione importy:
 # Dla pliku X, znajdź wszystkie from ... import i przetestuj
 python -c "from shell.application.definition.command_handlers.bootstrap_runner_config_handler import RunnerConfigBootstrapHandler"
 # → ModuleNotFoundError: No module named '...bootstrap_runner_config_handler'
-# → BŁĄD: plik nie istnieje
+# → BŁĄD: import wskazuje na nieprawidlowy modul
 ```
 
 ### Automatyzacja

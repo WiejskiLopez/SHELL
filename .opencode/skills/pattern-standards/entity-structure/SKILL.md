@@ -1,6 +1,6 @@
 ---
 name: entity-structure
-description: Reguły struktury Entity — dziedziczenie po Entity[TId], __slots__, brak @dataclass, identity-based equality.
+description: Reguły struktury Entity — dziedziczenie po Entity[TId], __slots__ i identity-based equality.
 ---
 
 # Entity Structure
@@ -19,9 +19,9 @@ class Node(Entity[NodeId]):
 
 ## Klasa
 
-- **Nie używać `@dataclass`** dla encji — tożsamość to nie równość strukturalna.
-- Obowiązkowo `__slots__` ze wszystkimi polami. Nie powtarzać `_id` (dziedziczony z `Entity`).
-- **Primitive Obsession**: wszystkie pola encji muszą być ValueObject, Entity lub ID. `str`, `int`, `bool`, `dict`, `list` są ZABRONIONE — nawet `dict[str, object]`.
+- Encja korzysta z klasy domenowej z identity-based equality, a Value Object korzysta z równości strukturalnej.
+- Encja posiada `__slots__` ze wszystkimi polami i dziedziczy `_id` z `Entity`.
+- **Primitive Obsession**: wszystkie pola encji sa ValueObject, Entity lub ID. Kolekcje przechowuja typowane Value Objecty albo ID.
 
 ```python
 class Node(Entity[NodeId]):
@@ -36,8 +36,8 @@ class Node(Entity[NodeId]):
 
 ## Tożsamość
 
-- `__eq__` i `__hash__` bazują wyłącznie na ID — nigdy na stanie.
-- ID jest niemutowalne po utworzeniu — brak settera dla `_id`.
+- `__eq__` i `__hash__` bazuja na ID.
+- ID zachowuje wartosc po utworzeniu encji.
 
 ```python
 def __eq__(self, other: object) -> bool:

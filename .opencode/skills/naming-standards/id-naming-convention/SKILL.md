@@ -126,7 +126,7 @@ class UserIdRef(EntityId):
 
 #### Kiedy NIE używać `IdRef`?
 
-Gdy FK referencjonuje agregat z **tego samego BC**, nie ma potrzeby izolacji — wszystko jest w jednym BC. Używasz bezpośrednio `{Entity}Id`:
+Gdy FK referencjonuje agregat z **tego samego BC**, korzystasz z bezposredniego `{Entity}Id` w ramach wspolnego modelu BC:
 
 ```python
 class GraphExecution(AggregateRoot[GraphExecutionId]):
@@ -144,7 +144,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 | FK do agregatu z | W domenie użyj | Bo |
 |-----------------|----------------|-----|
 | **innego BC** | `{Entity}IdRef` | Izolacja BC — nie możesz importować cudzego `Id` |
-| **tego samego BC** | `{Entity}Id` | Brak potrzeby izolacji — to twoje własne ID |
+| **tego samego BC** | `{Entity}Id` | Wspolne ID agregatow w ramach wlasnego BC |
 
 **Dlaczego nie robić `IdRef` dla wszystkiego?** Bo tworzysz martwy boilerplate — `GraphExecutionIdRef` który jest 1:1 kopią `GraphExecutionId`, w tym samym BC, bez żadnej wartości architektonicznej. To tylko szum.
 

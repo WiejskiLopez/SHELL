@@ -1,6 +1,6 @@
 ---
 name: no-empty-fallbacks
-description: KARDYNALNA ZASADA — nigdy nie zastępuj braku wartości pustą wartością. Żadnych "", 0, false, [] jako "domyślnych". Jeśli wartości nie ma: albo jest None (gdy opcjonalna), albo błąd (gdy wymagana). Zero wyjątków.
+description: KARDYNALNA ZASADA — modeluj wartosci jawnie. Wartosci opcjonalne reprezentuj przez None, a wartosci wymagane waliduj bledem.
 ---
 
 # No Empty Fallbacks — kardynalna zasada
@@ -103,7 +103,7 @@ def test_no_empty_fallbacks_in_handlers() -> None:
     # albo: VO(x) if x else VO("")
 ```
 
-Obecnie test nie istnieje — TODO.
+Test kontraktu dla pustych fallbackow pozostaje elementem planu walidacji.
 
 ## Wyjątki
 

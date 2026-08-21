@@ -20,8 +20,18 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.serialization.message.deserializer import MessageDeserializer
-from shell.platform.infrastructure.serialization.message.serializer import DomainMessageSerializer
+from shell.platform.infrastructure.serialization.message.domain_message_serializer import (
+    DomainMessageSerializer,
+)
+from shell.platform.infrastructure.serialization.message.message_deserializer import (
+    MessageDeserializer,
+)
+from shell.platform.infrastructure.serialization.message.message_envelope_serializer import (
+    MessageEnvelopeSerializer,
+)
+from shell.platform.infrastructure.serialization.payload.payload_object_deserializer import (
+    PayloadObjectDeserializer,
+)
 from shell.platform.types import JsonStr
 
 
@@ -51,10 +61,10 @@ class TestDomainMessage:
         message = _ingestion_payload()
         serializer = DomainMessageSerializer()
         payload = serializer.to_payload(message)
-        restored = serializer.from_payload(
-            IngestionPayload,
-            datetime(2026, 1, 1, tzinfo=UTC),
-            payload,
+        restored = PayloadObjectDeserializer().deserialize(
+            object_cls=IngestionPayload,
+            occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
+            payload=payload,
             schema_version=1,
         )
         assert isinstance(restored, IngestionPayload)
@@ -77,6 +87,16 @@ class TestDomainMessage:
         assert (
             deserializer.deserialize("UnknownMessage", datetime(2026, 1, 1, tzinfo=UTC), {}) is None
         )
+
+    def test_message_envelope_serializer_keeps_metadata_outside_payload(self) -> None:
+        message = _ingestion_payload()
+
+        envelope = MessageEnvelopeSerializer().to_outbox_payload(message)
+
+        assert envelope["message_type"] == "IngestionPayload"
+        assert envelope["occurred_at"] == message.occurred_at.value
+        assert "occurred_at" not in envelope["payload"]
+        assert "schema_version" not in envelope["payload"]
 
 
 class TestAggregateMessages:
