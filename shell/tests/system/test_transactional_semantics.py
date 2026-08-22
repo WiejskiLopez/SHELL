@@ -187,7 +187,7 @@ async def _publish_event(envelope: object) -> None:
             body=EnvelopeCodec().encode(envelope),  # type: ignore[arg-type]
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
         ),
-        routing_key=f"{envelope.kind}.{envelope.delivery_type}",  # type: ignore[attr-defined]
+        routing_key=f"{envelope.kind}.{envelope.contract_type}",  # type: ignore[attr-defined]
     )
     await connection.close()
 
@@ -199,8 +199,8 @@ def _login_envelope() -> object:
 
     return DeliveryEnvelope(
         kind="event",
-        delivery_id="duplicate-login-1",
-        delivery_type="AuthSessionCreatedIntegrationEvent",
+        outbox_id="outbox-duplicate-login-1",
+        contract_type="AuthSessionCreatedIntegrationEvent",
         occurred_at=datetime.now(tz=UTC),
         payload={
             "auth_session_id": "auth-1",
@@ -208,6 +208,10 @@ def _login_envelope() -> object:
         },
         correlation_id="corr-dup",
         causation_id="cause-0",
+        event_id="event-dup-1",
+        aggregate_id="auth-1",
+        aggregate_name="AuthSession",
+        schema_version=1,
     )
 
 

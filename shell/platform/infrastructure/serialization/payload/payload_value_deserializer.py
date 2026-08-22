@@ -19,8 +19,6 @@ from shell.platform.types import JsonStr
 _PRIMITIVES = (str, int, float, bool)
 _COLLECTION_ORIGINS = (list, set, frozenset, tuple, dict)
 
-_MISSING = object()
-
 
 class PayloadValueDeserializer:
     """Converts payload scalars into values declared by a payload type hint.
@@ -91,10 +89,6 @@ class PayloadValueDeserializer:
             raise UnsupportedPayloadTypeError(
                 f"Cannot reconstruct {target_type.__name__} from {value!r}"
             ) from exc
-
-    def deserialize_simple(self, value: object, target_type: Any) -> object:
-        """Deserialize without type-hint resolution (used for command payloads)."""
-        return self.deserialize(value, target_type)
 
 
 def _single_value_field(target_type: type) -> dataclasses.Field[Any] | None:

@@ -100,7 +100,7 @@ Uwaga: `InboxMessageModel` dodatkowo nadpisuje `__table_args__`, dodając `Index
 
 ### processed_delivery (deduplikacja)
 
-`build_processed_delivery_model(base)` tworzy `ProcessedDeliveryModel` (tabela `processed_delivery`) — jawny fallback deduplikacji dla handlerów, które nie dzielą transakcji z procesorem. Unikalność `UniqueConstraint("consumer_name", "delivery_id", name="uq_processed_delivery_consumer_delivery")` gwarantuje, że ponowna dostawa tego samego `delivery_id` do tego samego konsumenta jest no-op. Kolumny: `id` (PK), `consumer_name`, `delivery_id`, `payload`, `processed_at`.
+`build_processed_delivery_model(base)` tworzy `ProcessedDeliveryModel` (tabela `processed_delivery`) — jawny fallback deduplikacji dla handlerów, które nie dzielą transakcji z procesorem. Unikalność `UniqueConstraint("consumer_name", "outbox_id", name="uq_processed_delivery_consumer_outbox")` gwarantuje, że ponowna dostawa tego samego rekordu outbox do tego samego konsumenta jest no-op. Kolumny: `id` (PK), `consumer_name`, `outbox_id`, `payload`, `processed_at`.
 
 ### worker_heartbeat (liveness)
 

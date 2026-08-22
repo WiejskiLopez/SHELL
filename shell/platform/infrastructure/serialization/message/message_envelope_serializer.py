@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from shell.platform.infrastructure.serialization.message.domain_message_serializer import (
-    DomainMessageSerializer,
-)
+from typing import TYPE_CHECKING
+
 from shell.platform.infrastructure.serialization.envelope.envelope_engine import EnvelopeSerializer
+
+if TYPE_CHECKING:
+    from shell.platform.infrastructure.serialization.message.domain_message_serializer import (
+        DomainMessageSerializer,
+    )
 
 
 class MessageEnvelopeSerializer(EnvelopeSerializer):

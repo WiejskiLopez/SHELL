@@ -69,8 +69,13 @@ async def _add_event(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
+                outbox_id=f"outbox-{event_id}",
+                event_id=str(event.event_id.value),
+                source_service="execution_service",
                 event_type=type(event).__name__,
                 occurred_at=event.occurred_at.value,
+                aggregate_id=str(event.aggregate_id.value),
+                aggregate_name=str(event.aggregate_name.value),
                 payload=serializer.to_payload(event),
                 correlation_id="corr",
                 causation_id="cause",
@@ -241,7 +246,7 @@ class TestEventInboxProcessorRefactored:
         assert result.processed_count == 1
         assert len(bus.items) == 1
 
-    async def test_duplicate_delivery_id_is_processed_once(
+    async def test_duplicate_outbox_id_is_processed_once(
         self,
         session_factory: async_sessionmaker,
     ) -> None:
@@ -253,8 +258,13 @@ class TestEventInboxProcessorRefactored:
             session.add(
                 EVENT_DELIVERY_MODELS.inbox(
                     id="evt-dup",
+                    outbox_id="outbox-evt-dup",
+                    event_id=str(event.event_id.value),
+                    source_service="execution_service",
                     event_type=type(event).__name__,
                     occurred_at=event.occurred_at.value,
+                    aggregate_id=str(event.aggregate_id.value),
+                    aggregate_name=str(event.aggregate_name.value),
                     payload=payload,
                     correlation_id="corr",
                     causation_id="cause",
@@ -267,8 +277,13 @@ class TestEventInboxProcessorRefactored:
                 insert(EVENT_DELIVERY_MODELS.inbox)
                 .values(
                     id="evt-dup",
+                    outbox_id="outbox-evt-dup",
+                    event_id=str(event.event_id.value),
+                    source_service="execution_service",
                     event_type=type(event).__name__,
                     occurred_at=event.occurred_at.value,
+                    aggregate_id=str(event.aggregate_id.value),
+                    aggregate_name=str(event.aggregate_name.value),
                     payload=payload,
                     correlation_id="corr",
                     causation_id="cause",
@@ -360,8 +375,13 @@ class TestEventInboxProcessorConcurrency:
                 session.add(
                     EVENT_DELIVERY_MODELS.inbox(
                         id=event_id,
+                        outbox_id=f"outbox-{event_id}",
+                        event_id=str(event.event_id.value),
+                        source_service="execution_service",
                         event_type=type(event).__name__,
                         occurred_at=event.occurred_at.value,
+                        aggregate_id=str(event.aggregate_id.value),
+                        aggregate_name=str(event.aggregate_name.value),
                         payload=serializer.to_payload(event),
                         correlation_id=f"corr-{event_id}",
                         causation_id=causation,
@@ -435,8 +455,13 @@ class TestEventInboxProcessorUpcasting:
             session.add(
                 _INBOX_MODEL(
                     id="evt-upcast-v1",
+                    outbox_id="outbox-evt-upcast-v1",
+                    event_id="event-upcast-v1",
+                    source_service="execution_service",
                     event_type=TaskExecutionCreatedEvent.__name__,
                     occurred_at=now,
+                    aggregate_id=str(task_id.value),
+                    aggregate_name="TaskExecution",
                     payload={"task_execution_id": str(task_id.value)},
                     correlation_id="corr",
                     causation_id="cause",
@@ -448,8 +473,13 @@ class TestEventInboxProcessorUpcasting:
             session.add(
                 _INBOX_MODEL(
                     id="evt-upcast-future",
+                    outbox_id="outbox-evt-upcast-future",
+                    event_id="event-upcast-future",
+                    source_service="execution_service",
                     event_type=TaskExecutionCreatedEvent.__name__,
                     occurred_at=now,
+                    aggregate_id=str(task_id.value),
+                    aggregate_name="TaskExecution",
                     payload={"task_execution_id": str(task_id.value)},
                     correlation_id="corr",
                     causation_id="cause",

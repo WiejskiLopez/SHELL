@@ -80,8 +80,13 @@ async def test_event_processor_success_marks_inbox_processed(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id="event-processor-success",
+                outbox_id="outbox-event-processor-success",
+                event_id=str(event.event_id.value),
+                source_service="execution_service",
                 event_type=type(event).__name__,
                 occurred_at=event.occurred_at.value,
+                aggregate_id=str(event.aggregate_id.value),
+                aggregate_name=str(event.aggregate_name.value),
                 payload=serializer.to_payload(event),
                 correlation_id="corr-event",
                 causation_id="cause-event",
@@ -122,6 +127,7 @@ async def test_message_processor_failure_retries_then_dlq(
         session.add(
             MESSAGE_DELIVERY_MODELS.inbox(
                 id="message-processor-dlq",
+                outbox_id="outbox-message-processor-dlq",
                 message_type=type(message).__name__,
                 occurred_at=message.occurred_at.value,
                 payload=serializer.to_payload(message),

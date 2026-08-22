@@ -27,17 +27,14 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.platform.infrastructure.messaging.event.event_outbox_to_inbox_relay import (
-        EventOutboxToInboxRelay,
-    )
     from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
         EventInboxProcessor,
     )
-    from shell.platform.infrastructure.messaging.message.message_outbox_to_inbox_relay import (
-        MessageOutboxToInboxRelay,
-    )
     from shell.platform.infrastructure.messaging.message.processor.message_inbox_processor import (
         MessageInboxProcessor,
+    )
+    from shell.platform.infrastructure.messaging.transport.outbox_to_transport_relay import (
+        OutboxToTransportRelay,
     )
     from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
@@ -57,15 +54,15 @@ class SchedulerService:
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
-        event_outbox_to_inbox_relay: EventOutboxToInboxRelay,
+        event_outbox_to_transport_relay: OutboxToTransportRelay,
         event_inbox_processor: EventInboxProcessor,
-        message_outbox_to_inbox_relay: MessageOutboxToInboxRelay,
+        message_outbox_to_transport_relay: OutboxToTransportRelay,
         message_inbox_processor: MessageInboxProcessor,
     ) -> None:
         self._session_factory = session_factory
-        self._event_outbox_to_inbox_relay = event_outbox_to_inbox_relay
+        self._event_outbox_to_transport_relay = event_outbox_to_transport_relay
         self._event_inbox_processor = event_inbox_processor
-        self._message_outbox_to_inbox_relay = message_outbox_to_inbox_relay
+        self._message_outbox_to_transport_relay = message_outbox_to_transport_relay
         self._message_inbox_processor = message_inbox_processor
         self._scheduler = AsyncIOScheduler()
         self._running = False
@@ -123,9 +120,9 @@ class SchedulerService:
 
         job_fn = _build_job_fn(
             job_type=job.job_type.value,
-            event_outbox_to_inbox_relay=self._event_outbox_to_inbox_relay,
+            event_outbox_to_transport_relay=self._event_outbox_to_transport_relay,
             event_inbox_processor=self._event_inbox_processor,
-            message_outbox_to_inbox_relay=self._message_outbox_to_inbox_relay,
+            message_outbox_to_transport_relay=self._message_outbox_to_transport_relay,
             message_inbox_processor=self._message_inbox_processor,
         )
 
@@ -149,18 +146,18 @@ class SchedulerService:
 def _build_job_fn(
     *,
     job_type: str,
-    event_outbox_to_inbox_relay: EventOutboxToInboxRelay,
+    event_outbox_to_transport_relay: OutboxToTransportRelay,
     event_inbox_processor: EventInboxProcessor,
-    message_outbox_to_inbox_relay: MessageOutboxToInboxRelay,
+    message_outbox_to_transport_relay: OutboxToTransportRelay,
     message_inbox_processor: MessageInboxProcessor,
 ) -> Callable[[], Awaitable[None]]:
     if job_type == "messaging":
 
         async def _run() -> None:
             try:
-                await event_outbox_to_inbox_relay.run_once()
+                await event_outbox_to_transport_relay.run_once()
                 await event_inbox_processor.run_once()
-                await message_outbox_to_inbox_relay.run_once()
+                await message_outbox_to_transport_relay.run_once()
                 await message_inbox_processor.run_once()
             except Exception:
                 logger.exception("scheduler_service.job_error")

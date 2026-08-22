@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     )
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
     from shell.platform.infrastructure.persistence.sql.models.command_delivery import (
         CommandDeliveryModels,
@@ -55,6 +56,7 @@ class RabbitInboxConsumer:
         queue_name: str,
         routing_keys: list[str] | None = None,
         exchange_name: str = EXCHANGE_NAME,
+        id_generator: TechnicalIdGenerator | None = None,
     ) -> None:
         self._url = url
         self._session_factory = session_factory
@@ -63,6 +65,11 @@ class RabbitInboxConsumer:
         self._routing_keys = routing_keys or ["#"]
         self._exchange_name = exchange_name
         self._codec = EnvelopeCodec()
+        from shell.platform.infrastructure.identity.uuid_technical_id_generator import (
+            UuidTechnicalIdGenerator,
+        )
+
+        self._id_generator = id_generator or UuidTechnicalIdGenerator()
         self._connection: AbstractRobustConnection | None = None
         self._channel: AbstractChannel | None = None
 
@@ -94,15 +101,26 @@ class RabbitInboxConsumer:
     async def _persist(self, envelope: DeliveryEnvelope) -> bool:
         type_column = f"{envelope.kind}_type"
         values = {
-            "id": envelope.delivery_id,
-            type_column: envelope.delivery_type,
+            "id": self._id_generator.new_id(),
+            "outbox_id": envelope.outbox_id,
+            type_column: envelope.contract_type,
             "occurred_at": envelope.occurred_at,
             "payload": envelope.payload,
             "correlation_id": envelope.correlation_id,
             "causation_id": envelope.causation_id,
             "received_at": envelope.occurred_at,
             "status": InboxStatus.PENDING.value,
+            "schema_version": envelope.schema_version,
         }
+        if envelope.kind == "event":
+            values.update(
+                {
+                    "event_id": envelope.event_id,
+                    "source_service": envelope.source_service,
+                    "aggregate_id": envelope.aggregate_id,
+                    "aggregate_name": envelope.aggregate_name,
+                }
+            )
         async with self._session_factory() as session:
             try:
                 await session.execute(

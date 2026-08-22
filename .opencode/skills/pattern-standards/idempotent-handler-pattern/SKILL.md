@@ -19,7 +19,7 @@ description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie 
 - Event handler **nie sprawdza inboxa** — to odpowiedzialność infrastruktury.
 
 ```
-[Outbox] → EventOutboxToInboxRelay → [InboxEvent] → EventInboxProcessor (dedup) → EventBus → Handler
+[Outbox] → OutboxToTransportRelay → BrokerInboxConsumer → [InboxEvent] → EventInboxProcessor (dedup) → EventBus → Handler
 ```
 
 ## Idempotentność na poziomie domeny

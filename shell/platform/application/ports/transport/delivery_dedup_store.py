@@ -11,16 +11,16 @@ if TYPE_CHECKING:
 class DeliveryDedupStore(Protocol):
     """Records and checks idempotency of processed deliveries."""
 
-    async def is_duplicate(self, delivery_id: str) -> bool:
-        """Return ``True`` when this consumer already processed ``delivery_id``."""
+    async def is_duplicate(self, outbox_id: str) -> bool:
+        """Return ``True`` when this consumer already processed ``outbox_id``."""
         ...
 
     async def mark_processed(
         self,
-        delivery_id: str,
+        outbox_id: str,
         *,
         payload: dict[str, object] | None = None,
         processed_at: datetime | None = None,
     ) -> None:
-        """Record ``delivery_id`` as processed by this consumer."""
+        """Record ``outbox_id`` as processed by this consumer."""
         ...

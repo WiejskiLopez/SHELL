@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 class EnvelopeCodec:
     """Encodes a DeliveryEnvelope to JSON bytes and back.
 
-    The wire format is a flat JSON object:
-    ``{kind, delivery_id, delivery_type, occurred_at, payload, correlation_id, causation_id}``.
+    The wire format is a flat JSON envelope. The contract type key is specific
+    to the delivery kind, for example ``event_type`` for events.
     """
 
     def encode(self, envelope: DeliveryEnvelope) -> bytes:
@@ -27,15 +27,26 @@ class EnvelopeCodec:
             occurred_at = raw_occurred_at.isoformat()
         else:
             occurred_at = str(raw_occurred_at)
+        contract_type_key = f"{envelope.kind}_type"
         document: dict[str, object] = {
             "kind": envelope.kind,
-            "delivery_id": envelope.delivery_id,
-            "delivery_type": envelope.delivery_type,
+            "outbox_id": envelope.outbox_id,
+            contract_type_key: envelope.contract_type,
             "occurred_at": occurred_at,
+            "schema_version": envelope.schema_version,
             "payload": envelope.payload,
             "correlation_id": envelope.correlation_id,
             "causation_id": envelope.causation_id,
         }
+        if envelope.kind == "event":
+            document.update(
+                {
+                    "event_id": envelope.event_id,
+                    "source_service": envelope.source_service,
+                    "aggregate_id": envelope.aggregate_id,
+                    "aggregate_name": envelope.aggregate_name,
+                }
+            )
         return json.dumps(document, separators=(",", ":")).encode("utf-8")
 
     def decode(self, raw: bytes) -> DeliveryEnvelope:
@@ -43,17 +54,29 @@ class EnvelopeCodec:
         kind = document["kind"]
         if kind not in ("event", "message", "command"):
             raise ValueError(f"Unknown delivery kind: {kind}")
+        contract_type_key = f"{kind}_type"
         occurred_at = self._parse_occurred_at(str(document["occurred_at"]))
         return DeliveryEnvelope(
             kind=kind,
-            delivery_id=str(document["delivery_id"]),
-            delivery_type=str(document["delivery_type"]),
+            outbox_id=str(document["outbox_id"]),
+            contract_type=str(document[contract_type_key]),
             occurred_at=occurred_at,
             payload=dict(cast("Mapping[str, object]", document["payload"]))
             if document.get("payload")
             else {},
             correlation_id=str(document.get("correlation_id", "")),
             causation_id=str(document.get("causation_id", "")),
+            event_id=str(document["event_id"]) if document.get("event_id") else None,
+            source_service=(
+                str(document["source_service"]) if document.get("source_service") else None
+            ),
+            aggregate_id=(
+                str(document["aggregate_id"]) if document.get("aggregate_id") else None
+            ),
+            aggregate_name=(
+                str(document["aggregate_name"]) if document.get("aggregate_name") else None
+            ),
+            schema_version=int(document.get("schema_version", 1)),
         )
 
     @staticmethod

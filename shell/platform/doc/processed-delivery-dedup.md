@@ -14,17 +14,17 @@ Processor inbox commituje efekt + outbox + ack w jednej transakcji (session scop
 
 `DeliveryDedupStore` to `Protocol` z dwiema metodami:
 
-- `is_duplicate(delivery_id: str) -> bool` — czy ten konsument już przetworzył `delivery_id`; sesja rozwiązywana z aktywnego session scope; musi być wołana z transakcji przetwarzania procesora (lub UoW handlera ją współdzielącego);
-- `mark_processed(delivery_id, *, payload=None, processed_at=None) -> None` — rejestruje `delivery_id` jako przetworzony; musi być wywołana atomowo z efektem biznesowym (ten sam UoW / session scope); konflikt klucza unikalnego jest no-op.
+- `is_duplicate(outbox_id: str) -> bool` — czy ten konsument już przetworzył rekord outbox; sesja rozwiązywana z aktywnego session scope; musi być wołana z transakcji procesora;
+- `mark_processed(outbox_id, *, payload=None, processed_at=None) -> None` — rejestruje `outbox_id` jako przetworzony; musi być wywołana atomowo z efektem biznesowym; konflikt klucza unikalnego jest no-op.
 
 ### Implementacja — ProcessedDeliveryStore
 
 `ProcessedDeliveryStore(model, consumer_name)` implementuje port. Dwa zestawy metod:
 
 - **Ambient scope** (kontrakt portu): `is_duplicate` / `mark_processed` — sesję pobierają z `get_session_scope()`; brak scope → `RuntimeError` ("ProcessedDeliveryStore requires an active delivery session scope; use is_duplicate_in_session/mark_processed_in_session with an explicit session instead").
-- **Z jawną sesją** (procesor, adaptery, testy): `is_duplicate_in_session(session, delivery_id)` i `mark_processed_in_session(session, delivery_id, *, payload, processed_at)`.
+- **Z jawną sesją** (procesor, adaptery, testy): `is_duplicate_in_session(session, outbox_id)` i `mark_processed_in_session(session, outbox_id, *, payload, processed_at)`.
 
-`is_duplicate_in_session` wykonuje `select(model.id).where(consumer_name == self._consumer_name, delivery_id == delivery_id)` i zwraca `result.first() is not None`.
+`is_duplicate_in_session` wykonuje `select(model.id).where(consumer_name == self._consumer_name, outbox_id == outbox_id)` i zwraca `result.first() is not None`.
 
 `mark_processed_in_session`:
 
@@ -34,25 +34,25 @@ with suppress(IntegrityError):
         insert(self._model).values(
             id=_new_id(),
             consumer_name=self._consumer_name,
-            delivery_id=delivery_id,
+            outbox_id=outbox_id,
             payload=payload or {},
             processed_at=processed_at or datetime.now(tz=UTC),
         )
     )
 ```
 
-Konflikt klucza unikalnego na `(consumer_name, delivery_id)` oznacza, że delivery był już przetworzony i jest traktowany jako sukces (no-op) — wiersz dedup **nigdy** nie jest zapisywany w osobnej transakcji przed efektem biznesowym.
+Konflikt klucza unikalnego na `(consumer_name, outbox_id)` oznacza, że rekord outbox był już przetworzony i jest traktowany jako sukces (no-op) — wiersz dedup **nigdy** nie jest zapisywany w osobnej transakcji przed efektem biznesowym.
 
 ### Model `processed_delivery`
 
 `build_processed_delivery_model(base)` tworzy model ORM powiązany z per-BC metadata:
 
 - `__tablename__ = "processed_delivery"`;
-- unikalność: `UniqueConstraint("consumer_name", "delivery_id", name="uq_processed_delivery_consumer_delivery")`;
-- kolumny: `id` (PK, `str`), `consumer_name` (`str`, nie-null), `delivery_id` (`str`, nie-null), `payload` (`JSONB`, nie-null, default `dict`), `processed_at` (`DateTime(timezone=True)`, nie-null);
+- unikalność: `UniqueConstraint("consumer_name", "outbox_id", name="uq_processed_delivery_consumer_outbox")`;
+- kolumny: `id` (PK, `str`), `consumer_name` (`str`, nie-null), `outbox_id` (`str`, nie-null), `payload` (`JSONB`, nie-null, default `dict`), `processed_at` (`DateTime(timezone=True)`, nie-null);
 - nazwa klasy jest per-registry: `ProcessedDeliveryModel.__name__ = f"{base.__name__}ProcessedDeliveryModel"`.
 
-Unikalność `(consumer_name, delivery_id)` oznacza: ten sam delivery replayowany przez tego samego konsumenta jest zawsze no-op.
+Unikalność `(consumer_name, outbox_id)` oznacza: ten sam rekord outbox replayowany przez tego samego konsumenta jest zawsze no-op.
 
 ### Auto-zapis w tej samej transakcji
 

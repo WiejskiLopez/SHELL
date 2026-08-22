@@ -49,6 +49,7 @@ def build_message_delivery_models(base: type[DeclarativeBase]) -> MessageDeliver
             )
 
         id: Mapped[str] = mapped_column(primary_key=True)
+        outbox_id: Mapped[str] = mapped_column(nullable=False, unique=True)
         message_type: Mapped[str] = mapped_column(nullable=False)
         occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
         payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)

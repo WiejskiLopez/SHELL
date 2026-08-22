@@ -88,7 +88,7 @@ Docelowa koperta:
 }
 ```
 
-`event_id` identyfikuje fakt, `message_id` identyfikuje Message, a `delivery_id` identyfikuje dostarczenie. Event, transport i dostarczenie maja osobne tozsamosci.
+`event_id` identyfikuje fakt, `message_id` identyfikuje Message, a `outbox_id` wskazuje rekord outbox producenta. Rekord inbox ma własne lokalne `id`.
 
 ## Lifecycle w SHELL
 

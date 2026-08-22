@@ -6,22 +6,22 @@ Mechanizm wersjonowania i walidacji schematu payloadu dostaw. `EnvelopeValidator
 
 ## Problem
 
-Integracje ewoluują: schemat payloadu danego typu dostawy zmienia się w czasie. Konsument musi odczytywać wiadomości w wielu wersjach (aktualna i poprzednia przez upcaster), ale nie może cicho odrzucać ani crashować na nieznanych wersjach. Błędy kontraktowe (nieznana wersja, za duży payload, brakujący `delivery_id`) nie mogą być maskowane jako generyczne błędy handlera — processor musi je klasyfikować do polityki retry/DLQ. Równolegle deserializacja musi być deterministyczna: nazwa typu → klasa (registry), payload → argumenty konstruktora z poprawną konwersją typów.
+Integracje ewoluują: schemat payloadu danego typu dostawy zmienia się w czasie. Konsument musi odczytywać wiadomości w wielu wersjach (aktualna i poprzednia przez upcaster), ale nie może cicho odrzucać ani crashować na nieznanych wersjach. Błędy kontraktowe (nieznana wersja, za duży payload, brakujący `outbox_id`) nie mogą być maskowane jako generyczne błędy handlera — processor musi je klasyfikować do polityki retry/DLQ. Równolegle deserializacja musi być deterministyczna: typ kontraktu → klasa (registry), payload → argumenty konstruktora z poprawną konwersją typów.
 
 ## Realizacja techniczna
 
 ### Kody błędów i polityka
 
-Stałe kodów w `envelope_validator.py`: `DESERIALIZATION_ERROR`, `UNSUPPORTED_SCHEMA_VERSION`, `INVALID_ENVELOPE`, `PAYLOAD_TOO_LARGE`, `MISSING_DELIVERY_ID`, `MISSING_CORRELATION_ID`, `MISSING_CAUSATION_ID`.
+Stałe kodów w `envelope_validator.py`: `DESERIALIZATION_ERROR`, `UNSUPPORTED_SCHEMA_VERSION`, `INVALID_ENVELOPE`, `PAYLOAD_TOO_LARGE`, `MISSING_OUTBOX_ID`, `MISSING_CORRELATION_ID`, `MISSING_CAUSATION_ID`.
 
 `EnvelopeValidationPolicy` (frozen dataclass z `slots=True`):
 
 - `supported_schema_versions: Mapping[str, frozenset[int]]` — dozwolone wersje per nazwa typu dostawy (konsument obsługuje aktualną i poprzednią przez upcaster);
 - `default_supported_versions: frozenset[int] = frozenset({1})` — dla typów nie wymienionych w mapie;
 - `max_payload_bytes: int = 1_000_000`;
-- `require_delivery_id: bool = True`, `require_correlation_id: bool = False`, `require_causation_id: bool = False`.
+- `require_outbox_id: bool = True`, `require_correlation_id: bool = False`, `require_causation_id: bool = False`.
 
-`EnvelopeValidator.validate(*, delivery_id, delivery_type, schema_version, payload, correlation_id, causation_id) -> str | None` — w kolejności: brak `delivery_id` → `MISSING_DELIVERY_ID` (gdy wymagany), brak correlation/causation → odpowiednie `MISSING_*`, `schema_version not in supported` → `UNSUPPORTED_SCHEMA_VERSION`, a rozmiar payloadu mierzony przez `_measure_payload` ponad `max_payload_bytes` → `PAYLOAD_TOO_LARGE`. Nieprawidłowa koperta nigdy nie rzuca — zwraca strukturę błędu, którą processor mapuje na retry/DLQ.
+`EnvelopeValidator.validate(*, outbox_id, contract_type, schema_version, payload, correlation_id, causation_id) -> str | None` — w kolejności: brak `outbox_id` → `MISSING_OUTBOX_ID` (gdy wymagany), brak correlation/causation → odpowiednie `MISSING_*`, `schema_version not in supported` → `UNSUPPORTED_SCHEMA_VERSION`, a rozmiar payloadu mierzony przez `_measure_payload` ponad `max_payload_bytes` → `PAYLOAD_TOO_LARGE`. Nieprawidłowa koperta nigdy nie rzuca — zwraca strukturę błędu, którą processor mapuje na retry/DLQ.
 
 `envelope_policy_from_catalog(catalog: ContractCatalog, *, default_supported_versions=None) -> EnvelopeValidationPolicy` — buduje politykę z katalogu kontraktów BC: `supported_schema_versions` każdego wpisu staje się per-typowej allowlistą (`entry.type_name: entry.supported_schema_versions`), co czyni katalog jedynym źródłem prawdy o akceptowanych wersjach.
 

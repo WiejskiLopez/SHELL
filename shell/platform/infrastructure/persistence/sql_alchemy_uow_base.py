@@ -6,7 +6,6 @@ zwracając słownik {DomainPort -> SqlAdapter} dla własnych agregatów.
 
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy.orm.exc import StaleDataError
@@ -19,6 +18,9 @@ from shell.platform.domain.exceptions.concurrent_modification_error import (
 from shell.platform.infrastructure.context import (
     get_session_scope,
 )
+from shell.platform.infrastructure.messaging.transport.source_service import (
+    source_service_for_type,
+)
 from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
@@ -28,6 +30,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.infrastructure.persistence.sql.models.persistence_delivery import (
         PersistenceDeliveryModels,
     )
@@ -45,6 +48,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         session_factory: async_sessionmaker[AsyncSession],
         mapper: Any,
         models: PersistenceDeliveryModels | None = None,
+        id_generator: TechnicalIdGenerator | None = None,
     ) -> None:
         if models is None:
             raise ValueError("SqlAlchemyUnitOfWorkBase requires a persistence delivery bundle")
@@ -53,6 +57,11 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         self._factory = session_factory
         self._mapper = mapper
         self._models = models
+        from shell.platform.infrastructure.identity.uuid_technical_id_generator import (
+            UuidTechnicalIdGenerator,
+        )
+
+        self._id_generator = id_generator or UuidTechnicalIdGenerator()
         self._staged_events: list[DomainEvent] = []
         self._staged_messages: list[object] = []
         self._committed = False
@@ -156,24 +165,31 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         serializer = IntegrationEventSerializer()
         for domain_event in self._staged_events:
             integration_event = self._mapper.map(domain_event)
-            raw_occurred_at = integration_event.occurred_at
-            event_type = type(integration_event).__name__
-            payload = serializer.to_payload(integration_event)
+            envelope = serializer.to_envelope(
+                integration_event,
+                outbox_id=self._id_generator.new_id(),
+                source_service=source_service_for_type(type(domain_event)),
+            )
             outbox = self._models.events.outbox(
-                id=str(uuid.uuid4()),
-                event_type=event_type,
-                occurred_at=raw_occurred_at,
-                payload=payload,
-                correlation_id=integration_event.correlation_id,
-                causation_id=integration_event.causation_id,
+                id=envelope["outbox_id"],
+                event_id=envelope["event_id"],
+                source_service=envelope["source_service"],
+                event_type=envelope["event_type"],
+                occurred_at=envelope["occurred_at"],
+                aggregate_id=envelope["aggregate_id"],
+                aggregate_name=envelope["aggregate_name"],
+                schema_version=envelope["schema_version"],
+                payload=envelope["payload"],
+                correlation_id=envelope["correlation_id"],
+                causation_id=envelope["causation_id"],
             )
             self._session.add(outbox)
             self._session.add(
                 self._models.audit(
-                    id=str(uuid.uuid4()),
-                    event_type=event_type,
-                    occurred_at=raw_occurred_at,
-                    payload=payload,
+                    id=self._id_generator.new_id(),
+                    event_type=envelope["event_type"],
+                    occurred_at=envelope["occurred_at"],
+                    payload=envelope["payload"],
                 )
             )
 

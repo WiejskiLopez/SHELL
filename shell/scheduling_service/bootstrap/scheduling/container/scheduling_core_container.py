@@ -22,7 +22,11 @@ from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
 from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import (
     InboxMetricsService,
 )
-from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer
+from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
+from shell.platform.infrastructure.messaging.transport.rabbit import (
+    RabbitDeliveryTransport,
+    RabbitInboxConsumer,
+)
 from shell.platform.infrastructure.metrics.logging_metrics_backend import (
     LoggingMetricsBackend,
 )
@@ -201,6 +205,14 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         envelope_policy=envelope_policy_from_catalog(SCHEDULING_CONTRACT_CATALOG),
         upcaster=providers.Singleton(PayloadUpcaster),
+    )
+    delivery_transport = providers.Factory(RabbitDeliveryTransport, url=config.broker_url)
+    outbox_to_transport_relay_factory = providers.Factory(
+        OutboxToTransportRelay,
+        session_factory=session_factory,
+        models=persistence_delivery_models.provided.events,
+        transport=delivery_transport,
+        kind="event",
     )
     command_registry = providers.Object(
         build_command_registry(

@@ -7,18 +7,14 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.platform.infrastructure.messaging.command.command_outbox_to_inbox_relay import (
-    CommandOutboxToInboxRelay,
-)
 from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
     CommandInboxProcessor,
 )
 from shell.platform.infrastructure.messaging.command.sql_command_outbox_publisher import (
     SqlCommandOutboxPublisher,
 )
-from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
 from shell.tests.platform.integration.platform_delivery_models import (
     COMMAND_DELIVERY_MODELS,
 )
@@ -47,6 +43,14 @@ class FakeCommandBus:
         self.dispatched.append(command)
 
 
+class RecordingTransport:
+    def __init__(self) -> None:
+        self.envelopes: list[object] = []
+
+    async def deliver(self, envelope: object) -> None:
+        self.envelopes.append(envelope)
+
+
 async def _create_command_table(session_factory: async_sessionmaker) -> None:
     async with session_factory() as session:
         connection = await session.connection()
@@ -58,6 +62,7 @@ async def _add_command(session_factory: async_sessionmaker, command_id: str = "c
         session.add(
             COMMAND_DELIVERY_MODELS.inbox(
                 id=command_id,
+                outbox_id=f"outbox-{command_id}",
                 command_type="SampleCommand",
                 occurred_at=datetime.now(tz=UTC),
                 payload={},
@@ -70,39 +75,31 @@ async def _add_command(session_factory: async_sessionmaker, command_id: str = "c
 
 
 class TestCommandInboxProcessor:
-    async def test_relay_can_write_to_a_separate_database(
+    async def test_shared_relay_delivers_command_to_transport(
         self,
         session_factory: async_sessionmaker,
-        tmp_path,
     ) -> None:
-        target_url = f"sqlite+aiosqlite:///{tmp_path / 'target-command.db'}"
-        target_engine = create_async_engine(target_url)
-        async with target_engine.begin() as connection:
-            await connection.run_sync(COMMAND_DELIVERY_MODELS.inbox.metadata.create_all)
-        await target_engine.dispose()
-        target_session_factory = build_session_factory(target_url)
-
         publisher = SqlCommandOutboxPublisher(session_factory, COMMAND_DELIVERY_MODELS)
         await publisher.publish(
             command_type="SampleCommand",
             payload={},
             occurred_at=datetime.now(tz=UTC),
         )
-        relay = CommandOutboxToInboxRelay(
+        transport = RecordingTransport()
+        relay = OutboxToTransportRelay(
             session_factory,
             models=COMMAND_DELIVERY_MODELS,
-            target_session_factory=target_session_factory,
-            target_models=COMMAND_DELIVERY_MODELS,
+            transport=transport,
+            kind="command",
         )
 
         assert await relay.run_once() == 1
         assert await relay.run_once() == 0
+        assert len(transport.envelopes) == 1
 
-        async with target_session_factory() as session:
-            inbox_rows = (
-                (await session.execute(select(COMMAND_DELIVERY_MODELS.inbox))).scalars().all()
-            )
-        assert len(inbox_rows) == 1
+        async with session_factory() as session:
+            rows = (await session.execute(select(COMMAND_DELIVERY_MODELS.outbox))).scalars().all()
+        assert rows[0].published_at is not None
 
     async def test_success_marks_command_processed(
         self,

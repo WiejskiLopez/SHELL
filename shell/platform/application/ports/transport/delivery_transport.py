@@ -14,12 +14,17 @@ DeliveryKind = Literal["event", "message", "command"]
 @dataclass(frozen=True)
 class DeliveryEnvelope:
     kind: DeliveryKind
-    delivery_id: str
-    delivery_type: str
+    outbox_id: str
+    contract_type: str
     occurred_at: datetime
     payload: dict[str, object]
     correlation_id: str
     causation_id: str
+    event_id: str | None = None
+    source_service: str | None = None
+    aggregate_id: str | None = None
+    aggregate_name: str | None = None
+    schema_version: int = 1
 
 
 class DeliveryTransport(Protocol):

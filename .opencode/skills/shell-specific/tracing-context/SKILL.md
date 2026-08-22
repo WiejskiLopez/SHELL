@@ -16,11 +16,11 @@ description: Tracing context (correlation_id / causation_id / event_id / trace_i
        ▼
   Handler tworzy DomainEvent (auto event_id)
        │
-       ├─► SqlEventOutboxPublisher / SqlAlchemyUnitOfWork
+     ├─► SqlAlchemyUnitOfWork
        │     └─► outbox_event: [correlation_id, causation_id] ← z ContextVar
        │
        ▼
-  EventOutboxToInboxRelay
+     OutboxToTransportRelay → broker consumer
        └─► inbox_event: [correlation_id, causation_id] ← kopiowane z outbox
        │
        ▼
@@ -61,7 +61,7 @@ Funkcje dostępu (z tego samego modułu):
 
 | Miejsce | Co czyta | Zapisuje do |
 |---------|----------|------------|
-| `SqlEventOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `outbox_event.correlation_id`, `.causation_id` |
+| `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `outbox_event.correlation_id`, `.causation_id` |
 | `SqlCommandOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `outbox_command.correlation_id`, `.causation_id` |
 | `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `outbox_event` (przez `stage_events`) |
 | `SqlAlchemyUnitOfWork.commit()` | `correlation_id` | `Envelope.transport_metadata["correlation_id"]` |

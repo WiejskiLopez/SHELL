@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.application.ports.messaging.message_publisher import MessagePublisher
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
         EnvelopeValidationPolicy,
         EnvelopeValidator,
@@ -29,6 +30,12 @@ if TYPE_CHECKING:
 
 
 class _MessageRow(Protocol):
+    id: str
+    outbox_id: str
+    correlation_id: str
+    causation_id: str
+    retry_count: int
+    schema_version: int
     message_type: str
     occurred_at: object
     payload: dict[str, object]
@@ -55,6 +62,7 @@ class MessageInboxProcessor(InboxProcessorBase):
         heartbeat_interval_seconds: float = 0.0,
         max_batch_time_seconds: float = 0.0,
         upcaster: PayloadUpcaster | None = None,
+        id_generator: TechnicalIdGenerator | None = None,
         *,
         models: MessageDeliveryModels,
     ) -> None:
@@ -75,6 +83,7 @@ class MessageInboxProcessor(InboxProcessorBase):
             consumer_name=consumer_name,
             heartbeat_interval_seconds=heartbeat_interval_seconds,
             max_batch_time_seconds=max_batch_time_seconds,
+            id_generator=id_generator,
         )
         self._message_bus = message_bus
         self._deserializer = MessageDeserializer(registry=registry, upcaster=upcaster)

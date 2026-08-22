@@ -66,6 +66,8 @@ def main() -> None:
                 session_factory=container.session_factory(),
                 heartbeat_model=container.persistence_delivery_models().worker_heartbeat,
                 poll_interval_seconds=runtime.events.worker_poll_interval,
+                outbox_relay=container.outbox_to_transport_relay_factory(),
+                outbox_worker_id="scheduling-outbox-relay",
             )
         else:
             await server.serve()

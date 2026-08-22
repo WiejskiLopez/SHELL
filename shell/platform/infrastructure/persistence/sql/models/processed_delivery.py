@@ -5,7 +5,7 @@ cannot share the processor's transaction: a handler writes a row atomically
 with its own business change, and the processor consults it before dispatch so
 an at-least-once redelivery is never executed twice.
 
-Uniqueness is ``(consumer_name, delivery_id)`` — the same delivery replayed by
+Uniqueness is ``(consumer_name, outbox_id)`` — the same outbox record replayed by
 the same consumer is always a no-op.
 """
 
@@ -27,14 +27,14 @@ def build_processed_delivery_model(base: type[DeclarativeBase]) -> type[Declarat
         __table_args__ = (
             UniqueConstraint(
                 "consumer_name",
-                "delivery_id",
-                name="uq_processed_delivery_consumer_delivery",
+                "outbox_id",
+                name="uq_processed_delivery_consumer_outbox",
             ),
         )
 
         id: Mapped[str] = mapped_column(primary_key=True)
         consumer_name: Mapped[str] = mapped_column(nullable=False)
-        delivery_id: Mapped[str] = mapped_column(nullable=False)
+        outbox_id: Mapped[str] = mapped_column(nullable=False)
         payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
         processed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 

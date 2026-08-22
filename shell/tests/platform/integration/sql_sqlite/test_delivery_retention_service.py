@@ -36,16 +36,21 @@ async def _build_isolated(tmp_path) -> async_sessionmaker:
 
 async def _seed_inbox(
     session_factory: async_sessionmaker,
-    record_id: str,
+    outbox_id: str,
     *,
     failed_at: datetime,
 ) -> None:
     async with session_factory() as session:
         session.add(
             PERSISTENCE_DELIVERY_MODELS.events.inbox(
-                id=record_id,
+                id=outbox_id,
+                outbox_id=outbox_id,
+                event_id=f"event-{outbox_id}",
+                source_service="test_service",
                 event_type="SomeEvent",
                 occurred_at=datetime.now(tz=UTC),
+                aggregate_id="aggregate-1",
+                aggregate_name="SomeAggregate",
                 payload={},
                 correlation_id="c",
                 causation_id="k",
@@ -59,7 +64,7 @@ async def _seed_inbox(
 
 async def _seed_processed_delivery(
     session_factory: async_sessionmaker,
-    delivery_id: str,
+    outbox_id: str,
     *,
     processed_at: datetime,
 ) -> None:
@@ -68,7 +73,7 @@ async def _seed_processed_delivery(
             PERSISTENCE_DELIVERY_MODELS.processed_delivery(
                 id=str(uuid4()),
                 consumer_name="test-consumer",
-                delivery_id=delivery_id,
+                outbox_id=outbox_id,
                 payload={},
                 processed_at=processed_at,
             )
@@ -85,7 +90,7 @@ async def _inbox_ids(session_factory: async_sessionmaker) -> set[str]:
 async def _processed_ids(session_factory: async_sessionmaker) -> set[str]:
     async with session_factory() as session:
         rows = (
-            (await session.execute(select(_PROCESSED_DELIVERY_MODEL.delivery_id))).scalars().all()
+            (await session.execute(select(_PROCESSED_DELIVERY_MODEL.outbox_id))).scalars().all()
         )
         return set(rows)
 
@@ -160,8 +165,13 @@ class TestDeliveryRetentionService:
             session.add(
                 PERSISTENCE_DELIVERY_MODELS.events.inbox(
                     id="pending-old",
+                    event_id="event-pending-old",
+                    outbox_id="outbox-pending-old",
+                    source_service="test_service",
                     event_type="SomeEvent",
                     occurred_at=now,
+                    aggregate_id="aggregate-1",
+                    aggregate_name="SomeAggregate",
                     payload={},
                     correlation_id="c",
                     causation_id="k",

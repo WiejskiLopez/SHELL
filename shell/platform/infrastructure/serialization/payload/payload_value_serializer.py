@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 from datetime import datetime
 
 from shell.platform.domain.base.value_object import ValueObject
@@ -38,6 +39,16 @@ class PayloadValueSerializer:
             return value.value
         if isinstance(value, ValueObject):
             return self.serialize(value.value)
+        if _is_single_value_dataclass(value):
+            return self.serialize(value.value)  # type: ignore[attr-defined]
         raise UnsupportedPayloadTypeError(
             f"Unsupported payload value of type {type(value).__name__}"
         )
+
+
+def _is_single_value_dataclass(value: object) -> bool:
+    value_type = type(value)
+    if not dataclasses.is_dataclass(value_type):
+        return False
+    fields = dataclasses.fields(value_type)
+    return len(fields) == 1 and fields[0].name == "value"

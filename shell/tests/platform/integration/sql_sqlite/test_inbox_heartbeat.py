@@ -73,8 +73,13 @@ async def _add_event(
         session.add(
             _INBOX_MODEL(
                 id=event_id,
+                outbox_id=f"outbox-{event_id}",
+                event_id=str(event.event_id.value),
+                source_service="execution_service",
                 event_type=type(event).__name__,
                 occurred_at=event.occurred_at.value,
+                aggregate_id=str(event.aggregate_id.value),
+                aggregate_name=str(event.aggregate_name.value),
                 payload=serializer.to_payload(event),
                 correlation_id="corr",
                 causation_id="cause",

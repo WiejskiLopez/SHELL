@@ -44,7 +44,12 @@ class DeliveryOutboxModel(Protocol):
     """Outbox columns shared by all delivery kinds, used for the pending-row SELECT."""
 
     id: Mapped[str]
+    event_id: Mapped[str]
+    source_service: Mapped[str]
     occurred_at: Mapped[datetime]
+    aggregate_id: Mapped[str]
+    aggregate_name: Mapped[str]
+    schema_version: Mapped[int]
     payload: Mapped[dict[str, object]]
     correlation_id: Mapped[str]
     causation_id: Mapped[str]
@@ -55,7 +60,12 @@ class DeliveryOutboxRow(Protocol):
     """Runtime instance shape of a pending outbox row."""
 
     id: str
+    event_id: str
+    source_service: str
     occurred_at: datetime
+    aggregate_id: str
+    aggregate_name: str
+    schema_version: int
     payload: dict[str, object]
     correlation_id: str
     causation_id: str
@@ -111,13 +121,18 @@ class OutboxToTransportRelay:
         from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
 
         typed_row = cast("DeliveryOutboxRow", row)
-        delivery_type = cast("str", getattr(typed_row, f"{self._kind}_type"))
+        contract_type = cast("str", getattr(typed_row, f"{self._kind}_type"))
         return DeliveryEnvelope(
             kind=self._kind,
-            delivery_id=typed_row.id,
-            delivery_type=delivery_type,
+            outbox_id=typed_row.id,
+            contract_type=contract_type,
             occurred_at=typed_row.occurred_at,
             payload=typed_row.payload,
             correlation_id=typed_row.correlation_id,
             causation_id=typed_row.causation_id,
+            event_id=getattr(typed_row, "event_id", None),
+            source_service=getattr(typed_row, "source_service", None),
+            aggregate_id=getattr(typed_row, "aggregate_id", None),
+            aggregate_name=getattr(typed_row, "aggregate_name", None),
+            schema_version=getattr(typed_row, "schema_version", 1),
         )

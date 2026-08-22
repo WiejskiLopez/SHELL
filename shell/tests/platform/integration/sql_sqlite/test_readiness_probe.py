@@ -41,12 +41,18 @@ async def _seed_pending(session_factory: async_sessionmaker, count: int) -> None
     serializer = DomainEventSerializer()
     async with session_factory() as session:
         for index in range(count):
+            event = _event()
             session.add(
                 _INBOX_MODEL(
                     id=f"evt-ready-{index}",
-                    event_type=type(_event()).__name__,
-                    occurred_at=datetime.now(tz=UTC),
-                    payload=serializer.to_payload(_event()),
+                    outbox_id=f"outbox-evt-ready-{index}",
+                    event_id=str(event.event_id.value),
+                    source_service="execution_service",
+                    event_type=type(event).__name__,
+                    occurred_at=event.occurred_at.value,
+                    aggregate_id=str(event.aggregate_id.value),
+                    aggregate_name=str(event.aggregate_name.value),
+                    payload=serializer.to_payload(event),
                     correlation_id="corr",
                     causation_id="cause",
                     received_at=datetime.now(tz=UTC),
@@ -128,8 +134,13 @@ class TestWorkerHeartbeatReadiness:
             session.add(
                 _INBOX_MODEL(
                     id="evt-hb-pending",
+                    outbox_id="outbox-evt-hb-pending",
+                    event_id=str(event.event_id.value),
+                    source_service="execution_service",
                     event_type=type(event).__name__,
                     occurred_at=datetime.now(tz=UTC),
+                    aggregate_id=str(event.aggregate_id.value),
+                    aggregate_name=str(event.aggregate_name.value),
                     payload=serializer.to_payload(event),
                     correlation_id="corr",
                     causation_id="cause",

@@ -45,7 +45,7 @@ UoW przechowuje `DomainEvent`. Mapowanie odbywa sie na granicy integracji, przy 
 
 - `event_id` identyfikuje fakt biznesowy.
 - Jesli IntegrationEvent jest reprezentacja tego samego faktu, zachowuje ten sam `event_id`.
-- `event_id` identyfikuje fakt, `message_id` identyfikuje Message, a `delivery_id` identyfikuje dostarczenie.
+- `event_id` identyfikuje fakt, `message_id` identyfikuje Message, a `outbox_id` identyfikuje rekord nadawcy przenoszony przez envelope.
 - Event posiada tozsamosc faktu, a koperta posiada tozsamosc dostarczenia.
 
 ## Metadata i payload

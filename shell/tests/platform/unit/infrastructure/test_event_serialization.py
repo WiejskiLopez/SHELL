@@ -15,6 +15,9 @@ from shell.platform.infrastructure.serialization.event.event_deserializer import
 from shell.platform.infrastructure.serialization.event.event_envelope_serializer import (
     EventEnvelopeSerializer,
 )
+from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+    IntegrationEventSerializer,
+)
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -61,6 +64,23 @@ def test_event_serializer_excludes_envelope_metadata_from_payload() -> None:
     assert "schema_version" not in payload
 
 
+def test_integration_event_serializer_excludes_all_envelope_metadata() -> None:
+    payload = IntegrationEventSerializer().to_payload(_sample_integration_event())
+
+    assert payload == {"name": "created"}
+
+
+def test_integration_event_serializer_builds_envelope_separately() -> None:
+    envelope = IntegrationEventSerializer().to_envelope(
+        _sample_integration_event(), outbox_id="outbox-1", source_service="sample_service"
+    )
+
+    assert envelope["event_type"] == "SampleIntegrationEvent"
+    assert envelope["event_id"] == "event-1"
+    assert envelope["schema_version"] == 3
+    assert envelope["payload"] == {"name": "created"}
+
+
 def test_event_round_trip_preserves_domain_value_object_types() -> None:
     event = _sample_event()
     serializer = DomainEventSerializer()
@@ -81,7 +101,9 @@ def test_event_round_trip_preserves_domain_value_object_types() -> None:
 
 def test_integration_event_round_trip_preserves_datetime_and_integer_schema_version() -> None:
     event = _sample_integration_event()
-    envelope = EventEnvelopeSerializer().to_outbox_payload(event)
+    envelope = IntegrationEventSerializer().to_envelope(
+        event, outbox_id="outbox-1", source_service="sample_service"
+    )
 
     restored = EventDeserializer(
         registry={"SampleIntegrationEvent": SampleIntegrationEvent}
@@ -90,12 +112,18 @@ def test_integration_event_round_trip_preserves_datetime_and_integer_schema_vers
         occurred_at=cast("datetime", envelope["occurred_at"]),
         payload=cast("dict[str, object]", envelope["payload"]),
         schema_version=event.schema_version,
+        event_id=cast("str", envelope["event_id"]),
+        correlation_id=cast("str", envelope["correlation_id"]),
+        causation_id=cast("str", envelope["causation_id"]),
+        aggregate_id=cast("str", envelope["aggregate_id"]),
+        aggregate_name=cast("str", envelope["aggregate_name"]),
     )
 
     assert isinstance(restored, SampleIntegrationEvent)
     assert isinstance(restored.occurred_at, datetime)
     assert restored.occurred_at == event.occurred_at
     assert restored.schema_version == event.schema_version
+    assert envelope["source_service"] == "sample_service"
 
 
 def test_event_deserializer_returns_none_for_invalid_typed_payload() -> None:
@@ -109,3 +137,12 @@ def test_event_deserializer_returns_none_for_invalid_typed_payload() -> None:
     )
 
     assert restored is None
+
+
+def test_domain_event_envelope_serializer_rejects_integration_event() -> None:
+    try:
+        EventEnvelopeSerializer().to_outbox_payload(_sample_integration_event())
+    except TypeError as exc:
+        assert "DomainEvent" in str(exc)
+    else:
+        raise AssertionError("expected DomainEvent-only envelope serializer")

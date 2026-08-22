@@ -80,8 +80,13 @@ async def _add_event(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
+                outbox_id=f"outbox-{event_id.removeprefix('evt-')}",
+                event_id=str(event.event_id.value),
+                source_service="execution_service",
                 event_type=type(event).__name__,
                 occurred_at=event.occurred_at.value,
+                aggregate_id=str(event.aggregate_id.value),
+                aggregate_name=str(event.aggregate_name.value),
                 payload=serializer.to_payload(event),
                 correlation_id="corr",
                 causation_id="cause",
@@ -207,7 +212,7 @@ class TestProcessedDeliveryDedup:
                 PERSISTENCE_DELIVERY_MODELS.processed_delivery(
                     id=str(uuid4()),
                     consumer_name="test-consumer",
-                    delivery_id="evt-dedup",
+                    outbox_id="outbox-dedup",
                     payload={},
                     processed_at=datetime.now(tz=UTC),
                 )
@@ -239,7 +244,7 @@ class TestProcessedDeliveryDedup:
                 PERSISTENCE_DELIVERY_MODELS.processed_delivery(
                     id=str(uuid4()),
                     consumer_name="other-consumer",
-                    delivery_id="evt-other-consumer",
+                    outbox_id="outbox-other-consumer",
                     payload={},
                     processed_at=datetime.now(tz=UTC),
                 )
@@ -298,7 +303,7 @@ class TestProcessedDeliveryAtomicWrite:
             dedup = (
                 (
                     await session.execute(
-                        select(dedup_model).where(dedup_model.delivery_id == "evt-dedup-atomic")
+                        select(dedup_model).where(dedup_model.outbox_id == "outbox-dedup-atomic")
                     )
                 )
                 .scalars()

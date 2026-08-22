@@ -56,7 +56,7 @@ class UserLoginSucceededIntegrationEvent(IntegrationEvent):
 Handler źródłowy (np. LoginUserHandler)
   → stage_events([UserLoginSucceededIntegrationEvent])
     → UoW commit → serializacja → outbox_event (DB)
-      → EventOutboxToInboxRelay → inbox_event (DB)
+    → OutboxToTransportRelay → broker → inbox_event (DB)
          → EventInboxProcessor.run_once()
            1. SELECT z inbox_event WHERE processed_at IS NULL (FOR UPDATE SKIP LOCKED)
            2. EventDeserializer.deserialize(event_type, payload)
@@ -178,7 +178,7 @@ Cross-BC komunikacja przez **integration events** — per‑BC DTO w `shell/appl
 1. Domain event emitowany przez agregat w BC A
 2. `ReflectiveIntegrationMapper` (w `SqlAlchemyUnitOfWorkBase.save()`) mapuje domain event → integration event (wypełnia envelope + konwertuje VOs na stringi)
 3. Integration event zapisywany do `outbox_event` w tej samej transakcji
-4. `EventOutboxToInboxRelay` → `EventInboxProcessor` → `EventBus` → handler w BC B
+4. `OutboxToTransportRelay` → broker consumer → `EventInboxProcessor` → `EventBus` → handler w BC B
 
 Integration event używa tylko primitive typów (`str`, `int`, `bool`, `datetime`). Właścicielem DTO jest produkujący BC.
 

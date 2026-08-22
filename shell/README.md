@@ -552,8 +552,8 @@ Kolumny: `id`, `event_type`, `occurred_at`, `payload` (JSON).
 
 ### Tabela outbox_event
 
-`SqlEventOutboxPublisher` zapisuje eventy do `outbox_event` z `published_at = NULL`.  
-`EventOutboxToInboxRelay.run_once()` pobiera niepublikowane wpisy i przekazuje je do `inbox_event`, ustawiając `published_at`.
+`SqlAlchemyUnitOfWorkBase` zapisuje event oraz `outbox_event` atomowo.  
+`OutboxToTransportRelay.run_once()` publikuje nieopublikowane koperty przez broker, a docelowy `RabbitInboxConsumer` zapisuje je do lokalnego `inbox_event`.
 
 ```powershell
 # Relay uruchamiany jest przez proces właściwego BC

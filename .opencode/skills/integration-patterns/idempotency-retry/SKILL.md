@@ -8,7 +8,7 @@ description: Wzorce niezawodności w architekturze event-driven — idempotentno
 ## 1. Inbox Pattern — Deduplikacja Eventów
 
 W SHELL deduplikacja jest realizowana przez:
-- **`EventOutboxToInboxRelay`**: `ON CONFLICT DO NOTHING` / `OR IGNORE` przy INSERT do inbox — ten sam event nie trafi dwa razy
+- **`RabbitInboxConsumer`**: idempotentny insert koperty do inbox po `source_service + outbox_id` — ta sama publikacja nie tworzy drugiego rekordu logicznego
 - **`EventInboxProcessor`**: `SELECT WHERE processed_at IS NULL` — event przetworzony raz nie jest dispatchowany ponownie
 
 ## 2. Retry — fixed backoff (obecna implementacja)
@@ -32,7 +32,7 @@ retry_backoff_seconds: int = 30  # stałe opóźnienie, nie skalowane
 | Klasa | Lokalizacja | Opis |
 |-------|-------------|------|
 | `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Retry + backoff + tombstone DLQ |
-| `EventOutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/event_outbox_to_inbox_relay.py` | Propaguje blad relay do warstwy nadrzednej |
+| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/transport/outbox_to_transport_relay.py` | Publikuje outbox przez broker |
 | `OutboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/outbox_event.py` | Model outbox |
 | `InboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/inbox_event.py` | Model inbox z kolumnami retry |
 
@@ -49,5 +49,5 @@ Implementując niezawodność:
 - [ ] Exponential backoff (obecnie fixed 30s)
 - [ ] Dedykowana tabela DLQ
 - [ ] Circuit breaker dla zewnętrznych zasobów
-- [ ] Retry dla EventOutboxToInboxRelay
+- [ ] Monitoring i alerting na błędy transportu outbox
 - [ ] Monitoring i alerting na DLQ

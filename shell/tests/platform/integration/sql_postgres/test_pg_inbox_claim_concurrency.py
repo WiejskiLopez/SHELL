@@ -44,14 +44,19 @@ async def test_two_workers_do_not_claim_same_record(
     pg_session_factory: async_sessionmaker,
 ) -> None:
     await _clear_inbox(pg_session_factory)
-    delivery_id = f"pg-claim-{uuid.uuid4().hex}"
+    inbox_id = f"pg-claim-{uuid.uuid4().hex}"
     now = datetime.now(tz=UTC)
     async with pg_session_factory() as session:
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
-                id=delivery_id,
+                id=inbox_id,
+                outbox_id=f"outbox-{inbox_id}",
+                event_id=inbox_id,
+                source_service="execution_service",
                 event_type="SampleEvent",
                 occurred_at=now,
+                aggregate_id="aggregate-1",
+                aggregate_name="Sample",
                 payload={},
                 correlation_id="c",
                 causation_id="k",
@@ -83,7 +88,7 @@ async def test_two_workers_do_not_claim_same_record(
 
     async with pg_session_factory() as session:
         row = (
-            await session.execute(select(_INBOX_MODEL).where(_INBOX_MODEL.id == delivery_id))
+            await session.execute(select(_INBOX_MODEL).where(_INBOX_MODEL.id == inbox_id))
         ).scalar_one()
     assert row.status == InboxStatus.PROCESSING.value
     assert row.claimed_by in ("worker-a", "worker-b")
@@ -93,14 +98,19 @@ async def test_two_workers_do_not_claim_same_record(
 async def test_expired_lease_is_reclaimed_by_other_worker(
     pg_session_factory: async_sessionmaker,
 ) -> None:
-    delivery_id = f"pg-stale-{uuid.uuid4().hex}"
+    inbox_id = f"pg-stale-{uuid.uuid4().hex}"
     now = datetime.now(tz=UTC)
     async with pg_session_factory() as session:
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
-                id=delivery_id,
+                id=inbox_id,
+                outbox_id=f"outbox-{inbox_id}",
+                event_id=inbox_id,
+                source_service="execution_service",
                 event_type="SampleEvent",
                 occurred_at=now,
+                aggregate_id="aggregate-1",
+                aggregate_name="Sample",
                 payload={},
                 correlation_id="c",
                 causation_id="k",
@@ -123,6 +133,6 @@ async def test_expired_lease_is_reclaimed_by_other_worker(
 
     async with pg_session_factory() as session:
         row = (
-            await session.execute(select(_INBOX_MODEL).where(_INBOX_MODEL.id == delivery_id))
+            await session.execute(select(_INBOX_MODEL).where(_INBOX_MODEL.id == inbox_id))
         ).scalar_one()
     assert row.claimed_by == "worker-b"

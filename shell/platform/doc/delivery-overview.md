@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Opisuje pełną ścieżkę przekazywania deliverable (event, message, command) między bounded contextami platformy SHELL: od zapisu w transakcyjnym outboxie po stronie producenta, przez relay i transport do brokera, aż po konsumpcję w inboxie, claim z lease, przetworzenie przez procesor i atomowy ack w konsumenckim BC. Realizacją są trzy symetryczne pary (event, message, command): `SqlEventOutboxPublisher`/`SqlMessageOutboxPublisher`/`SqlCommandOutboxPublisher` po stronie producenta oraz `EventInboxProcessor`/`MessageInboxProcessor`/`CommandInboxProcessor` po stronie konsumenta, połączone wspólnym formatem koperty `DeliveryEnvelope` kodowanym przez `EnvelopeCodec`.
+Opisuje jedną ścieżkę przekazywania deliverable (event, message, command) między bounded contextami platformy SHELL: zapis w transakcyjnym outboxie, wspólny relay do transportu i brokera, zapis w inboxie, claim z lease, procesor oraz atomowy ack w konsumenckim BC. Wszystkie rodzaje korzystają z `OutboxToTransportRelay`, `DeliveryEnvelope`, `EnvelopeCodec` i odpowiedniego procesora inbox.
 
 ## Problem
 
@@ -17,11 +17,10 @@ BC A (producent)
   API/CLI → Command → CommandBus → CommandHandler
     → UnitOfWork (SqlAlchemyUnitOfWorkBase) → Aggregate mutacja → stage_events()
     → commit: stan agregatu + outbox_event + audit (_write_staged_outbox)
-  SqlEventOutboxPublisher / SqlMessageOutboxPublisher / SqlCommandOutboxPublisher
-    (alternatywa: dedykowana sesja per publish)
-  Relay → odczyt outboxa → EnvelopeCodec.encode → DeliveryTransport.deliver → broker
-                                   (JSON: kind, delivery_id, delivery_type, occurred_at,
-                                    payload, correlation_id, causation_id)
+    UoW / outbox writer → outbox_event|outbox_message|outbox_command
+  OutboxToTransportRelay → EnvelopeCodec.encode → DeliveryTransport.deliver → broker
+                                   (JSON: kind, outbox_id, contract_type,
+                                    occurred_at, schema_version, payload, metadata)
 
 BC B (konsument)
   broker → consumer/relay → EnvelopeCodec.decode → row w tabeli inbox (InboxStateMixin)
@@ -38,17 +37,15 @@ Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-
 
 ### Role komponentów
 
-- **Outbox (producent)** — trwały bufor deliverable. Dwa tryby zapisu:
-  - z poziomu `SqlAlchemyUnitOfWorkBase.commit()` → `_write_staged_outbox()` zapisuje w tej samej transakcji co stan domeny (plus wiersz audytowy);
-  - przez `SqlEventOutboxPublisher.publish(...)`, `SqlMessageOutboxPublisher.publish(...)`, `SqlCommandOutboxPublisher.publish(...)`, które używają **własnej sesji per wywołanie** (kolumna `published_at=None` na wierszu czeka na relay), dzięki czemu deliverable przetrwa nawet gdy transakcja wołającego była już zamknięta.
-- **Relay** — czyta outbox i dostarcza dalej; istnieje wariant outbox→transport (do brokera) oraz outbox→inbox (fan-out do lokalnego busa, w docstringu publishera: `EventOutboxToInboxRelay` / `MessageOutboxToInboxRelay`). Pełny opis w [relay](relay.md).
-- **Transport** — port `DeliveryTransport` (`deliver(envelope: DeliveryEnvelope)`), realizowany przez adaptery brokerskie. Format linii: `EnvelopeCodec` koduje `DeliveryEnvelope` do płaskiego JSON (`kind`, `delivery_id`, `delivery_type`, `occurred_at`, `payload`, `correlation_id`, `causation_id`). Szczegóły w [delivery-transport](delivery-transport.md) i [envelope-versioning](envelope-versioning.md).
-- **Inbox (konsument)** — tabela z kolumnami `InboxStateMixin`; wiersz zakładany przez konsumenta po dekodowaniu koperty (`delivery_id` jest niezmienne wzdłuż całej ścieżki, więc deduplikacja i replay działają po tym samym identyfikatorze).
+- **Outbox (producent)** — trwały bufor deliverable zapisywany atomowo ze stanem domeny przez `SqlAlchemyUnitOfWorkBase`; `published_at` pozostaje puste do czasu potwierdzonego transportu.
+- **Relay** — jedyny `OutboxToTransportRelay` czyta odpowiednią tabelę outbox i publikuje kopertę do brokera. Pełny opis w [relay](relay.md).
+- **Transport** — port `DeliveryTransport`, realizowany przez adaptery brokerskie. `EnvelopeCodec` koduje `DeliveryEnvelope` do JSON z `outbox_id`, `contract_type`, `schema_version`, payloadem i metadanymi. Szczegóły w [delivery-transport](delivery-transport.md).
+- **Inbox (konsument)** — konsument generuje lokalne `inbox_event.id`/`inbox_message.id`/`inbox_command.id`, zapisuje `outbox_id` jako referencję do rekordu nadawcy i stosuje idempotencję po źródle oraz outboxie.
 - **Claim z lease** — `InboxClaimService.claim_batch()` przejmuje rekordy w krótkiej transakcji bez trzymania zamka na czas handlera (`SELECT ... FOR UPDATE SKIP LOCKED` na PostgreSQL; SQLite bez skip locked). Szczegóły w [claim-lease](claim-lease.md).
 - **Processor** — `InboxProcessorBase` realizuje wspólny cykl claim→process→ack; podtypy `EventInboxProcessor` (dispatch przez `EventPublisher`), `MessageInboxProcessor` (dispatch przez `MessagePublisher`), `CommandInboxProcessor` (dispatch przez `CommandBus`) dostarczają tylko deserializację, dispatch i wartość causation. Uruchamiany przez [polling-worker](polling-worker.md) (`PollingWorker.run()` → `task.run_once()`).
 - **Handler w session scope** — `_process_in_transaction` publikuje sesję jako ambientowy scope (`DeliverySessionScope`), więc UoW handlera współdzieli tę samą sesję i odracza commit; jeden commit utrwala efekt + outbox + ack atomowo. Patrz [session-scope](session-scope.md).
 - **Dedup (fallback)** — dla handlerów, które nie mogą współdzielić transakcji procesora, wiersz `processed_delivery` zapisywany atomowo z efektem; `is_duplicate` sprawdzany przed dispatch. Patrz [processed-delivery-dedup](processed-delivery-dedup.md).
-- **Ack warunkowy** — `_acknowledge_in_session` ustawia `PROCESSED` warunkowym UPDATE kluczowanym po `id + status + claimed_by`; jeżeli lease wygasł i rekord przejął inny worker, ack nie zmienia wiersza (rowcount=0). Wszystkie warstwy czasu używają zegara bazy `func.current_timestamp()` (spójność lease między workerami niezależnie od dryfu zegarów aplikacji).
+- **Ack warunkowy** — `_acknowledge_in_session` ustawia `PROCESSED` warunkowym UPDATE kluczowanym po lokalnym `inbox.id + status + claimed_by`; jeżeli lease wygasł i rekord przejął inny worker, ack nie zmienia wiersza (rowcount=0).
 
 ### At-least-once i brak utraty
 
@@ -68,7 +65,7 @@ Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-
 - `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` (`EventInboxProcessor`)
 - `shell/platform/infrastructure/messaging/message/processor/message_inbox_processor.py` (`MessageInboxProcessor`)
 - `shell/platform/infrastructure/messaging/command/processor/command_inbox_processor.py` (`CommandInboxProcessor`)
-- `shell/platform/infrastructure/messaging/event/sql_event_outbox_publisher.py` (`SqlEventOutboxPublisher`)
+- `shell/platform/infrastructure/serialization/event/integration_event_serializer.py` (`IntegrationEventSerializer`)
 - `shell/platform/infrastructure/messaging/message/sql_message_outbox_publisher.py` (`SqlMessageOutboxPublisher`)
 - `shell/platform/infrastructure/messaging/command/sql_command_outbox_publisher.py` (`SqlCommandOutboxPublisher`)
 - `shell/platform/infrastructure/messaging/transport/envelope_codec.py` (`EnvelopeCodec`)

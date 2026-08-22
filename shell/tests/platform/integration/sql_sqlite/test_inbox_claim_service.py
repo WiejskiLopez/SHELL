@@ -50,8 +50,13 @@ async def _add_event(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
+                outbox_id=f"outbox-{event_id}",
+                event_id=event_id,
+                source_service="execution_service",
                 event_type="SampleEvent",
                 occurred_at=now,
+                aggregate_id="aggregate-1",
+                aggregate_name="Sample",
                 payload={},
                 correlation_id="corr",
                 causation_id="cause",

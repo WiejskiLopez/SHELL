@@ -2,7 +2,7 @@
 
 Routing convention:
   exchange  : ``shell.delivery`` (topic exchange)
-  routing key: ``{kind}.{delivery_type}``   e.g. ``event.TaskExecutionCreatedEvent``
+    routing key: ``{kind}.{contract_type}``   e.g. ``event.TaskExecutionCreatedEvent``
   message   : JSON envelope bytes (see EnvelopeCodec), persistent delivery mode.
 
 Each consumer BC binds its own queue to the exchange with the routing keys it
@@ -54,7 +54,7 @@ class RabbitDeliveryTransport:
                 delivery_mode=DeliveryMode.PERSISTENT,
                 content_type="application/json",
             ),
-            routing_key=f"{envelope.kind}.{envelope.delivery_type}",
+            routing_key=f"{envelope.kind}.{envelope.contract_type}",
             mandatory=False,
         )
 

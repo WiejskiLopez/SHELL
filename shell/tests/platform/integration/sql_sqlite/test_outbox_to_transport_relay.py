@@ -9,18 +9,17 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-    TaskExecutionCreatedEvent,
-)
-from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
-    TaskExecutionId,
-)
-from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
-    SqlEventOutboxPublisher,
+from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
+    TaskExecutionCreatedIntegrationEvent,
 )
 from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
+from shell.platform.infrastructure.messaging.transport.source_service import (
+    source_service_for_type,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+    IntegrationEventSerializer,
+)
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
 )
@@ -32,6 +31,41 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
 _OUTBOX_MODEL: Any = EVENT_DELIVERY_MODELS.outbox
+
+
+async def _seed_outbox(session_factory: async_sessionmaker) -> None:
+    event = TaskExecutionCreatedIntegrationEvent(
+        event_id="event-1",
+        correlation_id="correlation-1",
+        causation_id="causation-1",
+        occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
+        aggregate_id="task-execution-1",
+        aggregate_name="TaskExecution",
+        schema_version=1,
+        task_execution_id="task-execution-1",
+    )
+    envelope = IntegrationEventSerializer().to_envelope(
+        event,
+        outbox_id="outbox-1",
+        source_service=source_service_for_type(type(event)),
+    )
+    async with session_factory() as session:
+        session.add(
+            _OUTBOX_MODEL(
+                id=envelope["outbox_id"],
+                event_id=envelope["event_id"],
+                source_service=envelope["source_service"],
+                event_type=envelope["event_type"],
+                occurred_at=envelope["occurred_at"],
+                aggregate_id=envelope["aggregate_id"],
+                aggregate_name=envelope["aggregate_name"],
+                schema_version=envelope["schema_version"],
+                payload=envelope["payload"],
+                correlation_id=envelope["correlation_id"],
+                causation_id=envelope["causation_id"],
+            )
+        )
+        await session.commit()
 
 
 class RecordingTransport:
@@ -78,14 +112,7 @@ class TestOutboxToTransportRelay:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        await SqlEventOutboxPublisher(session_factory, EVENT_DELIVERY_MODELS).publish(
-            [
-                TaskExecutionCreatedEvent.now(
-                    task_execution_id=TaskExecutionId.generate(),
-                    now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-                )
-            ]
-        )
+        await _seed_outbox(session_factory)
 
         transport = RecordingTransport()
         relay = OutboxToTransportRelay(
@@ -96,7 +123,9 @@ class TestOutboxToTransportRelay:
         assert count == 1
         assert len(transport.delivered) == 1
         assert transport.delivered[0].kind == "event"
-        assert transport.delivered[0].delivery_type == "TaskExecutionCreatedEvent"
+        assert transport.delivered[0].contract_type == "TaskExecutionCreatedIntegrationEvent"
+        assert transport.delivered[0].event_id is not None
+        assert transport.delivered[0].schema_version == 1
         assert transport.delivered[0].payload == transport.delivered[0].payload
 
         async with session_factory() as session:
@@ -123,14 +152,7 @@ class TestOutboxToTransportRelay:
         await engine.dispose()
         isolated = build_session_factory(url)
 
-        await SqlEventOutboxPublisher(isolated, EVENT_DELIVERY_MODELS).publish(
-            [
-                TaskExecutionCreatedEvent.now(
-                    task_execution_id=TaskExecutionId.generate(),
-                    now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-                )
-            ]
-        )
+        await _seed_outbox(isolated)
 
         relay = OutboxToTransportRelay(
             isolated,
@@ -163,14 +185,7 @@ class TestOutboxToTransportRelay:
         await engine.dispose()
         isolated = build_session_factory(url)
 
-        await SqlEventOutboxPublisher(isolated, EVENT_DELIVERY_MODELS).publish(
-            [
-                TaskExecutionCreatedEvent.now(
-                    task_execution_id=TaskExecutionId.generate(),
-                    now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-                )
-            ]
-        )
+        await _seed_outbox(isolated)
 
         transport = FlakyTimeoutTransport()
         relay = OutboxToTransportRelay(
@@ -209,14 +224,7 @@ class TestOutboxToTransportRelay:
         await engine.dispose()
         isolated = build_session_factory(url)
 
-        await SqlEventOutboxPublisher(isolated, EVENT_DELIVERY_MODELS).publish(
-            [
-                TaskExecutionCreatedEvent.now(
-                    task_execution_id=TaskExecutionId.generate(),
-                    now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-                )
-            ]
-        )
+        await _seed_outbox(isolated)
 
         transport = AcceptedThenTimeoutTransport()
         relay = OutboxToTransportRelay(

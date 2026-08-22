@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
@@ -10,6 +9,7 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.infrastructure.persistence.sql.models.command_delivery import (
         CommandDeliveryModels,
     )
@@ -20,9 +20,15 @@ class SqlCommandOutboxPublisher:
         self,
         session_factory: async_sessionmaker[AsyncSession],
         models: CommandDeliveryModels,
+        id_generator: TechnicalIdGenerator | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._outbox_model = models.outbox
+        from shell.platform.infrastructure.identity.uuid_technical_id_generator import (
+            UuidTechnicalIdGenerator,
+        )
+
+        self._id_generator = id_generator or UuidTechnicalIdGenerator()
 
     async def publish(
         self,
@@ -33,7 +39,7 @@ class SqlCommandOutboxPublisher:
         async with self._session_factory() as session:
             session.add(
                 self._outbox_model(
-                    id=str(uuid.uuid4()),
+                    id=self._id_generator.new_id(),
                     command_type=command_type,
                     occurred_at=occurred_at,
                     payload=payload,

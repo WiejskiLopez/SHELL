@@ -14,24 +14,20 @@ from typing import TYPE_CHECKING, Any
 import aio_pika
 from sqlalchemy import select
 
-from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-    TaskExecutionCreatedEvent,
-)
-from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
-    TaskExecutionId,
+from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
+    TaskExecutionCreatedIntegrationEvent,
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
-from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
-    SqlEventOutboxPublisher,
 )
 from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
 from shell.platform.infrastructure.messaging.transport.rabbit import (
     RabbitDeliveryTransport,
     RabbitInboxConsumer,
+)
+from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+    IntegrationEventSerializer,
 )
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
@@ -63,10 +59,16 @@ class CollectingBus:
         self.items.extend(items)
 
 
-def _event() -> TaskExecutionCreatedEvent:
-    return TaskExecutionCreatedEvent.now(
-        task_execution_id=TaskExecutionId.generate(),
-        now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+def _event() -> TaskExecutionCreatedIntegrationEvent:
+    return TaskExecutionCreatedIntegrationEvent(
+        event_id="event-rabbit-1",
+        correlation_id="correlation-rabbit-1",
+        causation_id="causation-rabbit-1",
+        occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
+        aggregate_id="task-execution-rabbit-1",
+        aggregate_name="TaskExecution",
+        schema_version=1,
+        task_execution_id="task-execution-rabbit-1",
     )
 
 
@@ -94,7 +96,28 @@ async def test_live_outbox_rabbit_inbox_processor(
 
     # Producer writes to the shared outbox DB; consumer inbox lives in the same DB.
     event = _event()
-    await SqlEventOutboxPublisher(session_factory, EVENT_DELIVERY_MODELS).publish([event])
+    envelope = IntegrationEventSerializer().to_envelope(
+        event,
+        outbox_id="outbox-rabbit-1",
+        source_service="execution_service",
+    )
+    async with session_factory() as session:
+        session.add(
+            EVENT_DELIVERY_MODELS.outbox(
+                id=envelope["outbox_id"],
+                event_id=envelope["event_id"],
+                source_service=envelope["source_service"],
+                event_type=envelope["event_type"],
+                occurred_at=envelope["occurred_at"],
+                aggregate_id=envelope["aggregate_id"],
+                aggregate_name=envelope["aggregate_name"],
+                schema_version=envelope["schema_version"],
+                payload=envelope["payload"],
+                correlation_id=envelope["correlation_id"],
+                causation_id=envelope["causation_id"],
+            )
+        )
+        await session.commit()
 
     transport = RabbitDeliveryTransport(RABBIT_TEST_URL)
     relay = OutboxToTransportRelay(session_factory, EVENT_DELIVERY_MODELS, transport, kind="event")

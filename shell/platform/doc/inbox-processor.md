@@ -37,7 +37,7 @@ Transakcja B (ack):    każdy rekord jest deserializowany, dispatchowany, a pote
 
 ### _process_claimed_row — walidacja, deserializacja, tracing
 
-1. `EnvelopeValidator.validate(delivery_id, delivery_type, schema_version, payload, correlation_id, causation_id)` — przy błędzie `_schedule_failure(...)`; błąd `UNSUPPORTED_SCHEMA_VERSION` wywołuje natychmiastowe DLQ (`immediate_dead_letter=True`).
+1. `EnvelopeValidator.validate(outbox_id, contract_type, schema_version, payload, correlation_id, causation_id)` — przy błędzie `_schedule_failure(...)`; błąd `UNSUPPORTED_SCHEMA_VERSION` wywołuje natychmiastowe DLQ (`immediate_dead_letter=True`).
 2. `_deserialize(row)` — gdy `None`, `_schedule_failure` z kodem `DESERIALIZATION_ERROR`.
 3. Ustawienie kontekstu tracingu: `correlation_id_var.set(row.correlation_id)` oraz `causation_id_var.set(self._causation_value(domain_object, row))`; w `finally` oba tokeny są resetowane.
 4. `_process_in_transaction(domain_object, row)`; wyjątek z handlera → `_schedule_failure` z kodem `HANDLER_ERROR`.

@@ -21,7 +21,6 @@ import asyncio
 import logging
 import random
 import time
-import uuid
 from contextlib import suppress
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Protocol, cast
@@ -57,6 +56,7 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import CursorResult
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
         EnvelopeValidationPolicy,
     )
@@ -68,6 +68,7 @@ class _ClaimedInboxRow(Protocol):
     """Runtime instance shape of a claimed inbox row (read access)."""
 
     id: str
+    outbox_id: str
     correlation_id: str
     causation_id: str
     retry_count: int
@@ -95,6 +96,7 @@ class InboxProcessorBase:
         consumer_name: str | None = None,
         heartbeat_interval_seconds: float = 0.0,
         max_batch_time_seconds: float = 0.0,
+        id_generator: TechnicalIdGenerator | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._inbox_model = inbox_model
@@ -106,7 +108,12 @@ class InboxProcessorBase:
         self._lease_duration_seconds = lease_duration_seconds
         self._heartbeat_interval_seconds = heartbeat_interval_seconds
         self._max_batch_time_seconds = max_batch_time_seconds
-        self._worker_id = worker_id or f"inbox-worker-{uuid.uuid4()}"
+        from shell.platform.infrastructure.identity.uuid_technical_id_generator import (
+            UuidTechnicalIdGenerator,
+        )
+
+        self._id_generator = id_generator or UuidTechnicalIdGenerator()
+        self._worker_id = worker_id or f"inbox-worker-{self._id_generator.new_id()}"
         self._max_concurrency = max(max_concurrency, 1)
         self._envelope_validator = envelope_validator or EnvelopeValidator(envelope_policy)
         self._processed_delivery_store = (
@@ -210,8 +217,8 @@ class InboxProcessorBase:
 
     async def _process_claimed_row(self, row: _ClaimedInboxRow) -> str:
         envelope_error = self._envelope_validator.validate(
-            delivery_id=row.id,
-            delivery_type=self._type_name(row),
+            outbox_id=row.outbox_id,
+            contract_type=self._type_name(row),
             schema_version=row.schema_version,
             payload=getattr(row, "payload", {}),
             correlation_id=row.correlation_id,
@@ -263,7 +270,7 @@ class InboxProcessorBase:
             scope = DeliverySessionScope(session=session)
             scope_token = set_session_scope(scope)
             try:
-                if await self._is_duplicate(session, row.id):
+                if await self._is_duplicate(session, row.outbox_id):
                     acknowledged = await self._acknowledge_in_session(session, row.id)
                     await session.commit()
                     return "processed" if acknowledged else "failed"
@@ -293,7 +300,7 @@ class InboxProcessorBase:
                 if self._processed_delivery_store is not None:
                     await self._processed_delivery_store.mark_processed_in_session(
                         session,
-                        row.id,
+                        row.outbox_id,
                         payload=getattr(row, "payload", {}),
                     )
 
@@ -306,17 +313,17 @@ class InboxProcessorBase:
             finally:
                 reset_session_scope(scope_token)
 
-    async def _is_duplicate(self, session: AsyncSession, record_id: str) -> bool:
+    async def _is_duplicate(self, session: AsyncSession, outbox_id: str) -> bool:
         if self._processed_delivery_store is None:
             return False
-        return await self._processed_delivery_store.is_duplicate_in_session(session, record_id)
+        return await self._processed_delivery_store.is_duplicate_in_session(session, outbox_id)
 
-    async def _acknowledge_in_session(self, session: AsyncSession, record_id: str) -> bool:
+    async def _acknowledge_in_session(self, session: AsyncSession, inbox_id: str) -> bool:
         now = await self._database_now(session)
         result = await session.execute(
             update(self._inbox_model)
             .where(
-                self._inbox_model.id == record_id,
+                self._inbox_model.id == inbox_id,
                 self._inbox_model.status == InboxStatus.PROCESSING.value,
                 self._inbox_model.claimed_by == self._worker_id,
             )
@@ -333,7 +340,7 @@ class InboxProcessorBase:
         )
         return cast("CursorResult[object]", result).rowcount > 0
 
-    async def _renew_lease(self, record_id: str) -> bool:
+    async def _renew_lease(self, inbox_id: str) -> bool:
         """Conditionally extend the lease in its own short transaction.
 
         Zero affected rows means the record no longer belongs to this worker
@@ -348,7 +355,7 @@ class InboxProcessorBase:
                 result = await session.execute(
                     update(self._inbox_model)
                     .where(
-                        self._inbox_model.id == record_id,
+                        self._inbox_model.id == inbox_id,
                         self._inbox_model.status == InboxStatus.PROCESSING.value,
                         self._inbox_model.claimed_by == self._worker_id,
                     )
@@ -357,12 +364,12 @@ class InboxProcessorBase:
                 await session.commit()
                 return cast("CursorResult[object]", result).rowcount > 0
         except Exception:
-            logger.exception("lease renewal failed for %s; treating lease as lost", record_id)
+            logger.exception("lease renewal failed for %s; treating lease as lost", inbox_id)
             return False
 
     async def _dispatch_with_heartbeat(
         self,
-        record_id: str,
+        inbox_id: str,
         domain_object: object,
     ) -> bool:
         """Dispatch while a background task renews the lease every interval.
@@ -372,7 +379,7 @@ class InboxProcessorBase:
         """
         stop_event = asyncio.Event()
         lease_ok = {"value": True}
-        heartbeat = asyncio.create_task(self._heartbeat_loop(record_id, stop_event, lease_ok))
+        heartbeat = asyncio.create_task(self._heartbeat_loop(inbox_id, stop_event, lease_ok))
         dispatch = asyncio.create_task(self._dispatch(domain_object))
         try:
             done, _ = await asyncio.wait(
@@ -393,7 +400,7 @@ class InboxProcessorBase:
 
     async def _heartbeat_loop(
         self,
-        record_id: str,
+        inbox_id: str,
         stop_event: asyncio.Event,
         lease_ok: dict[str, bool],
     ) -> None:
@@ -401,14 +408,14 @@ class InboxProcessorBase:
             await asyncio.sleep(self._heartbeat_interval_seconds)
             if stop_event.is_set():
                 return
-            renewed = await self._renew_lease(record_id)
+            renewed = await self._renew_lease(inbox_id)
             if not renewed:
                 lease_ok["value"] = False
                 return
 
     async def _schedule_failure(
         self,
-        record_id: str,
+        inbox_id: str,
         *,
         error_code: str,
         error_message: str,
@@ -433,7 +440,7 @@ class InboxProcessorBase:
                 values["failed_at"] = now
                 logger.critical(
                     "%s exceeded max_retries=%s — DLQ",
-                    record_id,
+                    inbox_id,
                     self._max_retries,
                 )
             else:
@@ -443,7 +450,7 @@ class InboxProcessorBase:
             result = await session.execute(
                 update(self._inbox_model)
                 .where(
-                    self._inbox_model.id == record_id,
+                    self._inbox_model.id == inbox_id,
                     self._inbox_model.status == InboxStatus.PROCESSING.value,
                     self._inbox_model.claimed_by == self._worker_id,
                 )

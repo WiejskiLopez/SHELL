@@ -15,12 +15,12 @@ Dostawy (eventy, wiadomości, komendy) muszą trafić z produkującego BC do kon
 W `shell/platform/application/ports/delivery_transport.py`:
 
 - `DeliveryKind = Literal["event", "message", "command"]`;
-- `DeliveryEnvelope` (frozen dataclass): `kind: DeliveryKind`, `delivery_id: str`, `delivery_type: str`, `occurred_at: datetime`, `payload: dict[str, object]`, `correlation_id: str`, `causation_id: str`;
+- `DeliveryEnvelope` (frozen dataclass): `kind: DeliveryKind`, `outbox_id: str`, `contract_type: str`, `occurred_at: datetime`, `schema_version: int`, `payload: dict[str, object]`, `correlation_id: str`, `causation_id: str` oraz eventowe `event_id`, `source_service`, `aggregate_id`, `aggregate_name`;
 - `DeliveryTransport(Protocol)` z jedną metodą: `async def deliver(self, envelope: DeliveryEnvelope) -> None`.
 
 ### EnvelopeCodec
 
-`EnvelopeCodec` (w `envelope_codec.py`) — format wire to spłaszczony obiekt JSON `{kind, delivery_id, delivery_type, occurred_at, payload, correlation_id, causation_id}`:
+`EnvelopeCodec` (w `envelope_codec.py`) — format wire to spłaszczony obiekt JSON `{kind, outbox_id, event_type|message_type|command_type, occurred_at, schema_version, payload, correlation_id, causation_id}` z eventowymi metadanymi źródła:
 
 - `encode(envelope) -> bytes` — `occurred_at` przez `isoformat()`, `json.dumps(document, separators=(",", ":"))` kodowane UTF-8;
 - `decode(raw) -> bytes` — walidacja `kind in ("event", "message", "command")`, przy nieznanym kind podnosi `ValueError`; `payload` fallback na `{}` gdy pusty; `occurred_at` parsowany przez `_parse_occurred_at` (uzupełnia brak strefy czasowej do `UTC` i normalizuje `astimezone(UTC)`).
@@ -30,7 +30,7 @@ W `shell/platform/application/ports/delivery_transport.py`:
 `RabbitDeliveryTransport` (`shell/platform/infrastructure/messaging/transport/rabbit/rabbit_delivery_transport.py`):
 
 - stała `EXCHANGE_NAME = "shell.delivery"`; konstruktor z `url`, `exchange_name`, `publisher_confirms: bool = True`;
-- `deliver(envelope) -> None` — pobiera exchange i publikuje `Message(body=codec.encode(envelope), delivery_mode=DeliveryMode.PERSISTENT, content_type="application/json")` z routing key `f"{envelope.kind}.{envelope.delivery_type}"` (np. `event.TaskExecutionCreatedEvent`) i `mandatory=False`;
+- `deliver(envelope) -> None` — pobiera exchange i publikuje JSON envelope z routing key `f"{envelope.kind}.{envelope.contract_type}"` (np. `event.TaskExecutionCreatedIntegrationEvent`) i `mandatory=False`;
 - `_get_channel()` — leniwe łączenie pod `asyncio.Lock`: `connect_robust(url, timeout=30)`, kanał z `publisher_confirms`, deklaracja exchange `type="topic"`, `durable=True`;
 - publikacja jest confirm-based — nack/timeout rzuca wyjątkiem, więc caller (relay outbox) może wykonać retry i nie zgubić rekordu;
 - `close()` — zamyka kanał i połączenie.
@@ -42,8 +42,8 @@ W `shell/platform/application/ports/delivery_transport.py`:
 - konstruktor: `url`, `session_factory`, `models` (jeden z `EventDeliveryModels | MessageDeliveryModels | CommandDeliveryModels`), `queue_name`, `routing_keys: list[str] | None = None` (domyślnie `["#"]`), `exchange_name = "shell.delivery"`;
 - `start()` — `connect_robust`, kanał, `set_qos(prefetch_count=10)`, deklaracja exchange topic durable, deklaracja durable queue, dla każdego `routing_key` `await queue.bind(exchange, routing_key=routing_key)`, potem `queue.consume(self._on_message)`; konsument BC wiąże własną kolejkę z kluczami, które obsługuje;
 - `_on_message(message)` — najpierw `self._codec.decode(message.body)`; błąd dekodowania (`ValueError/KeyError/TypeError`) → `await message.reject(requeue=False)` (zatruta wiadomość nie blokuje kolejki); potem `_persist(envelope)` — sukces → `await message.ack()`, porażka → `reject(requeue=False)`;
-- `_persist(envelope) -> bool` — buduje kolumnę typu jako `f"{envelope.kind}_type"`, wartości `{id, type, occurred_at, payload, correlation_id, causation_id, received_at, status: PENDING}`, wykonuje `pg_insert(self._inbox_model).values(**values).on_conflict_do_nothing()` (idempotentny insert), `commit()`; wyjątek → log `Failed to persist inbox delivery`, zwraca `False`;
-- ack następuje dopiero po trwałym zapisie — crash między insertem a ackiem redeliveruje wiadomość, którą idempotentny insert czyni nieszkodliwą (at-least-once).
+- `_persist(envelope) -> bool` — generuje lokalne `inbox.id`, zapisuje `outbox_id`, typ kontraktu, eventowe metadane i payload, wykonuje idempotentny insert oraz commit;
+- ack następuje dopiero po trwałym zapisie — lokalne `inbox.id` identyfikuje rekord odbiorcy, a `outbox_id` wskazuje rekord nadawcy; ponowna dostawa jest idempotentna.
 
 ## Kluczowe pliki
 

@@ -11,7 +11,7 @@ Integracja zdarzeniowa pozwala agregatom i bounded context komunikować się bez
 
 Problem: jak zagwarantować że event jest opublikowany dokładnie wtedy gdy zmiana stanu jest zapisana w bazie? Nie możesz zrobić "save to DB + publish to broker" — jeśli jedno fejluje, drugie zostaje.
 
-Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI co zmiana domenowa. Osobny proces (`EventOutboxToInboxRelay`) odczytuje nieopublikowane eventy z outbox i kopiuje je do `inbox_event`. `EventInboxProcessor` dispatchuje je do handlerów przez `EventBus`.
+Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI co zmiana domenowa. Wspólny `OutboxToTransportRelay` publikuje kopertę do brokera, a consumer docelowego BC zapisuje ją do własnego `inbox_event`. `EventInboxProcessor` dispatchuje ją do handlerów przez `EventBus`.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -24,13 +24,13 @@ Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI c
                     │
                     ▼
 ┌──────────────────────────────────────────────────────────────────┐
-│ EventOutboxToInboxRelay.run_once()  (background task / scheduler)      │
+│ OutboxToTransportRelay.run_once()  (background task / scheduler)       │
 │   SELECT FROM outbox_event WHERE published_at IS NULL            │
 │     ORDER BY occurred_at LIMIT batch_size                        │
 │     FOR UPDATE SKIP LOCKED  (pomija blokowane wiersze)          │
-│   INSERT INTO inbox_event (id, event_type, payload,              │
-│     correlation_id, causation_id, received_at)                   │
-│     ON CONFLICT DO NOTHING   (idempotentny insert)              │
+│   PUBLISH DeliveryEnvelope TO BROKER                              │
+│   consumer INSERT INTO inbox_event (id, outbox_id, event_type,   │
+│     payload, metadata)                                            │
 │   UPDATE outbox_event SET published_at = now()                   │
 │   COMMIT                                                         │
 └──────────────────────────────────────────────────────────────────┘
@@ -61,13 +61,15 @@ Outbox daje **at-least-once delivery**. Event może być dostarczony więcej ni�
 
 | Kolumna | Typ | Opis |
 |---------|-----|------|
-| `id` | str (PK) | UUID — tożsamy z `event_id` |
+| `id` | str (PK) | Lokalny identyfikator outbox |
+| `event_id` | str | Tożsamość faktu biznesowego |
+| `source_service` | str | Bounded context nadawcy |
 | `event_type` | str | Klasa eventu (np. `WorkflowCompletedEvent`) |
 | `occurred_at` | datetime | Kiedy event wystąpił (UTC) |
 | `payload` | JSONB | Serializowane pola eventu |
 | `correlation_id` | str | Łączy eventy w jeden łańcuch przyczynowy (z ContextVar) |
 | `causation_id` | str | ID eventu który spowodował ten event (z ContextVar) |
-| `published_at` | datetime (nullable) | Kiedy EventOutboxToInboxRelay skopiował do inbox |
+| `published_at` | datetime (nullable) | Kiedy transport potwierdził publikację |
 
 ## Inbox Pattern — idempotentny consumer
 
@@ -83,13 +85,15 @@ Idempotentność na dwóch poziomach:
 
 | Kolumna | Typ | Opis |
 |---------|-----|------|
-| `id` | str (PK) | UUID — tożsamy z outbox `id` |
+| `id` | str (PK) | Lokalny identyfikator inbox |
+| `outbox_id` | str | Referencja do `outbox_event.id` nadawcy |
+| `source_service` | str | Bounded context nadawcy |
 | `event_type` | str | Klasa eventu (np. `WorkflowCompletedEvent`) |
 | `occurred_at` | datetime | Kiedy event wystąpił |
 | `payload` | JSONB | Serializowane pola eventu |
 | `correlation_id` | str | Łańcuch przyczynowy (kopiowane z outbox) |
 | `causation_id` | str | ID eventu który spowodował ten event |
-| `received_at` | datetime | Kiedy relay skopiował do inbox |
+| `received_at` | datetime | Kiedy consumer zapisał kopertę |
 | `processed_at` | datetime (nullable) | Kiedy EventInboxProcessor dispatchował |
 | `retry_count` | int (default 0) | Liczba prób (dodane w migracji 065) |
 | `last_attempted_at` | datetime (nullable) | Ostatnia próba (do backoff) |
@@ -101,7 +105,7 @@ Idempotentność na dwóch poziomach:
 |-------|-------------|------------------|
 | `SqlAlchemyUnitOfWorkBase` | `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py` | W outbox w tej samej transakcji co agregat |
 | `ReflectiveIntegrationMapper` | `shell/platform/infrastructure/mapping/reflective_integration_mapper.py` | Mapuje domain event → integration event |
-| `EventOutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/event_outbox_to_inbox_relay.py` | Kopiuje outbox → inbox, FOR UPDATE SKIP LOCKED |
+| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/transport/outbox_to_transport_relay.py` | Publikuje każdy outbox do brokera |
 | `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Deserializuje, dispatchuje do EventBus, retry/DLQ |
 | `EventBus` | `shell/platform/application/bus/event_bus.py` | In-memory dispatch do handlerów (lazy factories) |
 | `DomainEventSerializer` | `shell/platform/infrastructure/serialization/event_serializer.py` | Serializacja/deserializacja eventów |
@@ -157,7 +161,7 @@ Dla większości przypadków outbox jest wystarczający. Event sourcing dodaje z
 
 ## Konwencje
 
-- `EventOutboxToInboxRelay` i `EventInboxProcessor` działają w osobnych transakcjach od zapisu domenowego
+- `OutboxToTransportRelay`, broker consumer i `EventInboxProcessor` działają w osobnych transakcjach od zapisu domenowego
 - Concurrency: `FOR UPDATE SKIP LOCKED` na PostgreSQL, pomijane na SQLite
 - Retry: fixed backoff (30s), max 3 próby, po wyczerpaniu `processed_at = now` (tombstone DLQ)
 - Tracing: `correlation_id` i `causation_id` propagowane przez `ContextVar` → outbox → inbox → handler

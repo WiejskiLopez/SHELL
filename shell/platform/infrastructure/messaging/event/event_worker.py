@@ -21,6 +21,8 @@ async def run_delivery_workers(
     session_factory: Any,
     heartbeat_model: type[Any],
     poll_interval_seconds: float,
+    outbox_relay: Any | None = None,
+    outbox_worker_id: str = "outbox-relay",
 ) -> None:
     """Run multiple inbox workers and close all consumers on shutdown."""
     for consumer, _, _ in workers:
@@ -34,6 +36,22 @@ async def run_delivery_workers(
                     processor,
                     PollingWorkerConfig(
                         worker_id=worker_id,
+                        poll_interval_seconds=poll_interval_seconds,
+                    ),
+                    heartbeat=heartbeat.beat,
+                ).run()
+            )
+        if outbox_relay is not None:
+            heartbeat = WorkerHeartbeatRecorder(
+                session_factory,
+                heartbeat_model,
+                outbox_worker_id,
+            )
+            tasks.append(
+                PollingWorker(
+                    outbox_relay,
+                    PollingWorkerConfig(
+                        worker_id=outbox_worker_id,
                         poll_interval_seconds=poll_interval_seconds,
                     ),
                     heartbeat=heartbeat.beat,

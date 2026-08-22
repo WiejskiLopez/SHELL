@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.application.ports.messaging.event_publisher import EventPublisher
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
         EnvelopeValidationPolicy,
         EnvelopeValidator,
@@ -27,9 +28,18 @@ if TYPE_CHECKING:
 
 
 class _EventRow(Protocol):
+    id: str
+    outbox_id: str
+    event_id: str
+    source_service: str
     event_type: str
     occurred_at: object
     payload: dict[str, object]
+    correlation_id: str
+    causation_id: str
+    aggregate_id: str
+    aggregate_name: str
+    schema_version: int
 
 
 class EventInboxProcessor(InboxProcessorBase):
@@ -54,6 +64,7 @@ class EventInboxProcessor(InboxProcessorBase):
         heartbeat_interval_seconds: float = 0.0,
         max_batch_time_seconds: float = 0.0,
         upcaster: PayloadUpcaster | None = None,
+        id_generator: TechnicalIdGenerator | None = None,
     ) -> None:
         super().__init__(
             session_factory,
@@ -72,6 +83,7 @@ class EventInboxProcessor(InboxProcessorBase):
             consumer_name=consumer_name,
             heartbeat_interval_seconds=heartbeat_interval_seconds,
             max_batch_time_seconds=max_batch_time_seconds,
+            id_generator=id_generator,
         )
         self._event_bus = event_bus
         self._deserializer = EventDeserializer(registry=registry, upcaster=upcaster)
@@ -83,6 +95,11 @@ class EventInboxProcessor(InboxProcessorBase):
             event_row.occurred_at,  # type: ignore[arg-type]
             event_row.payload,
             schema_version=getattr(row, "schema_version", 1),
+            event_id=event_row.event_id,
+            correlation_id=event_row.correlation_id,
+            causation_id=event_row.causation_id,
+            aggregate_id=event_row.aggregate_id,
+            aggregate_name=event_row.aggregate_name,
         )
 
     async def _dispatch(self, domain_object: object) -> None:

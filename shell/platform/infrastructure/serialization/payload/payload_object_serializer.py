@@ -20,9 +20,14 @@ class PayloadObjectSerializer:
     def __init__(self, value_serializer: PayloadValueSerializer | None = None) -> None:
         self._value_serializer = value_serializer or PayloadValueSerializer()
 
-    def to_payload(self, domain_object: object) -> dict[str, object]:
+    def to_payload(
+        self,
+        domain_object: object,
+        excluded_fields: frozenset[str] | None = None,
+    ) -> dict[str, object]:
+        fields_to_exclude = _ENVELOPE_KEYS | (excluded_fields or frozenset())
         return {
             field.name: self._value_serializer.serialize(getattr(domain_object, field.name))
             for field in dataclasses.fields(domain_object)  # type: ignore[arg-type]
-            if field.name not in _ENVELOPE_KEYS
+            if field.name not in fields_to_exclude
         }

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import uuid
 from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
@@ -11,14 +10,20 @@ from shell.platform.infrastructure.messaging.memory_outbox_store.message_outbox_
 from shell.platform.infrastructure.serialization import DomainMessageSerializer
 
 if TYPE_CHECKING:
+    from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.domain.messages import DomainMessage
 
 
 class InMemoryMessageOutboxStore:
     """Simple in-memory outbox for tests — implements the same interface as SqlMessageOutboxPublisher."""
 
-    def __init__(self) -> None:
+    def __init__(self, id_generator: TechnicalIdGenerator | None = None) -> None:
         self.records: list[MessageOutboxRecord] = []
+        from shell.platform.infrastructure.identity.uuid_technical_id_generator import (
+            UuidTechnicalIdGenerator,
+        )
+
+        self._id_generator = id_generator or UuidTechnicalIdGenerator()
 
     async def publish(self, messages: list[DomainMessage]) -> None:
         correlation_id = get_correlation_id()
@@ -29,7 +34,7 @@ class InMemoryMessageOutboxStore:
                 payload = serializer.to_payload(message)
                 self.records.append(
                     MessageOutboxRecord(
-                        id=str(uuid.uuid4()),
+                        id=self._id_generator.new_id(),
                         message_type=type(message).__name__,
                         occurred_at=message.occurred_at.value,
                         payload=payload,

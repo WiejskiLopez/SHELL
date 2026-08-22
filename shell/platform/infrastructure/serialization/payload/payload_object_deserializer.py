@@ -43,7 +43,7 @@ class PayloadObjectDeserializer:
         hints = self._type_hints_resolver.resolve(object_cls)
         kwargs: dict[str, Any] = {}
         for field in fields:
-            if field.name == "occurred_at":
+            if field.name == "occurred_at" and occurred_at is not None:
                 raw_value: object = occurred_at
             elif field.name == "schema_version":
                 raw_value = schema_version

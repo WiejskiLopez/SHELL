@@ -40,16 +40,16 @@ deklaruje *co* aplikacja potrzebuje, a adapter realizuje *jak*.
 - `readiness.py` — `ReadinessReport` (frozen dataclass `ready: bool`,
   `checks: dict[str, object]`) oraz `ReadinessProbe`: `async check() -> ReadinessReport`.
 - `delivery_transport.py` — `DeliveryKind = Literal["event", "message", "command"]`,
-  `DeliveryEnvelope` (frozen dataclass: `kind`, `delivery_id`, `delivery_type`,
-  `occurred_at`, `payload`, `correlation_id`, `causation_id`) oraz
+  `DeliveryEnvelope` (frozen dataclass: `kind`, `outbox_id`, `contract_type`,
+  `occurred_at`, `schema_version`, `payload`, `correlation_id`, `causation_id`) oraz
   `DeliveryTransport`: `async deliver(envelope: DeliveryEnvelope)`.
 - `delivery_dedup_store.py` — `DeliveryDedupStore` dla deduplikacji at-least-once
   w handlerach, które **nie mogą** współdzielić transakcji processora:
-  `async is_duplicate(delivery_id) -> bool` oraz
-  `async mark_processed(delivery_id, *, payload=None, processed_at=None)`.
+  `async is_duplicate(outbox_id) -> bool` oraz
+  `async mark_processed(outbox_id, *, payload=None, processed_at=None)`.
   Sesję rozwiązuje z aktywnego `DeliverySessionScope`, więc wiersz dedup jest
   pisany w tej samej transakcji co efekt biznesowy; konflikt klucza
-  `(consumer_name, delivery_id)` traktowany jako sukces (już przetworzone).
+  `(consumer_name, outbox_id)` traktowany jako sukces (już przetworzone).
 - `unit_of_work.py` — port `UnitOfWork` (patrz [unit-of-work](unit-of-work.md)).
 
 ### Adaptery — `shell/platform/infrastructure/`

@@ -28,8 +28,8 @@ W repozytorium już istnieją:
 - osobne SQLAlchemy bases dla bounded contexts, np. `DefinitionSqlAlchemyModelBase`, `ExecutionSqlAlchemyModelBase` i `UserSqlAlchemyModelBase`;
 - platformowe factory/bundle’y modeli event, message, command i audit;
 - serializery i deserializery eventów oraz messages;
-- `SqlEventOutboxPublisher` i `SqlMessageOutboxPublisher`;
-- `EventOutboxToInboxRelay` i `MessageOutboxToInboxRelay`;
+- `SqlMessageOutboxPublisher` i `SqlCommandOutboxPublisher` dla kontraktów tworzonych poza UoW;
+- wspólny `OutboxToTransportRelay` dla eventów, messages i commands;
 - `EventInboxProcessor` i `MessageInboxProcessor`;
 - baseline migrations dla poszczególnych bounded contexts;
 - testy idempotencji relayów, transactional outbox i retry/DLQ inbox.
@@ -200,7 +200,8 @@ Nie tworzyć kopii modeli. Każdy baseline tworzy te same tabele na bazie konkre
 
 ### Faza 5: transport między bazami
 
-Relay może działać lokalnie kompatybilnie, ale docelowo przyjmuje osobne sesje źródła i celu.
+Relay publikuje wyłącznie do transportu. Konsument brokera zapisuje wiadomość do
+własnego inboxa; nie ma bezpośredniego toru outbox -> inbox.
 
 Docelowy przepływ:
 

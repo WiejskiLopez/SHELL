@@ -12,8 +12,8 @@ from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
 from shell.platform.infrastructure.serialization.event.event_deserializer import EventDeserializer
-from shell.platform.infrastructure.serialization.event.event_envelope_serializer import (
-    EventEnvelopeSerializer,
+from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+    IntegrationEventSerializer,
 )
 
 
@@ -28,12 +28,20 @@ def test_definition_event_round_trips_through_its_registry() -> None:
         schema_version=1,
         graph_definition_id="graph-1",
     )
-    outbox_payload = EventEnvelopeSerializer().to_outbox_payload(event)
+    outbox_payload = IntegrationEventSerializer().to_envelope(
+        event, outbox_id="outbox-1", source_service="definition_service"
+    )
 
     restored = EventDeserializer(build_definition_event_registry()).deserialize(
         cast("str", outbox_payload["event_type"]),
         event.occurred_at,
         cast("dict[str, object]", outbox_payload["payload"]),
+        schema_version=cast("int", outbox_payload["schema_version"]),
+        event_id=cast("str", outbox_payload["event_id"]),
+        correlation_id=cast("str", outbox_payload["correlation_id"]),
+        causation_id=cast("str", outbox_payload["causation_id"]),
+        aggregate_id=cast("str", outbox_payload["aggregate_id"]),
+        aggregate_name=cast("str", outbox_payload["aggregate_name"]),
     )
 
     assert isinstance(restored, GraphDefinitionCreatedIntegrationEvent)

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
-from shell.platform.infrastructure.serialization.envelope.envelope_engine import EnvelopeDeserializer
+from shell.platform.infrastructure.serialization.envelope.envelope_engine import (
+    EnvelopeDeserializer,
+)
+from shell.platform.infrastructure.serialization.errors import SerializationError
 
 if TYPE_CHECKING:
-    from shell.platform.infrastructure.serialization.payload.payload_object_deserializer import (
-        PayloadObjectDeserializer,
-    )
     from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 
 _logger = logging.getLogger(__name__)
@@ -20,13 +20,9 @@ class CommandDeserializer(EnvelopeDeserializer):
     def __init__(
         self,
         registry: dict[str, type],
-        upcaster: "PayloadUpcaster | None" | None = None,
+        upcaster: PayloadUpcaster | None = None,
     ) -> None:
-        super().__init__(
-            registry=registry,
-            upcaster=cast("PayloadUpcaster | None", upcaster),
-            kind="command",
-        )
+        super().__init__(registry=registry, upcaster=upcaster, kind="command")
 
     def deserialize(
         self, command_type: str, payload: dict[str, Any], schema_version: int = 1
@@ -52,6 +48,6 @@ class CommandDeserializer(EnvelopeDeserializer):
                 payload=upcasted_payload,
                 schema_version=schema_version,
             )
-        except (KeyError, ValueError, TypeError, Exception) as exc:
+        except (KeyError, ValueError, TypeError, SerializationError) as exc:
             _logger.error("Failed to deserialize command %s: %s", command_type, exc)
             return None
