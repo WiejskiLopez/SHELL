@@ -28,8 +28,7 @@ class WorkflowStartedEvent(DomainEvent):
 ## Metadane
 
 - Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_name`, `occurred_at`, `schema_version`.
-
-> **Uwaga**: `correlation_id` i `causation_id` należą do metadata IntegrationEvent. Tracing context jest ustawiany przez `ContextVar` w `EventInboxProcessor` i zapisywany w outbox/inbox jako osobne kolumny.
+- Metadane envelope (transport, tracing) opisuje `integration-patterns/integration-event` i `shell-specific/tracing-context`.
 
 ## ⚠️ Primitive Obsession
 
@@ -145,7 +144,7 @@ def start(self, now: OccurredAt, emit_event: bool = True) -> None:
 
 - Serializacja/deserializacja eventów NIE jest robiona przez `from_payload()` na klasie eventu.
 - Obsługuje ją `DomainEventSerializer` → `EventDeserializer` w `shell/platform/infrastructure/serialization/`.
-- `to_payload(event)` — serializuje wszystkie pola dataclass (oprócz `occurred_at` i `schema_version` które są kolumnami w outbox/inbox).
+- `to_payload(event)` — serializuje pola dataclass (pomija metadane envelope; szczegoly w `integration-patterns/integration-event`).
 - `from_payload(event_cls, occurred_at, payload, schema_version)` — rekonstruuje event z serializowanych części.
 - Obsługuje zagnieżdżone dataclass, value objects (przez `.value`), listy, dict, daty.
 

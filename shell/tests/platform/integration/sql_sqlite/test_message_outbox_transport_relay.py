@@ -14,7 +14,10 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.inge
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
+from shell.platform.domain.value_objects.aggregate_id import AggregateId
+from shell.platform.domain.value_objects.aggregate_name import AggregateName
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.infrastructure.messaging.message.sql_message_outbox_publisher import (
     SqlMessageOutboxPublisher,
 )
@@ -34,6 +37,9 @@ def _message() -> IngestionPayload:
     return IngestionPayload(
         occurred_at=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
         ingestion_data=IngestionData(JsonStr(json.dumps({"type": "test"}))),
+        recipient_aggregate_id=AggregateId("agent-1"),
+        recipient_aggregate_name=AggregateName("Agent"),
+        state_data=StateData(JsonStr.from_object({"type": "test"})),
     )
 
 

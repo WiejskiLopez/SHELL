@@ -60,6 +60,7 @@ class InMemorySessionUnitOfWork(UnitOfWork):
         domain_events = aggregate.pull_events()  # type: ignore[attr-defined]
         mapped = [self._mapper.map(event) for event in domain_events]
         self.stage_events(mapped)
+        self.stage_messages(aggregate.pull_messages())  # type: ignore[attr-defined]
 
     def stage_messages(self, messages: list[object]) -> None:
         self._staged_messages.extend(messages)

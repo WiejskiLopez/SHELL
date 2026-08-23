@@ -9,7 +9,17 @@ description: "Semantyka Command w architekturze SHELL: jawna intencja wykonania 
 
 `Command` jest jawnym poleceniem wykonania operacji. Wyraza intencje nadawcy, np. utworzenie, zmiane, usuniecie albo uruchomienie zachowania.
 
-Command ma semantyke intencji wykonania operacji biznesowej. Event opisuje fakt, ktory juz zaszedl, a Message przenosi pasywne dane.
+Command ma semantyke intencji wykonania operacji biznesowej. Command jest **lekka i prosta**; moze nie zawierac zadnych danych: `Command -> "zrob to, zrob tamto"`.
+
+Rozgraniczenie z innymi kontraktami jest czescia wlasnej definicji: Command kaze odbiorcy wykonac operacje, nie przenosi tresci ani faktu. Semantyke Event i Message opisuja `event-semantics` i `message-semantics`.
+
+## Kanal
+
+Command jest intencja i domyslnie wywoluje sie **bezposrednio**, a nie przez async broadcast:
+- w ramach BC: Command Bus + Command Handler;
+- miedzy BC: Command Port (HTTP) za `aggregate-command-port` / `provider-service-separation` — szybka komenda z odpowiedzia i jawna obsluga bledow.
+
+Command nie wymaga outboxa ani brokera do dzialania. Async delivery (osobna, mala kolejka) stosuj **swiadomie** tylko dla operacji dlugich i odpornych na chwilowa niedostepnosc.
 
 ## Przeplyw
 
@@ -30,9 +40,8 @@ Command handler wykonuje intencje przez agregat. Dopiero agregat emituje event j
 ## Tozsamosc i wersjonowanie
 
 - Identyfikator Command opisuje konkretne zadanie/request, jezeli kontrakt go wymaga.
-- Identyfikator Command opisuje konkretne zadanie, a `event_id` opisuje fakt powstaly po wykonaniu zadania.
-- `schema_version` Command opisuje schemat polecenia i jest niezalezny od schematu eventu oraz Message.
-- Retry Command powtarza intencje wykonania, a fakt biznesowy powstaje po udanej zmianie agregatu i emisji DomainEvent.
+- `schema_version` Command opisuje schemat polecenia.
+- Retry Command powtarza intencje wykonania; fakt biznesowy powstaje po udanej zmianie agregatu.
 
 ## Testy
 

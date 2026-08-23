@@ -1,24 +1,32 @@
-# Plan: jeden uniwersalny outbox/inbox z `kind` — wersja enterprise
+# Plan kanałów komunikacji SHELL: Event, Message, Command (wg realnych potrzeb)
 
 Status: plan wdrożenia (akceptacja wymagań)
 Data: 2026-08-22
 Zakres: SHELL platforma + wszystkie Bounded Context (BC) — definition, execution, ingestion, project, scheduling, session, user.
 
+> **Nota**: dokument zastępuje wcześniejszą wersję „unifikacja outbox do jednej tabeli `outbox`/`inbox`". Po analizie ten wariant jest **odrzucony** — konsolidacja tabel rozwiązuje estetykę schematu, nie realne problemy. Prawdziwy problem leży w tym, że maszyneria dostarczania jest zaprojektowana pod **eventy** (broadcast), a próbuje się przez nią pchać **message** (adresowaną treść) i **command** (intencję). Ten plan porządkuje kanały wg ich natury.
+
 ---
 
 ## 1. Cel
 
-Zbudować w platformie SHELL **jeden, uniwersalny, transakcyjny mechanizm dostarczania wiadomości** (outbox → relay → broker → inbox → processor), który obsługuje **wszystkie trzy typy komunikacji** — Command (intencja), Event (fakt), Message (dane) — przy użyciu **jednej pary tabel** (`outbox` / `inbox`) rozróżnianych kolumną `kind`, zamiast obecnych trzech par tabel delivery per BC.
+Uporządkować trzy kanały komunikacji między BC tak, aby każdy był dopasowany do swojej natury:
+
+| Kanał | Natura | Docelowy mechanizm |
+|---|---|---|
+| **Event** | broadcast faktów, konsekwencja mutacji agregatu | transactional outbox (zostaje) + tanie utwardzenie |
+| **Message** | **adresowana treść** (bufor danych, np. tekst) do konkretnego agregatu | content-delivery: kontrakt recipient + bufor, transport point-to-point |
+| **Command** | intencja wykonania operacji | bezpośredni kanał (Command Port / HTTP); nie przez async broadcast |
 
 Cele szczegółowe:
 
-1. **Zero utraty i zero duplikatów** każdego deliverable — atomowy zapis ze stanem domeny (transactional outbox) dla **wszystkich** typów, nie tylko eventów.
-2. **Minimalizacja złożoności operacyjnej** — 1 model, 1 publisher, 1 relay, 1 processor zamiast 3 zestawów maszynerii.
-3. **Pełna identyfikowalność** (correlation/causation) i ślad audytowy dla każdego typu.
-4. **Brak martwego kodu i brak miejsca na legacy/hacki** — każde rozwiązanie wymuszone typem i ograniczeniami bazy, nie umową programistyczną.
-5. **Zgodność z praktyką enterprise** (NServiceBus, MassTransit, Debezium outbox): jedna tabela + `kind`, routing i kontrakty zróżnicowane na wyższych warstwach.
+1. **Message jako pierwszorzędny kanał systemu agentowego** — przenosi treść (bufor tekstu/kontekst dla agenta), a nie fakt; ma jasną definicję, źródła (API, process, agregat) i adresata.
+2. **Zero martwego i zero błędnie użytego kodu** — każda zmiana wynika z inventory (krok 0), nie z estetyki schematu; maszyneria nieużywana i niepotrzebna jest usuwana, nie scalana.
+3. **Atomiczność tam, gdzie ma sens** — tylko dla skutków mutacji agregatu (event / message z agregatu); message z API/process mogą być zapisywane niezależnie.
+4. **Pełna identyfikowalność** (correlation/causation), ślad audytowy i metryki per kanał.
+5. **Kompatybilność wire** — `EnvelopeCodec` bez zmian (kontrakt v1).
 
-Semantyczna separacja Command/Event/Message **zostaje zachowana konceptualnie** — w kontraktach, registry, serializerach, deserializerach i busach (zgodnie z `skills/architectural-discipline/{command,event,message}-semantics`). Zmienia się wyłącznie warstwa fizycznej persystencji i dostarczania.
+Semantyczna separacja Command/Event/Message pozostaje zgodna z `skills/architectural-discipline/{command,event,message}-semantics` (zaktualizowanymi pod kątem message = adresowana treść).
 
 ---
 
@@ -34,114 +42,105 @@ outbox_message / inbox_message    (message)
 outbox_command / inbox_command    (command)
 ```
 
-Plus osobne maszyny: 3 procesory inbox (`EventInboxProcessor`, `MessageInboxProcessor`, `CommandInboxProcessor`), 2 autonomiczne publisherowie (`SqlMessageOutboxPublisher`, `SqlCommandOutboxPublisher`), 1 relay.
+Osobne maszyny: 3 procesory inbox (`EventInboxProcessor`, `MessageInboxProcessor`, `CommandInboxProcessor`), 2 publisherowie (`SqlMessageOutboxPublisher`, `SqlCommandOutboxPublisher`), 1 relay (topic `shell.delivery`, routing key `{kind}.{contract_type}` — model **broadcast**).
 
 ### 2.2. Defekty, które naprawiamy
 
 | # | Problem | Dowód w kodzie | Konsekwencja |
 |---|---|---|---|
-| P1 | **Dual-write dla message/command** — zapis outboxa w osobnej sesji, poza transakcją domeny | `sql_message_outbox_publisher.py:50` (`async with self._session_factory()`) | Wiadomość może zginąć między commitem domeny a zapisem outboxa — ta sama klasa błędu, którą transactional outbox ma eliminować |
-| P2 | **Martwy `stage_messages`** — buforowany, nigdy nie zapisywany | `sql_alchemy_uow_base.py:110` (stages) vs `_write_staged_outbox()` pisze tylko `_staged_events` | Protokół zapowiada funkcję, która nie działa |
-| P3 | **Brak `stage_commands` w UoW** | `unit_of_work.py:16` tylko `stage_events`/`stage_messages` | Komendy nie mogą być transakcyjne; wymuszona nieatomowa ścieżka |
-| P4 | **Nieużywane w produkcji** — tabele message/command żyją tylko w testach | `SqlMessageOutboxPublisher` tylko w `tests/` | 4 zbędne tabele per BC + maszyneria bez producenta/konsumenta |
-| P5 | **3× maszyneria bez 3× polityki** | 6 tabel, 3 procesory, lease/heartbeat/dedup per typ | Koszt utrzymania bez odrębnej polityki retry/DLQ/retention |
-| P6 | **Gołe stringi zamiast egzekwowanych typów** | `event_delivery.py` itd. — kolumny `str` bez CHECK | Literówka w `kind`/typie = cichy truciciel, który pada dopiero na deserializacji (DLQ) |
-| P7 | **Audyt tylko eventów** | `sql_alchemy_uow_base.py:187` — `self._models.audit(...)` tylko w pętli eventów | Brak pełnego śladu dostarczania message/command |
-| P8 | **Routing nieegzekwowany** — konsumenci wiążą goły `#` | `rabbit_inbox_consumer.py:65` (`routing_keys or ["#"]`) | „Łap wszystko" zamiast świadomego wyboru rodzajów |
-| P9 | **Ciche zgubienie publikacji** | `rabbit_delivery_transport.py:58` (`mandatory=False`) | Nieroutowalna wiadomość znika cicho, gdy brak wiążącej kolejki |
-| P10 | **Brak polityk per kind i metryk per kind** | globalne `max_retries`/backoff w `InboxProcessorBase` | Brak możliwości różnicowania i obserwacji per typ |
+| P1 | **Message bez jasnej definicji operacyjnej** — „pasywne dane" bez adresata i natury | `message-semantics` (stara wersja) + `outbox_message` nieużywane | Maszyneria message stoi; brak pierwszorzędnego kanału treści, którego potrzebuje system agentowy |
+| P2 | **UoW nie zbiera message z agregatu** — `save()` robi tylko `pull_events()`, nie `pull_messages()`; `stage_messages` martwe | `sql_alchemy_uow_base.py:116` vs `:110` | Message wyemitowane przez agregat są gubione; protokół zapowiada funkcję, która nie działa |
+| P3 | **Command wpychane w async broker** jako broadcast (`outbox_command`) | `outbox_command`, `CommandInboxProcessor` — nieużywane w produkcji | Intencje (zwykle synchroniczne) nie powinny iść przez async event-backbone; brak decyzji o kanale |
+| P4 | **Maszyneria message/command nieużywana w produkcji** (tylko testy) | `SqlMessageOutboxPublisher`/`SqlCommandOutboxPublisher` tylko w `tests/` | Utrzymanie martwych ścieżek; P4 wymaga decyzji: ożywić (message) albo usunąć (command) |
+| P5 | **Brak obsługi dużych buforów** — brak `content_ref`; payload leci przez brokera | kontrakt message = sam `payload` | Broker nie zniesie wielkich treści; konieczna referencja do bufora |
+| P6 | **Brak adresowania odbiorcy** — nie ma `recipient_aggregate_id/name` | `DeliveryEnvelope` bez destination | Nie da się routować point-to-point; message nie odróżniają się od eventu |
+| P7 | **Routing nieegzekwowany** — konsumenci wiążą goły `#` | `rabbit_inbox_consumer.py:65` (`routing_keys or ["#"]`) | „Łap wszystko" zamiast świadomego wyboru |
+| P8 | **Ciche zgubienie publikacji** | `rabbit_delivery_transport.py:58` (`mandatory=False`) | Nieroutowalna wiadomość znika bez śladu |
+| P9 | **Audyt tylko eventów** | `sql_alchemy_uow_base.py:187` | Brak śladu dla message/command |
+| P10 | **Brak polityk i metryk per kanał** | globalne `max_retries`/backoff w `InboxProcessorBase` | Brak możliwości różnicowania i obserwacji |
+
+> **NIE jest defektem**: osobna sesja publishera dla message z API/process. To celowe — taka message nie jest skutkiem mutacji agregatu, więc nie potrzebuje atomowości z UoW (dual-write nie występuje, bo nie ma stanu do atomizacji).
 
 ### 2.3. Co NIE jest problemem
 
-Separacja semantyczna Command/Event/Message jako taka — jest poprawna i zostaje. Nie konsolidujemy kontraktów, registry ani deserializerów; konsolidujemy tylko tabele i maszynerię dostarczania.
+- Separacja kontraktów Command/Event/Message — zostaje (jest poprawna).
+- Trzy osobne pary tabel — zostają; konsolidacja została odrzucona.
+- Istniejący transactional outbox dla eventów — działający i poprawny.
 
 ---
 
 ## 3. Metody
 
-Metody, które stosujemy do osiągnięcia celu:
-
-| Metoda | Opis | Gdzie egzekwowana |
+| Metoda | Kanał | Opis |
 |---|---|---|
-| **Transactional Outbox** | Deliverable zapisywane atomowo ze stanem domeny; relay publikuje po `published_at IS NULL`; `published_at` ustawiane dopiero po potwierdzeniu transportu | `SqlAlchemyUnitOfWorkBase._write_staged_outbox()` + `OutboxToTransportRelay` |
-| **Inbox + lease/claim/retry/DLQ** | Dwie transakcje (claim z lease, ack warunkowy kluczowany `id+claimed_by`), retry z backoff, DLQ po `max_retries` | `InboxProcessorBase` + `InboxClaimService` |
-| **Jedna tabela + `kind` (Debezium/NServiceBus)** | Pojedyncza tabela `outbox`/`inbox` z kolumną `kind`; kontrakty i routing różnicowane wyżej | `delivery.py` (nowy model) |
-| **Typed constraints zamiast umów** | `DeliveryKind(StrEnum)` + `CheckConstraint` na `kind` i `contract_type` (NOT NULL, długość > 0) | model ORM + testy architektury |
-| **Jeden punkt zapisu (UoW)** | 100% publikacji przez `stage_events`/`stage_messages`/`stage_commands` → atomowy zapis w UoW; zero publisherów z osobną sesją | port `UnitOfWork` + `SqlAlchemyUnitOfWorkBase` |
-| **Routing po kind** | Topic `shell.delivery`, routing key `{kind}.{contract_type}`; kolejki wiążą jawne wzorce (`event.#` itd.), nigdy goły `#` | `RabbitDeliveryTransport` + konfiguracja konsumentów |
-| **At-least-once + idempotencja** | Dedup insertu (`uq_inbox_outbox_id`, `ON CONFLICT DO NOTHING`) + dedup wykonania (`processed_delivery(consumer_name, outbox_id)`) | `RabbitInboxConsumer`, `ProcessedDeliveryStore` |
-| **Zamrożony kontrakt wire** | `EnvelopeCodec` bez zmian; nieznany `kind` = nack + alert; zmiany tylko przez `wire_version` z upcasterem | test kontraktu w CI |
-| **Polityki per kind + monitoring** | `Mapping[DeliveryKind, DeliveryPolicy]` + metryki claimed/processed/retried/dead_lettered/lag per kind | `DeliveryInboxProcessor`, metryki, alerty |
+| **Transactional Outbox** | Event | deliverable zapisywane atomowo ze stanem; `published_at` po potwierdzeniu transportu; at-least-once |
+| **Inbox + lease/claim/retry/DLQ** | Event, Message | wspólny cykl (już w `InboxProcessorBase`); polityki i metryki per kanał |
+| **Content Delivery** | Message | adresowany nośnik treści: kontrakt `text`/`content_ref` + `recipient`; duże bufory przez referencję, nie przez payload brokera |
+| **Źródło-świadoma atomowość** | Message | API/process → zapis niezależny (własna sesja, brak stanu do atomizacji); agregat → `append_message`→`pull_messages`→`stage_messages` atomowo w UoW |
+| **Transport point-to-point** | Message | kolejka per odbiorca lub destination w routingu — nie broadcast zdarzeń |
+| **Bezpośredni kanał** | Command | Command Port / HTTP (za `provider-service-separation`); async tylko dla długich, odpornych operacji |
+| **Idempotencja** | Event, Message | `ON CONFLICT DO NOTHING` (outbox_id) + `processed_delivery(consumer_name, outbox_id)` |
+| **Twarde ograniczenia** | wszystkie | typy/kontrakty zamiast gołych stringów tam, gdzie nowy kod; bez zbędnych CHECK na starych tabelach |
+| **Monitoring** | Event, Message | metryki per kanał (claimed/processed/retried/dead_lettered/lag) + alert DLQ |
 
 ---
 
 ## 4. Uzasadnienie (dlaczego tak, a nie inaczej)
 
-1. **Zgodność z praktyką branżową.** Pojedyncza tabela outbox/inbox + `kind` to dominujący wzorzec w production-grade systemach (NServiceBus, MassTransit, Debezium+CDC). Rozdział per typ jest tam dokonywany na poziomie kontraktu/routingu, nie schematu. Trzy osobne pary tabel to wariant rzadki i kosztowny, dopóki nie istnieją odrębne polityki.
-2. **Eliminacja klasy błędu, a nie symptomu.** Osobna sesja w `SqlMessageOutboxPublisher`/`SqlCommandOutboxPublisher` reintrodukuje dual-write. Skoro mamy UoW i transactional outbox dla eventów — rozciągamy tę samą gwarancję na message i command (`stage_messages`/`stage_commands`), zamiast utrzymywać drugą, gorszą ścieżkę.
-3. **Błąd nie może być cichy.** Literówka `kind`/pusty `contract_type` musi być odrzucona przez bazę/typ, zanim cokolwiek trafi do transportu — inaczej ciche DLQ dla całej klasy błędów. To eliminuje P6/P8/P9 twardo, nie „dobrymi intencjami".
-4. **Mniej rzeczy do utrzymania.** 7 BC × 8 tabel delivery → 7 BC × (outbox + inbox + audit + dedup + heartbeat). Jeden processor/relay/publisher zamiast trzech. Mniej workerów, migracji, metryk, dokumentacji.
-5. **Pełny audyt i identyfikowalność.** Wszystkie trzy typy dostają ślad (audyt + correlation/causation), nie tylko eventy.
-6. **Zero martwego kodu.** Protokół UoW (`stage_messages`, nowe `stage_commands`) wykonuje to, co deklaruje. Usuwamy publisherowie, których nikt nie używa w produkcji.
-7. **Kompatybilność bez ceny.** Wire format zamrożony (v1) — broker i istniejące bindingi działają; zmiany formatu są świadomym, wersjonowanym krokiem.
-8. **Dlaczego NIE osobne tabele na przyszłość?** Bo gdy (i jeśli) polityki per kind będą realnie różne, `kind` w tabeli umożliwia filtrowanie bez zmiany schematu — a konsolidacja jest teraz tańsza niż później (migracja 6→2 jednorazowa, odwrotna byłaby rozrostem).
+1. **Istniejąca maszyneria jest broadcastowa, a to pasuje tylko do eventu.** Topic `shell.delivery` + routing `{kind}.{contract_type}` to model „publikuj, zainteresowani słuchają". Fakt (event) wpisuje się w to idealnie. Adresowana treść (message) wymaga point-to-point; intencja (command) wymaga bezpośredniego wywołania. Pchanie wszystkich trzech przez jedną maszynerię wymusza nadmiarową złożoność na message/command.
+2. **Message to najważniejszy kanał w systemie agentowym.** Treść (tekst/kontekst) przesyłana między agentami jest "mięsem" tego systemu, nie efektem ubocznym. Zasługuje na własny, dopracowany content-delivery, a nie na kopię ścieżki eventów.
+3. **Atomiczność jest potrzebna tylko dla skutków mutacji agregatu.** Event zawsze powstaje przy zmianie stanu → atomiczny outbox. Message z agregatu → tak samo (przez `stage_messages` w UoW). Message z API/process nie mają stanu do atomizacji → niezależny zapis do `outbox_message` jest poprawny i prostszy (dual-write nie występuje, bo nie ma transakcji domeny).
+4. **Duże bufory wymuszają referencję.** Broker nie jest magazynem treści. Kontrakt message nosi `content_ref` (a dla małych treści `text` inline); koperta transportowa pozostaje lekka.
+5. **Konsolidacja tabel została odrzucona.** Dawała mniej tabel, ale nie naprawiała żadnego z P1–P10 i niosła koszt (migracja 6→2, churn ~60 plików, okno przejściowe). Zachowujemy trzy pary tabel i porządkujemy kanały.
+6. **Command nie powinien iść przez async broadcast.** Intencja oczekuje wykonania; synchroniczny Command Port (HTTP) daje prostsze obsługiwanie błędów, odpowiedzi i niższą latencję. Async ma sens tylko dla operacji długich/odpornych — wtedy świadoma, mała kolejka, nie event-backbone.
 
 ---
 
-## 5. Docelowy model danych (odniesienie dla planu)
+## 5. Docelowe definicje i model (odniesienie dla planu)
 
-### 5.1. `DeliveryKind`
+### 5.1. Semantyka (patrz skille)
 
-`shell/platform/domain/value_objects/delivery_kind.py`:
+- **Event** — „stało się": fakt, broadcast, atomowy ze stanem, bez adresata.
+- **Message** — „masz to, weź zapisz": adresowana treść (bufor danych) do wskazanego agregatu; intencja nieistotna; głównym celem jest przekazanie treści; domyślnie prosty zapis, pipeline wieloetapowy jest opcją.
+- **Command** — „zrób to, zrób tamto": lekka intencja, może nie mieć danych; kanał bezpośredni.
+
+### 5.2. Tabele — zostają osobne
+
+```text
+outbox_event   / inbox_event      (event, broadcast, atomiczny)
+outbox_message / inbox_message    (message, content-delivery)
+outbox_command / inbox_command    (decyzja w kroku 4: użycie lub usunięcie)
+```
+
+### 5.3. Kontrakt Message (docelowy)
+
+`IntegrationMessage` rozszerzony o role treści i adresata:
 
 ```python
-class DeliveryKind(StrEnum):
-    EVENT = "event"
-    MESSAGE = "message"
-    COMMAND = "command"
+@dataclass(frozen=True)
+class IntegrationMessage:
+    message_id: str
+    correlation_id: str
+    causation_id: str
+    occurred_at: datetime
+    aggregate_id: str
+    aggregate_name: str
+    schema_version: int
+    # docelowe (regula docelowa — patrz skille):
+    text: str | None          # mala tresc inline
+    content_ref: str | None   # referencja do duzego bufora
+    recipient_aggregate_id: str
+    recipient_aggregate_name: str
+    stage: int                # pozycja w opcjonalnym pipeline
 ```
 
-### 5.2. Tabela `outbox` (zamiast 3)
+Zasada: `text` XOR `content_ref` (jeden z nich zawsze obecny; nigdy pusty — za `no-empty-fallbacks`). `recipient_*` wskazuje zawsze konkretny agregat.
 
-```text
-id                 str PK
-kind               str  NOT NULL  CheckConstraint(kind IN ('event','message','command'))
-contract_type      str  NOT NULL  CheckConstraint(length(contract_type) > 0)
-event_id           str  NULL      -- tylko kind='event'
-source_service     str  NULL      -- tylko kind='event'
-occurred_at        datetime(tz) NOT NULL
-aggregate_id       str  NULL      -- tylko kind='event'
-aggregate_name     str  NULL      -- tylko kind='event'
-schema_version     int  NOT NULL DEFAULT 1            CheckConstraint(schema_version >= 1)
-payload            JSONB NOT NULL DEFAULT '{}'
-correlation_id     str  NOT NULL DEFAULT ''
-causation_id       str  NOT NULL DEFAULT ''
-published_at       datetime(tz) NULL
+### 5.4. Wpływ na skille
 
-Indeksy: ix_outbox_published_at (published_at); ix_outbox_kind_published_at (kind, published_at)
-```
-
-### 5.3. Tabela `inbox` (zamiast 3)
-
-Kolumny `InboxStateMixin` (status, next_attempt_at, lease_until, claimed_by, processed_at, failed_at, last_attempted_at, retry_count, error, error_code, error_message, schema_version) + nośnik:
-
-```text
-id                 str PK             kind, contract_type — jak w outbox
-outbox_id          str  NOT NULL
-occurred_at, payload, correlation_id, causation_id, received_at
-event_id/source_service/aggregate_id/aggregate_name  NULL (tylko event)
-
-Więzy: UniqueConstraint("outbox_id", name="uq_inbox_outbox_id")
-Indeksy: ix_inbox_status_next_attempt_received, ix_inbox_status_lease_until, ix_inbox_kind
-```
-
-### 5.4. Otoczenie
-
-`audit_event` (payload wzbogacony o `kind` i `contract_type`), `processed_delivery`, `worker_heartbeat` — bez zmian schematu.
-
-### 5.5. Kompatybilność wire (broker)
-
-`EnvelopeCodec` bez zmian: `kind`, `outbox_id`, `{kind}_type`, `occurred_at`, `schema_version`, `payload`, `correlation_id`, `causation_id` (+ metadane eventu). `decode` waliduje `kind` przez `DeliveryKind` (nieznany → nack + alert). Zmiany formatu tylko przez `wire_version` + upcaster; zakaz aliasów/podwójnych kluczy.
+- `command-semantics` — rozszerzony o kanał (kroki 4/7).
+- `message-semantics` — rozszerzony o transport point-to-point i źródło-świadomą atomowość.
+- `event-driven-integration` — uzyskał jawną granicę Event/Message/Command.
 
 ---
 
@@ -149,245 +148,81 @@ Indeksy: ix_inbox_status_next_attempt_received, ix_inbox_status_lease_until, ix_
 
 Każdy krok ma: **Zmianę** (co → na co), **Jak** (jak zrealizować), **Weryfikację** (jak potwierdzić poprawność).
 
-### Krok 1 — `DeliveryKind` (nowy typ domenowy)
+### Krok 0 — Inventory użycia kanałów (dane, nie intuicja)
 
-- **Zmiana**: brak → nowy plik `shell/platform/domain/value_objects/delivery_kind.py` z `DeliveryKind(StrEnum)` (EVENT/MESSAGE/COMMAND).
-- **Jak**: dodać klasę; `StrEnum` z `"event"`, `"message"`, `"command"` (zgodnie z `constant-and-enum-naming-standards`).
-- **Weryfikacja**: test `test_delivery_kind.py` (wartości enum); `mypy` przechodzi.
+- **Zmiana**: brak → raport użycia Event/Message/Command w produkcji.
+- **Jak**: przeplatać repozytorium: które BC publikują/odbierają message i komendy poza `tests/`; czy `outbox_message`/`outbox_command` mają choć jednego producenta/konsumenta; liczba kolumn/wierszy w realnych bazach; istniejące handlery `MessageBus`/`CommandBus`.
+- **Weryfikacja**: raport udostępniony; decyzje w krokach 3–5 (message: ożywić; command: kanał direct lub usunięcie) oparte na nim, nie na założeniach.
 
-### Krok 2 — uniwersalne modele ORM `delivery.py`
+### Krok 1 — Utwardzenie ścieżki eventów (tanie, bez ryzyka)
 
-- **Zmiana**: nowy `shell/platform/infrastructure/persistence/sql/models/delivery.py` z `build_delivery_models(base) -> DeliveryModels` (NamedTuple `outbox`/`inbox`); do usunięcia `event_delivery.py`, `message_delivery.py`, `command_delivery.py`.
-- **Jak**: zbudować `OutboxModel` (tabela `outbox`) i `InboxModel` (tabela `inbox`, `InboxStateMixin`) wg sekcji 5: kolumna `kind` + `contract_type` + nullable metadane eventu; `CheckConstraint` na `kind`/`contract_type`/`schema_version`; indeksy i `uq_inbox_outbox_id`; nazwy klas `f"{base.__name__}OutboxModel"` / `...InboxModel`.
-- **Weryfikacja**: test, że `metadata.tables == {"inbox","outbox"}`; INSERT z niepoprawnym `kind` lub pustym `contract_type` zwraca `IntegrityError`.
+- **Zmiana**: `rabbit_delivery_transport.py:58` `mandatory=False` → `mandatory=True`; konsumenci wiążą **jawne** wzorce `event.#` zamiast gołego `#`; audyt rozszerzony na wszystkie dostawy event.
+- **Jak**: zmienić argument `exchange.publish(..., mandatory=True)`; w konfiguracji kolejki podać wzorce routingu; w `_write_staged_outbox` dopisać audyt dla wszystkich emisji event.
+- **Weryfikacja**: test — nieproutowalny event zgłasza błąd (retry/DLQ); `rg 'routing_keys or \["#"\]'` → 0; audyt zawiera recordy wszystkich eventów.
 
-### Krok 3 — restrukturyzacja `PersistenceDeliveryModels`
+### Krok 2 — Message: kontrakt + źródło-świadoma atomowość
 
-- **Zmiana**: w `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py` pola `events`/`messages`/`commands` → jedno `delivery: DeliveryModels` (audit/processed_delivery/worker_heartbeat bez zmian).
-- **Jak**: podmienić `NamedTuple` i `build_persistence_delivery_models`; `build_delivery_models(base)` zamiast trzech buildów.
-- **Weryfikacja**: `rg "models\.events|models\.messages|models\.commands"` → 0 wpisów; testy metadata (sekcja 7) przechodzą.
-
-### Krok 4 — `stage_commands` w porcie i implementacjach memory
-
-- **Zmiana**: port `shell/platform/application/ports/persistence/unit_of_work.py` (obecnie `stage_events` + `stage_messages`) → + `stage_commands(commands: Sequence[object])`; implementacje memory (definition/session/scheduling/execution `unit_of_work.py`) analogicznie.
-- **Jak**: dodać metodę do protokołu i buforów; zsynchronizować nazwy (zakaz skrótów per `variable-naming-standards`).
-- **Weryfikacja**: `mypy` — brak „not implemented"; test protokołu `UnitOfWork` wymusza obecność wszystkich trzech metod.
-
-### Krok 5 — UoW pisze eventy, message i komendy atomowo + audyt wszystkich kindów
-
-- **Zmiana**: `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py` — `_write_staged_outbox()` obecnie pisze tylko `_staged_events` (i audyt tylko eventów) → pisze `_staged_events` (kind=EVENT), `_staged_messages` (kind=MESSAGE), `_staged_commands` (kind=COMMAND) do `models.delivery.outbox` oraz audyt dla każdego deliverable (payload + `kind` + `contract_type`).
+- **Zmiana**: (a) kontrakt `IntegrationMessage` + pola `recipient_aggregate_id/name`, `text`/`content_ref`, `stage` (reguła docelowa); (b) `UoW.save()` zbiera `pull_messages()` obok `pull_events()` i `_write_staged_outbox()` zapisuje `_staged_messages` **atomowo** do `outbox_message`; (c) źródła API/process używają niezależnego publishera (wzorzec `SqlMessageOutboxPublisher` — **zostaje**, osobna sesja jest tu poprawna).
 - **Jak**:
-  - `_staged_messages` → `contract_type=type(message).__name__`, `occurred_at=message.occurred_at`, payload przez `DomainMessageSerializer` (**w tej samej transakcji**, bez osobnej sesji);
-  - `_staged_commands` → `contract_type=type(command).__name__`, payload serializowany na podstawie kontraktu komendy;
-  - metadane eventu (`event_id`, `source_service`, `aggregate_id`, `aggregate_name`) tylko dla EVENT;
-  - audyt rozszerzony na wszystkie trzy rodzaje.
-- **Weryfikacja**: test transakcyjny — po `commit` wiersze wszystkich kindów są w `outbox`; po `rollback` **zero** wierszy (brak dual-write); `stage_messages`/`stage_commands` przestają być martwe.
+  - `save()`: `self.stage_messages(aggregate.pull_messages())`;
+  - `_write_staged_outbox()`: wiersze `outbox_message` dla `_staged_messages` (payload przez `DomainMessageSerializer`, `occurred_at`, correlation/causation) w tej samej transakcji;
+  - kontrakt wg sekcji 5.3; `text` XOR `content_ref`, `recipient_*` wymagane.
+- **Weryfikacja**: test transakcyjny — commit daje wiersz `outbox_message`, rollback **zero** (dla źródła-agregat); test API — message zapisana niezależnie, bez transakcji domeny; test kontraktu — `text`/`content_ref` rozłączne.
 
-### Krok 6 — `SqlDeliveryOutboxPublisher` (jeden punkt zapisu) + usunięcie starych publisherów
+### Krok 3 — Message: transport point-to-point
 
-- **Zmiana**: nowy `shell/platform/infrastructure/messaging/delivery/sql_delivery_outbox_publisher.py` operujący **wyłącznie przez UoW** (stage, nie zapis w osobnej sesji); usunąć `sql_message_outbox_publisher.py`, `sql_command_outbox_publisher.py`, testowe `InMemoryMessageOutboxStore`, `FakeMessagePublisher`.
-- **Jak**:
+- **Zmiana**: message nie idą broadcastem jak eventy; transport przez kolejki/krotki kluczujące per odbiorca (`recipient`).
+- **Jak**: dla message stosować destination-aware routing (kolejka per `recipient_aggregate_name` lub routing key `message.<recipient>.<aggregate_id>`) — binding bez gołego `#`; `RabbitInboxConsumer` dla message wiąże wzorce adresowane.
+- **Weryfikacja**: test — message trafia wyłącznie do wskazanego odbiorcy, brak fan-outu; `EnvelopeCodec` bez zmian (kontrakt v1).
 
-```python
-async def stage_delivery(
-    self, uow: UnitOfWork,
-    kind: DeliveryKind,
-    contract_type: str,
-    payload: dict[str, object],
-    occurred_at: datetime,
-    *,
-    event_id: str | None = None,
-    source_service: str | None = None,
-    aggregate_id: str | None = None,
-    aggregate_name: str | None = None,
-    schema_version: int = 1,
-) -> None
-```
+<!-- PLAN_PART2 -->
 
-  delektuje do `uow.stage_events` / `uow.stage_messages` / `uow.stage_commands` wg `kind`. Brak jakiejkolwiek ścieżki „osobna sesja".
-- **Weryfikacja**: test architektury zakazujący importu starych módów + test, że `SqlDeliveryOutboxPublisher` nie tworzy sesji (nie trzyma `session_factory`); `rg "session_factory"` w nowym publisher = 0.
+### Krok 4 — Command: decyzja o kanale
 
-### Krok 7 — uniwersalny `OutboxToTransportRelay`
+- **Zmiana**: `outbox_command`/`CommandInboxProcessor`/`SqlCommandOutboxPublisher` — wg inventory: (a) **usunąć**, jeśli komendy między BC nie istnieją lub przechodzą na Command Port (HTTP); albo (b) zawęzić do świadomych przypadków (długie, odporne operacje) z osobną, małą kolejką.
+- **Jak**: jeśli wybór (a) — usunąć tabele `outbox_command`/`inbox_command` z baseline'ów (7 BC), usunąć publisher/procesor, a komendy między BC przenieść na `Command Port` (HTTP, za `aggregate-command-port`/`provider-service-separation`); jeśli (b) — zostawić z jawnym routingiem i politykami.
+- **Weryfikacja**: `rg "SqlCommandOutboxPublisher|CommandInboxProcessor"` poza `tests/` → 0 (wybór a) albo tylko uzasadnione użycia; e2e komendy przechodzi nowym kanałem.
 
-- **Zmiana**: `shell/platform/infrastructure/messaging/transport/outbox_to_transport_relay.py` — `models: EventDeliveryModels | MessageDeliveryModels | CommandDeliveryModels` + `kind: DeliveryKind` → `models: DeliveryModels` + opcjonalny filtr `kind: DeliveryKind | None = None`; `_to_envelope` czyta `{kind}_type` → `contract_type` z wiersza.
-- **Jak**: selekcja `WHERE published_at IS NULL` (+ `AND kind = :kind` gdy filtr), `ORDER BY occurred_at`, `FOR UPDATE SKIP LOCKED`; `_to_envelope`: `kind=DeliveryKind(row.kind)`, `contract_type=row.contract_type`, metadane eventu `getattr(row, "event_id", None)`; protokoły `DeliveryOutboxModel`/`DeliveryOutboxRow` + pola `kind`/`contract_type`.
-- **Weryfikacja**: test `test_outbox_to_transport_relay.py` (warianty event/message/command) — relay publikuje poprawne `DeliveryEnvelope` dla każdego `kind` i ustawia `published_at` wyłącznie po sukcesie.
+### Krok 5 — Sprzątanie maszynerii bez użytkownika (wg inventory)
 
-### Krok 8 — `mandatory=True` w `RabbitDeliveryTransport`
+- **Zmiana**: usunięcie nieużywanych tabel/procesorów/publisherów potwierdzonych w kroku 0 (np. `outbox_command`, puste aliasy `COMMAND_DELIVERY_MODELS`); **bez migracji danych**, gdy tabele są puste.
+- **Jak**: usunąć z `baseline.py` listy i `PersistenceDeliveryModels` nieużywane bundle; usunąć testy wyłącznie pod martwe ścieżki (zastąpić testami kroków 2–3).
+- **Weryfikacja**: `rg "COMMAND_DELIVERY_MODELS|MESSAGE_DELIVERY_MODELS|EVENT_DELIVERY_MODELS"` — zgodnie z decyzjami; `pytest` przechodzi; `run_tests.ps1` bez błędów.
 
-- **Zmiana**: `shell/platform/infrastructure/messaging/transport/rabbit/rabbit_delivery_transport.py:58` `mandatory=False` → `mandatory=True` (default).
-- **Jak**: zmienić argument `exchange.publish(..., mandatory=True)`; nieroutowalna wiadomość (brak wiążącej kolejki) = zwrot → `deliver()` zgłasza błąd → relay traktuje jako porażkę (retry/DLQ).
-- **Weryfikacja**: test jednostkowy transportu z publi sher confirms — wiadomość bez wiążącego binding zgłasza błąd; `rg "mandatory=False"` → 0.
+### Krok 6 — Testy i reguły architektury
 
-### Krok 9 — walidacja `kind` w `EnvelopeCodec.decode`
+- **Zmiana**: testy pod realne kanały + zakazy:
+  - `message`: test atomiczności źródła-agregat (rollback=0), test źródła API/process (zapis niezależny), test point-to-point (tylko adresat), test kontraktu (`text` XOR `content_ref`, `recipient` wymagany);
+  - `event`: test `mandatory`/błędnego routingu, audyt eventów;
+  - **zakaz**: `EventBus`/broadcastowy routing dla message; `CommandBus` w async-outbox (jeśli wybór a); goły `#` w bindingach konsumentów.
+- **Jak**: zaktualizować `tests/architecture` i `tests/platform/...`, dodać brakujące testy z kroków 1–4.
+- **Weryfikacja**: cały zestaw testów przechodzi; testy architektury blokują niepoprawne użycie kanałów.
 
-- **Zmiana**: `shell/platform/infrastructure/messaging/transport/envelope_codec.py` — sprawdzenie `kind not in ("event","message","command")` → walidacja przez `DeliveryKind`.
-- **Jak**: `DeliveryKind(raw_kind)` w try/catch — nieznany `kind` = `ValueError` (obecny kontrakt rzuca, ale na gołych stringach); bez zmiany formatu wire.
-- **Weryfikacja**: `test_envelope_codec.py` — nieznany `kind` rzuca; wire v1 nadal dekodowany identycznie.
+### Krok 7 — Dokumentacja i skille
 
-### Krok 10 — uniwersalny `RabbitInboxConsumer`
+- **Zmiana**: `docs/inbox-outbox-architecture.md`, `shell/platform/doc/{delivery-overview,relay,unit-of-work,transactional-outbox,inbox-processor,delivery-transport,tracing-context}.md`, `shell/README.md`; skille `command-semantics`/`message-semantics`/`event-driven-integration` — opis kanałów wg sekcji 3–5.
+- **Jak**: wpisać decyzje z kroków 1–5; message jako content-delivery (recipient, content_ref, dwa źródła), command jako kanał bezpośredni.
+- **Weryfikacja**: `rg "pasywne dane|oto dane|widmo konsolidacji"` w docs+skille → 0.
 
-- **Zmiana**: `shell/platform/infrastructure/messaging/transport/rabbit/rabbit_inbox_consumer.py` — `models: DeliveryModels`; `_persist` zapisuje `kind` i `contract_type` (zamiast kolumny `{kind}_type`); metadane eventu warunkowo dla `kind == "event"`; binding z **jawnymi** wzorcami (`event.#`, `message.#`, `command.#`) — zakaz gołego `#`.
-- **Jak**: `values = {"kind": envelope.kind, "contract_type": envelope.contract_type, ...}`; `ON CONFLICT DO NOTHING` na `uq_inbox_outbox_id`; w konfiguracji kolejki jawnie podać wzorce routingu.
-- **Weryfikacja**: test `test_rabbit_inbox_consumer` (jeśli istnieje) lub test unitu konsumenta — wiersz zapisany z `kind`/`contract_type`; duplikat `outbox_id` nie tworzy drugiego wiersza.
+### Krok 8 — Monitoring i alerty per kanał
 
-### Krok 11 — `DeliveryPolicy` (kontrakt polityki per kind)
-
-- **Zmiana**: nowy `shell/platform/infrastructure/messaging/delivery/delivery_policy.py` — frozen dataclass `DeliveryPolicy`.
-- **Jak**:
-
-```python
-@dataclass(frozen=True)
-class DeliveryPolicy:
-    max_retries: int = 3
-    retry_backoff_seconds: int = 30
-    max_retry_backoff_seconds: int = 3600
-    retry_jitter_seconds: float = 0.0
-    lease_duration_seconds: int = 60
-    retention_days: int = 30
-```
-
-- **Weryfikacja**: test walidacji (wartości > 0); używany w kontenerze dla każdego `DeliveryKind`.
-
-### Krok 12 — uniwersalny `DeliveryInboxProcessor` + `kind_var`
-
-- **Zmiana**: nowy `shell/platform/infrastructure/messaging/delivery/processor/delivery_inbox_processor.py` (`DeliveryInboxProcessor(InboxProcessorBase)`) zastępuje 3 podprocesory; w `shell/platform/infrastructure/context.py` dodać `kind_var` (ContextVar); w `inbox_processor_base.py` `_ClaimedInboxRow` + `kind`/`contract_type`.
-- **Jak**:
-  - konstruktor: `session_factory`, `models: DeliveryModels`, `policies: Mapping[DeliveryKind, DeliveryPolicy]`, opcjonalnie `event_bus`/`message_bus`/`command_bus` + registry/upcastery per kind;
-  - `_type_name(row)` → `row.contract_type`;
-  - `_deserialize(row)` → po `DeliveryKind(row.kind)` wybiera `EventDeserializer`/`MessageDeserializer`/`CommandDeserializer`;
-  - `_dispatch(obj)` → po kind: `event_bus.publish([obj])`/`message_bus.publish([obj])`/`command_bus.dispatch(obj)`;
-  - `_causation_value(obj, row)` → po kind: `event_id.value`/`message_id.value`/`row.causation_id`;
-  - retry/backoff/DLQ/lease: wartości **z `policies[kind]`** przekazane do `InboxProcessorBase`;
-  - `kind_var` ustawiany w `_process_claimed_row` (z tracingiem) i resetowany w `finally` — bezpieczeństwo przy `max_concurrency > 1`.
-- **Weryfikacja**: unified `test_delivery_inbox_processor.py` — ten sam cykl claim→process→ack dla event/message/command; test równoległości (`max_concurrency>1`) — brak przecieku `kind` między taskami (tracing+kind).
-
-### Krok 13 — usunięcie starych procesorów
-
-- **Zmiana**: usunąć `messaging/event/processor/event_inbox_processor.py`, `messaging/message/processor/message_inbox_processor.py`, `messaging/command/processor/command_inbox_processor.py`.
-- **Jak**: po pełnym przestawieniu na `DeliveryInboxProcessor` (kroki 12 + 16) usunąć pliki i wszystkie importy.
-- **Weryfikacja**: test architektury (import-linter/AST) blokuje te ścieżki importów; `rg "EventInboxProcessor|MessageInboxProcessor|CommandInboxProcessor"` → 0.
-
-### Krok 14 — per-BC aliase modułowe modeli
-
-- **Zmiana**: w 7 × `infrastructure/<bc>/persistence/sql/models/base.py` aliasy `EVENT_DELIVERY_MODELS`/`MESSAGE_DELIVERY_MODELS`/`COMMAND_DELIVERY_MODELS` → jeden `DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.delivery` (+ `InboxModel`/`OutboxModel`).
-- **Jak**: podmienić importy i przekazy; BC: definition, execution, ingestion, project, scheduling, session, user.
-- **Weryfikacja**: `rg "EVENT_DELIVERY_MODELS|MESSAGE_DELIVERY_MODELS|COMMAND_DELIVERY_MODELS"` → 0; importy bazowe przechodzą.
-
-### Krok 15 — baseline per BC (tabele)
-
-- **Zmiana**: w 7 × `migrations/baseline.py` lista `_TABLES` z 6 tabel (`outbox_event`...`inbox_command`) → 2 (`DELIVERY_MODELS.outbox.__table__`, `DELIVERY_MODELS.inbox.__table__`).
-- **Jak**: podmienić wpisy `PERSISTENCE_DELIVERY_MODELS.events/messages/commands.*` na `...delivery.outbox/inbox`.
-- **Weryfikacja**: `mypy`/`ruff` na baseline'ach; test metadata — każdy BC ma dokładnie `{inbox, outbox}` + audit/dedup/heartbeat.
-
-### Krok 16 — kontenery per BC (processor, polityki, konsument, relay CLI)
-
-- **Zmiana**: w 6 × `bootstrap/<bc>/container/*_core_container.py` `...events.inbox` → `...delivery.inbox` i budowa procesora → `DeliveryInboxProcessor` + `policies` per kind (event/message/command z `DeliveryPolicy`); konsument z jawnymi wzorcami routingu; `framework/.../cli/command/relay_command.py` → `DELIVERY_MODELS` bez `kind=`.
-- **Jak**: podmienić rejestracje `inbox_model=` i konstruktory processorów; wstrzyknąć `Mapping[DeliveryKind, DeliveryPolicy]` z configu BC; bindować `event.#`/`message.#`/`command.#` wg obsługiwanych kontraktów.
-- **Weryfikacja**: e2e `test_microservice_flow.py` przechodzi (event user→session); test kontenera — polityki obecne dla wszystkich kindów; `rg "events\.inbox|EventInboxProcessor"` w bootstrap → 0.
-
-### Krok 17 — seed/builders per BC (dev/data)
-
-- **Zmiana**: `ingestion_service/infrastructure/ingestion/seed/builders.py` + `seed/dev.py` — `build_outbox_event_model`/`build_inbox_event_model` → uniwersalne `build_outbox_model(kind, contract_type, ...)` / `build_inbox_model(kind, contract_type, ...)`.
-- **Jak**: rozszerzyć sygnatury o `kind` i `contract_type`; metadane eventu tylko przy EVENT.
-- **Weryfikacja**: seed dev.py uruchamia się; test e2e ingestion z seedem przechodzi.
-
-### Krok 18 — migracja danych (Alembic, per BC)
-
-- **Zmiana**: nowe tabele `outbox`/`inbox` + przeniesienie danych z 6 starych tabel + drop starych.
-- **Jak** (jedna migracja na BC; workerzy wyłączone w oknie przejściowym):
-  1. `create_table outbox`, `create_table inbox` (schema z sekcji 5);
-  2. eventy:
-
-```sql
-INSERT INTO outbox (id, kind, contract_type, event_id, source_service, occurred_at,
-                    aggregate_id, aggregate_name, schema_version, payload,
-                    correlation_id, causation_id, published_at)
-SELECT id, 'event', event_type, event_id, source_service, occurred_at,
-       aggregate_id, aggregate_name, schema_version, payload,
-       correlation_id, causation_id, published_at
-FROM outbox_event;
-```
-
-  3. message i command (bez metadanych eventu):
-
-```sql
-INSERT INTO outbox (id, kind, contract_type, occurred_at, payload,
-                    correlation_id, causation_id, published_at)
-SELECT id, 'message', message_type, occurred_at, payload,
-       correlation_id, causation_id, published_at FROM outbox_message;
-
-INSERT INTO outbox (id, kind, contract_type, occurred_at, payload,
-                    correlation_id, causation_id, published_at)
-SELECT id, 'command', command_type, occurred_at, payload,
-       correlation_id, causation_id, published_at FROM outbox_command;
-```
-
-  4. analogiczne `INSERT INTO inbox ... SELECT ... FROM inbox_event/inbox_message/inbox_command`
-     (+ `status`, `next_attempt_at`, `received_at`, `schema_version`);
-  5. weryfikacja liczników (poniżej) PRZED `drop_table`;
-  6. `drop_table` starych 6 tabel; aktualizacja baseline (krok 15).
-- **Weryfikacja** — akceptacja tylko, gdy delta = 0:
-
-```sql
-SELECT
-  (SELECT count(*) FROM outbox_event)   AS delta_outbox_event,
-  (SELECT count(*) FROM outbox_message) AS delta_outbox_message,
-  (SELECT count(*) FROM outbox_command) AS delta_outbox_command,
-  (SELECT count(*) FROM inbox_event)    AS delta_inbox_event,
-  (SELECT count(*) FROM inbox_message)  AS delta_inbox_message,
-  (SELECT count(*) FROM inbox_command)  AS delta_inbox_command;
-```
-
-  + `count(outbox WHERE kind='event') == count(outbox_event)` przed dropem + spot-check losowych kolumn (payload, correlation_id, published_at) 1:1. Zalecane: retention przed migracją (mniejszy wolumen).
-
-### Krok 19 — testy architektury (nowe reguły)
-
-- **Zmiana**: testy metadata/nazw/importów do aktualizacji i rozszerzenia.
-- **Jak**:
-  - `test_platform_event_delivery.py`, `test_platform_message_command_delivery.py` → unifikacja na `{inbox, outbox}`;
-  - `test_bc_metadata_ownership.py`, `test_bc_delivery_table_ownership.py`, `test_database_metadata_isolation__*.py` (2) → `{"inbox","outbox"}`;
-  - nowe reguły: zakaz nazw `outbox_event`/`inbox_event`/`outbox_message`/`inbox_message`/`outbox_command`/`inbox_command` w metadata BC; wymóg `CheckConstraint` dla `kind`/`contract_type` w modelach `outbox`/`inbox`; zakaz importów starych publisherów (`sql_message_outbox_publisher`, `sql_command_outbox_publisher`) i procesorów (`event_inbox_processor`...).
-- **Weryfikacja**: cały zestaw `tests/architecture/` przechodzi.
-
-### Krok 20 — testy platformy
-
-- **Zmiana**: testy integracyjne/unitowe platformy na nowe modele i klasy.
-- **Jak**: `tests/platform/integration/platform_delivery_models.py` → `DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.delivery`; `test_outbox_to_transport_relay.py` + `test_message_outbox_transport_relay.py` → jeden wariantowy test; `test_event_inbox_processor_refactored.py`, `test_event_message_inbox_processors.py`, `test_command_inbox_processor.py` → `test_delivery_inbox_processor.py`; `test_inbox_*` (claim/heartbeat/atomicity/replay/metrics/retention/readiness) i `test_pg_inbox_claim_concurrency.py` → modele `delivery.inbox` (semantyka bez zmian); `test_message_outbox.py` → nowy unified publisher; `test_envelope_codec.py` → + przypadek nieznanego `kind`.
-- **Weryfikacja**: `pytest tests/platform/` przechodzi.
-
-### Krok 21 — testy system/contracts/e2e
-
-- **Zmiana**: `tests/system/test_microservice_flow.py`, `tests/system/test_transactional_semantics.py`, `tests/contracts/test_integration_event_transport_contract.py`, `tests/session_service/.../test_missing_integration_event.py` → `delivery.outbox/inbox`; `test_user_standalone_app.py`, `test_definition_standalone.py` → listy tabel bez starych 4.
-- **Jak**: mechaniczna podmiana referencji (modele i nazwy tabel) przy zachowaniu asercji.
-- **Weryfikacja**: e2e systemowe przechodzi (realny przepływ user→session przez Rabbit).
-
-### Krok 22 — dokumentacja i skille
-
-- **Zmiana**: `docs/inbox-outbox-architecture.md`; `shell/platform/doc/delivery-models.md`, `delivery-overview.md`, `relay.md`, `unit-of-work.md`, `transactional-outbox.md`, `inbox-processor.md`, `delivery-transport.md`, `session-scope.md`, `processed-delivery-dedup.md`, `tracing-context.md`, `metrics.md`, `readiness.md`, `replay.md`, `retention.md`; `shell/README.md`; skille: `shell-specific/tracing-context`, `integration-patterns/event-driven-integration/*`, `integration-patterns/idempotency-retry`, `pattern-standards/event-handler-structure/*`, `shell-specific/shell-architecture/references/infrastructure.md`.
-- **Jak**: zamiana nazw tabel/klas (`outbox_event` → `outbox(kind)`, `EventInboxProcessor` → `DeliveryInboxProcessor` itd.) + opis nowych polityk per kind i `DeliveryKind`.
-- **Weryfikacja**: `rg "outbox_event|EventInboxProcessor|SqlMessageOutboxPublisher"` w docs+skills → 0.
-
-### Krok 23 — monitoring i alerty
-
-- **Zmiana**: metryki per kind (claimed/processed/retried/dead_lettered/lag) + alert na wzrost DLQ; rejestracja w kontenerze procesora.
-- **Jak**: dodać etykietę `kind` do metryk `InboxProcessorBase`/`DeliveryInboxProcessor`; alert gdy `dead_lettered` rośnie w oknie.
-- **Weryfikacja**: test metryk — etykieta `kind` obecna; dashboard/alert zdefiniowany.
+- **Zmiana**: metryki per kanał (claimed/processed/retried/dead_lettered/lag) z etykietą (event|message) + alert DLQ.
+- **Jak**: dodać etykietę do metryk `InboxProcessorBase`; alert gdy `dead_lettered` rośnie w oknie.
+- **Weryfikacja**: test metryk — etykieta obecna; dashboard/alert zdefiniowany.
 
 ---
 
 ## 7. Kryteria zakończenia (definition of done)
 
-1. Jeden `DeliveryModels`/`PersistenceDeliveryModels`; brak `event_delivery.py`, `message_delivery.py`, `command_delivery.py`.
-2. Jeden `SqlDeliveryOutboxPublisher` działający **wyłącznie przez UoW**; brak `SqlMessageOutboxPublisher`, `SqlCommandOutboxPublisher`, `InMemoryMessageOutboxStore`, `FakeMessagePublisher`.
-3. Jeden `DeliveryInboxProcessor`; brak trzech podprocesorów.
-4. `stage_messages` i `stage_commands` realnie zapisywane do `outbox` atomowo ze stanem (test rollback potwierdza brak wierszy).
-5. `kind` typu `DeliveryKind(StrEnum)` + `CheckConstraint`; test architektury blokuje gołe stringi i stare nazwy tabel.
-6. Wire `EnvelopeCodec` bez zmian; nieznany `kind` odrzucany (nack + alert).
-7. Kolejki konsumentów z jawnymi bindingami per kind; `mandatory=True`.
-8. Migracje per BC kopiują 6 → 2 bez straty (weryfikacja delta = 0).
-9. Metryki per kind i alerty DLQ włączone.
-10. `run_tests.ps1` przechodzi bez błędów.
+1. Inventory (krok 0) wykonany i udokumentowany w tym pliku.
+2. Event: `mandatory=True`, jawne bindingi, pełny audyt — bez zmiany kontraktu wire.
+3. Message: kontrakt z `recipient`/`text`/`content_ref`; agregat → atomiczny zapis; API/process → niezależny zapis; transport point-to-point.
+4. Command: decyzja kanału (direct lub usunięcie) wdrożona; brak nieużywanej maszynerii.
+5. Brak tabel `outbox_command`/`inbox_command` w runtime, jeśli wybór (a).
+6. `EnvelopeCodec` i wire v1 bez zmian.
+7. Testy architektury blokują złe użycie kanałów (message przez broadcast, command przez async outbox, goły `#`).
+8. Metryki i alerty per kanał włączone.
+9. `run_tests.ps1` przechodzi bez błędów.
 
 ---
 
@@ -395,9 +230,9 @@ SELECT
 
 | Ryzyko | Mitigacja |
 |---|---|
-| Zmiana UoW dotyka wszystkich agregatów | Kroki 4–6 i 14–16 etapami BC po BC; każdy BC w osobnym PR z pełnym testem |
-| Migracja produkcyjna | Okno przejściowe z wyłączonymi workerami + weryfikacja delta=0 + retention przed migracją |
-| Przeciek `kind` między taskami | `kind_var` ContextVar + reset w `finally` + test równoległości `max_concurrency>1` |
-| Literówka kind / pusty contract_type | `CheckConstraint` w DB + `DeliveryKind` w kodzie + testy architektury |
-| Regresja wire | Zamrożony kontrakt + `test_integration_event_transport_contract.py` w CI + `EnvelopeCodec` bez zmian |
-| Ciche zgubienie przy braku kolejki | `mandatory=True` (nieroutowalny = błąd → retry/DLQ) |
+| Zmiana UoW dotyka wszystkich agregatów | Krok 2 etapami BC po BC; każdy BC w osobnym PR z pełnym testem |
+| Ożywienie `stage_messages` łamie obecne zachowanie | Test rollback=0 dla źródeł-agregat; nie zmienia ścieżki eventów |
+| Command usuwane, a jednak potrzebne | Krok 0 (inventory) + Krok 4 wybór (b) kolumna awaryjna |
+| Duże bufory w brokerze | `content_ref` od kroku 2; test, że payload message pozostaje lekki |
+| Brak point-to-point (message jak broadcast) | Krok 3: koleje/kluczowanie per `recipient`; test „tylko adresat" |
+| Regresja wire | Zamrożony `EnvelopeCodec` + `test_integration_event_transport_contract.py` w CI |

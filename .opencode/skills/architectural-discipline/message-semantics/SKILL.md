@@ -1,46 +1,122 @@
 ---
 name: message-semantics
-description: "Semantyka Message w architekturze SHELL: pasywny obiekt danych przenoszacy wartosci. Uzywaj przy projektowaniu, review lub serializacji DomainMessage i IntegrationMessage."
+description: "Semantyka Message w architekturze SHELL: adresowana tresc (tekst lub bufor danych) przekazywana od zrodla do wskazanego odbiorcy. Uzywaj przy projektowaniu, review lub serializacji DomainMessage i IntegrationMessage."
 ---
 
 # Message Semantics
 
 ## Definicja
 
-`Message` jest pasywnym obiektem danych. Przenosi wartosci potrzebne odbiorcy i zachowuje semantyke danych.
+`Message` jest adresowanym nosnikiem tresci. Przenosi dane — przede wszystkim **bufor danych** (tekst lub inna tresc) — od zrodla do wskazanego odbiorcy.
 
-Message przenosi dane potrzebne odbiorcy i zachowuje pasywna semantyke danych.
+W Message najwazniejsza jest **tresc** (bufor danych). Intencja nie jest istotna: Message nie wyraza operacji, tylko przekazuje tresc.
 
-## Rozdzielenie od Command i Event
+## Rozdzielenie od innych kontraktow
+
+Message ma **osobna semantyke, kontrakt i kanal** od Command i Event. Rozgraniczenie jest czescia definicji wlasnej tresci:
 
 ```text
-Command -> "wykonaj te operacje"
-Event   -> "ten fakt juz zaszedl"
-Message -> "oto dane"
+Message -> "masz to, wez zapisz"   (adresowana tresc; dane dla odbiorcy)
 ```
 
-`Message`, `Command` i `Event` maja osobne semantyki, kontrakty i kanaly.
+Message przenosi tresc do **wskazanego odbiorcy**. Detale semantyki Command i Event znajduja sie w `command-semantics` i `event-semantics` — ten skill ich nie opisuje.
+
+## Zrodla Message
+
+Message moze powstac w trzech warstwach:
+
+- w warstwie **API** — tresc trafia z frontu/klienta do bufora;
+- w warstwie **process** — proces generuje tresc dla kolejnego skladnika;
+- w **agregacie** — agregat wysyla tresc przez `append_message` po zmianie stanu.
+
+Zrodla API i process tworza Message w warstwie aplikacyjnej i nie wymagaja atomowosci z wlasna zmiana stanu domeny. Agregat tworzy Message: `append_message` buforuje w `_messages`, warstwa aplikacji odbiera przez `pull_messages`.
+
+## Odbiorca
+
+Message jest zawsze adresowana do konkretnego agregatu. Kontrakt Message okresla adresata:
+
+- `recipient_aggregate_id` — docelowy agregat;
+- `recipient_aggregate_name` — typ docelowego agregatu.
+
+Message **nie wyraza operacji**: przekazuje tresc, a decyzja, co z nia zrobic, nalezy do agregatu odbiorcy albo Command Handlers.
+
+## Tresc i duze bufory
+
+Message moze przenosic duze bufory danych. Duza tresc nie jest umieszczana w kopercie transportowej w calosci:
+
+- mala tresc: pole `text` (inline);
+- duza tresc: pole referencji (`content_ref`) do przechowywanego bufora; odbiorca pobiera tresc na zadanie.
+
+Koperta transportowa pozostaje lekka; broker nie przenosi wielkich dokumentow w payload. Zasada `text` XOR `content_ref` — jeden z nich jest zawsze obecny, nigdy pusty.
+
+## Transport — point-to-point
+
+Message jest adresowana do konkretnego agregatu, wiec transport jest **point-to-point**, nie broadcast jak Event. Routing kieruje wylacznie do `recipient` (kolejka per odbiorca albo klucz routingu destination); brak fan-outu. Kolejka konsumenta nie wiaze wzorca „lap wszystko" (`#`) dla message.
+
+## Zrodlo-swiadoma atomowosc
+
+Zmiana-stanu nie jest zrodlem message zawsze. Sposob zapisu do outbox_message zalezy od zrodla:
+
+- **API / process** — message nie jest skutkiem mutacji agregatu; niezalezny zapis do `outbox_message` (wlasna sesja publishera) jest poprawny — nie ma stanu domeny do atomizacji;
+- **agregat** — message powstaje przy zmianie stanu (`append_message`); zapis atomowy przez UoW (`pull_messages` → `stage_messages` → `outbox_message` w tej samej transakcji).
+
+Message z agregatu nigdy nie jest gubiona miedzy commitem domeny a outboxem; zapis i stan domeny tworza jedna transakcje.
+
+## Przeplyw Message
+
+```text
+zrodlo (API | process | agregat)
+    -> Message (DomainMessage / IntegrationMessage)
+    -> outbox_message
+    -> relay -> transport
+    -> inbox_message
+    -> MessageInboxProcessor -> MessageBus -> handler
+    -> agregat odbiorcy
+```
+
+## Dwa przeplywy
+
+Message najczesciej jest **prostym zapisem tresci do wskazanego agregatu** — pojedyncza dostawa, odbiorca zapisuje bufor danych albo wykorzystuje go jako kontekst.
+
+Wieloetapowy pipeline jest **opcjonalnym wariantem**, stosowanym wtedy, gdy tresc musi przejsc transformacje przez kolejne agregaty. Nie jest regula — domyslnym przeplywem jest prosty zapis do odbiorcy.
+
+## Przeplyw wieloetapowy (opcjonalny)
+
+Message moze wywolac ciag automatycznego przetwarzania tresci:
+
+```text
+fron -> agregat A (zapis bufora) -> agregat B (transformacja) -> agregat C (dalsza transformacja)
+```
+
+Pipeline Message jest **wielotransakcyjny i wieloetapowy**: kazda noga to osobna transakcja i osobna dostawa. Wymagania:
+
+- **trwaly stan procesu** — pozycja Message w pipeline jest utrwalana, awaria nie gubi przebiegu;
+- **idempotencja per etapt** — kazdy odbiorca deduplikuje dostawy po `outbox_id`;
+- **determinizm transformacji** — retry transformacji daje identyczny wynik albo jest no-op, wiec lancuch nie tworzy duplikatow;
+- **kolejnosc** — sasiednie etapy nie wyprzedzaja sie; `causation_id` wiaze etapt z poprzednim.
+
+`message_id` identyfikuje lancuch tresci; `causation_id` wskazuje poprzedni etapt; kazda noga ma wlasny `outbox_id`.
 
 ## Wlasnosc i kanaly
 
-- `DomainMessage` i `IntegrationMessage` maja osobne kontrakty od `DomainEvent` i `IntegrationEvent`.
-- Message ma osobny registry, serializer, deserializer, bus, outbox i inbox.
-- `message_id` identyfikuje dane Message, a `event_id` identyfikuje fakt Event.
-- Referencja do `event_id` w kontrakcie Message opisuje powiazanie danych z faktem.
-- `schema_version` Message dotyczy schematu danych Message i jest niezalezny od wersji schematu eventu.
+- `DomainMessage` i `IntegrationMessage` maja osobny kontrakt, registry, serializer, deserializer, bus, outbox i inbox.
+- `message_id` identyfikuje tresc Message.
+- Referencja do powiazanego faktu w kontrakcie Message (jesli wystepuje) opisuje zaleznosc tresci od faktu — szczegoly faktu opisuje `event-semantics`.
+- `schema_version` Message dotyczy schematu tresci Message.
 
 ## Pola czasu
 
-Pole czasu w Message opisuje techniczny czas utworzenia, wyslania lub odebrania danych. Pole `occurred_at` opisuje czas zajscia faktu Event. Nowe kontrakty stosuja nazwe zgodna z semantyka, np. `created_at`, `sent_at` lub `received_at`.
+Pole czasu w Message opisuje techniczny czas utworzenia, wyslania lub odebrania tresci (`created_at`, `sent_at`, `received_at`). Nowe kontrakty stosuja nazwe zgodna z semantyka, np. `created_at`, `sent_at` lub `received_at`.
 
 ## Implementacja
 
-- Message przenosi dane pomiedzy komponentami.
-- Handler Message zapisuje dane albo przekazuje je dalej.
-- Decyzja biznesowa nalezy do agregatu, Command Handlera albo osobnego komponentu domenowego.
-- `MessageSerializer` i `MessageDeserializer` maja osobny kontrakt od serializerow i deserializerow eventow.
-- Wspolna konwersja wartosci technicznych zachowuje osobne kontrakty semantyczne.
+- Message przenosi tresc pomiedzy komponentami.
+- Handler Message zapisuje tresc albo przekazuje ja dalej.
+- Decyzja biznesowa nalezy do agregatu odbiorcy albo osobnego komponentu domenowego.
+- `MessageSerializer` i `MessageDeserializer` maja osobny kontrakt od serializerow eventow (patrz `event-semantics`).
 
-## Istniejacy kod
+## Istniejacy kod i stan docelowy
 
-`DomainMessage` i `IntegrationMessage` sa kontraktami danych platformy. Ich techniczne pola definiuja osobny lifecycle, registry, serializer i deserializer. Zmiana semantyki korzysta z osobnego kontraktu i testu.
+Fakt: `DomainMessage` (shell/platform/domain/messages/domain_message.py) i `IntegrationMessage` (shell/platform/application/messages/integration_message.py) sa kontraktami tresci platformy. Ich techniczne pola definiuja osobny lifecycle, registry, serializer i deserializer.
+
+Regula docelowa: kontrakt Message uzupelnia sie o adresata (`recipient_aggregate_id`, `recipient_aggregate_name`), pole tresci (`text` i/lub `content_ref`) oraz pole etapu pipeline (`stage`). Mapping Message nie tworzy faktu, tylko przekazuje tresc.

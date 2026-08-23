@@ -112,31 +112,6 @@ Idempotentność na dwóch poziomach:
 | `EventDeserializer` | `shell/platform/infrastructure/serialization/event_deserializer.py` | Deserializacja z rejestrem klas |
 | `build_event_registry()` | `shell/platform/infrastructure/serialization/event_registry.py` | Auto-generowany rejestr event → klasa |
 
-## Saga — choreografia vs orkiestracja
-
-> **Zakres**: Architektura SHELL przewiduje sagę w warstwie `shell/process/`. Poniższy opis definiuje wzorzec docelowy.
-
-Saga to wzorzec realizacji długotrwałego procesu biznesowego przez sekwencję lokalnych transakcji. Każdy krok to osobna transakcja na pojedynczym agregacie.
-
-### Choreografia (event-driven saga)
-
-Każdy krok słucha eventów poprzedniego i emituje event dla następnego. Choreografia rozdziela koordynacje pomiedzy uczestnikow.
-
-**Kiedy użyć:**
-- Prosty flow liniowy (≤ 5 kroków)
-- Wszystkie kroki w jednym bounded context
-- Prosty flow korzysta z lokalnych transakcji i lokalnej obsługi błędów.
-
-### Orkiestracja (orchestration-based saga)
-
-Centralny koordynator (Saga Manager / Process Manager) śledzi stan całego procesu i wywołuje kolejne kroki.
-
-**Kiedy użyć:**
-- Złożony flow z warunkami, pętlami, timeoutami
-- Wiele bounded context
-- Potrzeba centralnego widoku stanu procesu
-- Kompensacja gdy flow się nie powiedzie
-
 ## Event ordering i śledzenie przyczyn
 
 ### FIFO per aggregate

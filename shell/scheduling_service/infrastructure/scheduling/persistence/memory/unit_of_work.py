@@ -63,6 +63,7 @@ class InMemorySchedulingUnitOfWork(UnitOfWork):
         repo: Any = self.repository(repo_type)
         await repo.save(aggregate)
         self.stage_events(aggregate.pull_events())  # type: ignore[attr-defined]
+        self.stage_messages(aggregate.pull_messages())  # type: ignore[attr-defined]
 
     def stage_messages(self, messages: list[object]) -> None:
         self._staged_messages.extend(messages)

@@ -19,7 +19,7 @@ IntegrationEvent
     publiczny fakt dla innych BC
 ```
 
-IntegrationEvent opisuje publiczny fakt, `Command` wyraza intencje operacji, `Message` przenosi pasywne dane, a koperta transportuje metadane i payload eventu.
+IntegrationEvent opisuje publiczny fakt, `Command` wyraza intencje operacji, `Message` przenosi adresowana tresc (dane dla wskazanego odbiorcy), a koperta transportuje metadane i payload eventu.
 
 Odbiorca reaguje na fakt we wlasnym bounded context i korzysta z publicznego kontraktu IntegrationEvent.
 

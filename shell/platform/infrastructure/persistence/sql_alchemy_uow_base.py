@@ -16,6 +16,8 @@ from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.platform.infrastructure.context import (
+    get_causation_id,
+    get_correlation_id,
     get_session_scope,
 )
 from shell.platform.infrastructure.messaging.transport.source_service import (
@@ -23,6 +25,9 @@ from shell.platform.infrastructure.messaging.transport.source_service import (
 )
 from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
     IntegrationEventSerializer,
+)
+from shell.platform.infrastructure.serialization.message.domain_message_serializer import (
+    DomainMessageSerializer,
 )
 
 if TYPE_CHECKING:
@@ -115,6 +120,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         await repo.save(aggregate)
         domain_events = aggregate.pull_events()  # type: ignore[attr-defined]
         self.stage_events(domain_events)
+        self.stage_messages(aggregate.pull_messages())  # type: ignore[attr-defined]
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWorkBase:
         scope = get_session_scope()
@@ -192,6 +198,21 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
                     payload=envelope["payload"],
                 )
             )
+
+        if self._staged_messages:
+            message_serializer = DomainMessageSerializer()
+            for domain_message in self._staged_messages:
+                self._session.add(
+                    self._models.messages.outbox(
+                        id=self._id_generator.new_id(),
+                        message_type=type(domain_message).__name__,
+                        occurred_at=domain_message.occurred_at.value,  # type: ignore[attr-defined]
+                        payload=message_serializer.to_payload(domain_message),
+                        correlation_id=get_correlation_id(),
+                        causation_id=get_causation_id(),
+                        published_at=None,
+                    )
+                )
 
     async def rollback(self) -> None:
         if self._session is not None:

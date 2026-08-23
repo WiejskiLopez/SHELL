@@ -9,8 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.exceptions import DomainError
+
 if TYPE_CHECKING:
     from datetime import datetime
+
+    from shell.platform.types import JsonStr
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,3 +26,12 @@ class IntegrationMessage:
     aggregate_id: str
     aggregate_name: str
     schema_version: int
+    recipient_aggregate_id: str
+    recipient_aggregate_name: str
+    state_data: JsonStr
+
+    def __post_init__(self) -> None:
+        if (self.recipient_aggregate_id is None) != (self.recipient_aggregate_name is None):
+            raise DomainError(
+                "recipient_aggregate_id and recipient_aggregate_name must both be set or both be None"
+            )

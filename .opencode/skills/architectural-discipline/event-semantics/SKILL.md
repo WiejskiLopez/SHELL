@@ -7,13 +7,9 @@ description: "Semantyka Event w architekturze SHELL: niemutowalny fakt, ktory za
 
 ## Definicja
 
-`Event` opisuje fakt, ktory juz zaszedl. Payload eventu zawiera dane faktu, a Command wyraza intencje wykonania operacji.
+`Event` opisuje fakt, ktory juz zaszedl. Payload eventu zawiera dane faktu.
 
-```text
-Command -> intencja: "zrob"
-Event   -> fakt: "stalo sie"
-Message -> dane: "oto wartosci"
-```
+Fakt to doslowna, prawdziwa tresc tego skilla: `Event -> fakt: "stalo sie"`. Semantyka Command i Message zyje w osobnych skillach (`command-semantics`, `message-semantics`).
 
 ## Dwa poziomy eventu
 
@@ -25,7 +21,7 @@ IntegrationEvent
     publiczna reprezentacja tego samego faktu dla innych bounded contexts
 ```
 
-`DomainEvent` i `IntegrationEvent` maja semantyke faktu, `Command` ma semantyke intencji, a `Message` ma semantyke pasywnych danych.
+Oba poziomy maja semantyke faktu.
 
 ## Przeplyw
 
@@ -45,8 +41,7 @@ UoW przechowuje `DomainEvent`. Mapowanie odbywa sie na granicy integracji, przy 
 
 - `event_id` identyfikuje fakt biznesowy.
 - Jesli IntegrationEvent jest reprezentacja tego samego faktu, zachowuje ten sam `event_id`.
-- `event_id` identyfikuje fakt, `message_id` identyfikuje Message, a `outbox_id` identyfikuje rekord nadawcy przenoszony przez envelope.
-- Event posiada tozsamosc faktu, a koperta posiada tozsamosc dostarczenia.
+- Event posiada tozsamosc faktu, a koperta posiada tozsamosc dostarczenia (patrz `integration-patterns/event-driven-integration`).
 
 ## Metadata i payload
 

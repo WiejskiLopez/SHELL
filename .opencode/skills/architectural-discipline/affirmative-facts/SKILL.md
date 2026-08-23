@@ -23,7 +23,7 @@ Fakt daje czytelnikowi wiedze o rzeczywistosci:
 Fakt zapisuj zdaniem twierdzacym z jawnym podmiotem i orzeczeniem.
 
 ```text
-Message przenosi pasywne dane.
+Message przenosi adresowana tresc.
 Command wyraza intencje wykonania operacji.
 Event opisuje fakt, ktory juz zaszedl.
 UnitOfWork przechowuje DomainEvent.
