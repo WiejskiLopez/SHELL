@@ -36,8 +36,6 @@ _USER_TABLES: tuple[Table, ...] = cast(
         PERSISTENCE_DELIVERY_MODELS.audit.__table__,
         OutboxEventModel.__table__,
         InboxEventModel.__table__,
-        PERSISTENCE_DELIVERY_MODELS.messages.outbox.__table__,
-        PERSISTENCE_DELIVERY_MODELS.messages.inbox.__table__,
         PERSISTENCE_DELIVERY_MODELS.commands.outbox.__table__,
         PERSISTENCE_DELIVERY_MODELS.commands.inbox.__table__,
         PERSISTENCE_DELIVERY_MODELS.processed_delivery.__table__,

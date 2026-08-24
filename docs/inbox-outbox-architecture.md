@@ -2,6 +2,9 @@
 
 Status: propozycja architektury i plan migracji  
 Data audytu: 2026-08-12
+Aktualizacja: 2026-08-24 — kanał **Message** (message outbox/inbox) został
+**usunięty** z SHELL; patrz `outbox.md` (STATUS) i `docs/messages-removed.md`.
+Pozostałe sekcje poniżej dotyczą kanałów **Event** i **Command**.
 
 ## Cel
 
@@ -43,8 +46,6 @@ Ich tabele mają wspólne nazwy:
 ```text
 outbox_event
 inbox_event
-outbox_message
-inbox_message
 outbox_command
 inbox_command
 ```

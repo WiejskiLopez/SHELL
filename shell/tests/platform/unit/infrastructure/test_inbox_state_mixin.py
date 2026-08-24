@@ -14,9 +14,6 @@ from shell.platform.infrastructure.persistence.sql.models.command_delivery impor
 from shell.platform.infrastructure.persistence.sql.models.event_delivery import (
     build_event_delivery_models,
 )
-from shell.platform.infrastructure.persistence.sql.models.message_delivery import (
-    build_message_delivery_models,
-)
 
 _OPERATIONAL_COLUMNS = {
     "status",
@@ -45,11 +42,6 @@ class TestInboxStateMixinColumns:
     def test_event_inbox_has_operational_columns(self) -> None:
         base = _new_base()
         models = build_event_delivery_models(base)
-        assert _OPERATIONAL_COLUMNS.issubset(models.inbox.__table__.columns.keys())
-
-    def test_message_inbox_has_operational_columns(self) -> None:
-        base = _new_base()
-        models = build_message_delivery_models(base)
         assert _OPERATIONAL_COLUMNS.issubset(models.inbox.__table__.columns.keys())
 
     def test_command_inbox_has_operational_columns(self) -> None:

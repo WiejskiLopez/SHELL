@@ -15,10 +15,6 @@ from shell.platform.infrastructure.persistence.sql.models.event_delivery import 
     EventDeliveryModels,
     build_event_delivery_models,
 )
-from shell.platform.infrastructure.persistence.sql.models.message_delivery import (
-    MessageDeliveryModels,
-    build_message_delivery_models,
-)
 from shell.platform.infrastructure.persistence.sql.models.processed_delivery import (
     build_processed_delivery_model,
 )
@@ -32,7 +28,6 @@ if TYPE_CHECKING:
 
 class PersistenceDeliveryModels(NamedTuple):
     events: EventDeliveryModels
-    messages: MessageDeliveryModels
     commands: CommandDeliveryModels
     audit: type[DeclarativeBase]
     processed_delivery: type[DeclarativeBase]
@@ -46,7 +41,6 @@ def build_persistence_delivery_models(
 
     return PersistenceDeliveryModels(
         events=build_event_delivery_models(base),
-        messages=build_message_delivery_models(base),
         commands=build_command_delivery_models(base),
         audit=build_audit_event_model(base),
         processed_delivery=build_processed_delivery_model(base),

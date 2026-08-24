@@ -30,7 +30,7 @@ Konkretne value objects w `shell/platform/domain/value_objects/`:
 - `DeletedAt` — `value: datetime | None = None`, walidacja warunkowa, `none()`, `now()`, `from_datetime(dt | None)`; singleton `NONE_DELETED_AT: DeletedAt = DeletedAt(value=None)`.
 - `SchemaVersion` — `value: int` (bez walidacji).
 - `AggregateId`, `AggregateName` — `value: str`; identyfikator i nazwa agregatu na eventach.
-- `EventId`, `MessageId` — `value: str` z `generate()` (`uuid.uuid4`) — patrz [entity-id](entity-id.md).
+- `EventId` — `value: str` z `generate()` (`uuid.uuid4`) — patrz [entity-id](entity-id.md).
 - `ExistsResult` — `value: bool`, implementuje `__bool__` zwracające `self.value`; typ zwracany przez `RepositoryPort.exists()`.
 
 Wzorce konwencji:
@@ -58,4 +58,3 @@ Wzorce konwencji:
 - [entity](entity.md)
 - [aggregate-root](aggregate-root.md)
 - [domain-event](domain-event.md)
-- [domain-message](domain-message.md)

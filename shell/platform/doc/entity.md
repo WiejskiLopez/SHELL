@@ -43,7 +43,7 @@ def __hash__(self) -> int:
 
 Zachowania:
 
-- `TId` jest nieprzezroczyste — klasa nie zakłada żadnego konkretnego typu identyfikatora; w praktyce to pochodne `EntityId` (np. `AggregateId`, `EventId`, `MessageId` — patrz [entity-id](entity-id.md)).
+- `TId` jest nieprzezroczyste — klasa nie zakłada żadnego konkretnego typu identyfikatora; w praktyce to pochodne `EntityId` (np. `AggregateId`, `EventId` — patrz [entity-id](entity-id.md)).
 - Porównanie z obiektem, który nie jest encją, zwraca `NotImplemented`.
 - `__hash__` deleguje do `hash(self._id)`, więc encje są bezpieczne w `set`/`dict` przy zachowaniu spójności z `__eq__`.
 - `__slots__` ogranicza instancje do `_id` — brak dynamicznych atrybutów, niższe zużycie pamięci.

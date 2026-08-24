@@ -5,7 +5,7 @@
 Definiuje kontrakt transakcyjnej jednostki pracy (port `UnitOfWork`) oraz
 wspólną implementację bazową `SqlAlchemyUnitOfWorkBase`, z której dziedziczą
 UoW poszczególnych bounded contextów. UoW zarządza sesją SQLAlchemy, kolekcją
-zdarzeń/message stage'owanych do outboxu, zapisem agregatów oraz zamykaniem
+zdarzeń stage'owanych do outboxu, zapisem agregatów oraz zamykaniem
 transakcji (commit/rollback), a w trybie deferred — odłożeniem commita do
 transakcji należącej do delivery processora (sesja z
 [DeliverySessionScope](session-scope.md)).
@@ -20,13 +20,12 @@ najprościej przez współdzielenie sesji między handlerem a delivery processor
 
 ## Realizacja techniczna
 
-### Port — `shell/platform/application/ports/unit_of_work.py`
+### Port — `shell/platform/application/ports/persistence/unit_of_work.py`
 
 `UnitOfWork(Protocol)` deklaruje:
 
 - `repository(repo_type) -> Any` — dostęp do repozytorium po typie portu;
-- `stage_events(events: Sequence[object])` i `stage_messages(messages: list[object])`
-  — buforowanie zdarzeń/message do zapisu w outboxie;
+- `stage_events(events: Sequence[object])` — buforowanie zdarzeń do zapisu w outboxie;
 - `async save(repo_type, aggregate)` — zapis agregatu;
 - `events -> Sequence[object]` — odczyt stage'owanych zdarzeń;
 - `async commit()`, `async rollback()`;
@@ -40,8 +39,7 @@ najprościej przez współdzielenie sesji między handlerem a delivery processor
 - konstruktor przyjmuje `session_factory: async_sessionmaker[AsyncSession]`,
   `models: PersistenceDeliveryModels | None` (wymagane — `ValueError`, gdy
   `None`) i opcjonalny `mapper`;
-- stan: `_staged_events`, `_staged_messages`, `_committed`,
-  `_deferred_commit`, `_session`.
+- stan: `_staged_events`, `_committed`, `_deferred_commit`, `_session`.
 
 Kluczowe metody:
 
@@ -51,9 +49,8 @@ Kluczowe metody:
   adapter `sql_type(self._active_session)`; nieznany typ kończy się
   `ValueError("Unknown repository type for this BC: ...")`.
 - `save(repo_type, aggregate)` — zapisuje agregat przez repozytorium, potem
-  `aggregate.pull_events()` (bufory zdarzeń z `AggregateRoot`); gdy podano
-  `mapper`, mapuje każde zdarzenie `self._mapper.map(e)` i stage'uje wynik,
-  w przeciwnym razie stage'uje surowe zdarzenia.
+  `aggregate.pull_events()` (bufory zdarzeń z `AggregateRoot`) i stage'uje
+  zdarzenia.
 - `__aenter__` — pobiera `get_session_scope()`:
   - gdy scope aktywny → `self._session = scope.session`, `_deferred_commit = True`
     (delivery processor jest właścicielem transakcji);
@@ -65,38 +62,34 @@ Kluczowe metody:
   - deferred: `await self._session.flush()` (materializacja zmian w wspólnej
     transakcji — realny commit należy do processora);
   - nie-deferred: `await self._session.commit()`;
-  następnie czyści bufor zdarzeń/message i ustawia `_committed = True`.
+  następnie czyści bufor zdarzeń i ustawia `_committed = True`.
   Wyjątek `StaleDataError` (konflikt wersji optimistic locking) → `rollback()`
   sesji i podniesienie `ConcurrentModificationError("Aggregate", str(exc))`
   z `shell/platform/domain/exceptions/concurrent_modification_error.py`.
 - `rollback()` — `await self._session.rollback()`, czyści bufory, a przy
   `_deferred_commit` ustawia `scope.rolled_back = True` — sygnał dla processora,
   by przerwać transakcję i zaplanować retry zamiast ack.
-- `_write_staged_outbox()` — dla każdego stage'owanego zdarzenia buduje payload
-  przez `DomainEventSerializer().to_payload(event)` (pomija pola `occurred_at`
-  i `schema_version`), pobiera `event_type = type(event).__name__`, `occurred_at`
-  (`.value` gdy wartość ma atrybut `.value`, np. `CreatedAt`) i zapisuje:
-  - wiersz outboxu `self._models.events.outbox(id=str(uuid.uuid4()), event_type=...,
-    occurred_at=..., payload=..., correlation_id=get_correlation_id(),
-    causation_id=get_causation_id())` — tabela `outbox_event` (`event_delivery.py`);
-  - wiersz audytu `self._models.audit(id=str(uuid.uuid4()), event_type=...,
-    occurred_at=..., payload=...)`.
-  Uwaga: bazowa klasa serializuje wyłącznie `_staged_events`; `stage_messages`
-  jest częścią protokołu (bufor `_staged_messages`) dla podklas obsługujących
-  osobne outboxy message/command.
+- `_write_staged_outbox()` — dla każdego stage'owanego zdarzenia mapuje je przez
+  `self._mapper.map(event)` na `IntegrationEvent`, buduje envelope przez
+  `IntegrationEventSerializer().to_envelope(...)` (payload biznesowy + metadata)
+  i zapisuje:
+  - wiersz outboxu `self._models.events.outbox(...)` — tabela `outbox_event`
+    (`event_delivery.py`);
+  - wiersz audytu `self._models.audit(...)`.
+  Zapis odbywa się w tej samej transakcji co zmiana domenowa (commit/flush).
 
 Modele persistence: `PersistenceDeliveryModels` (NamedTuple z
-`events/messages/commands/audit/processed_delivery/worker_heartbeat`) buduje
+`events/commands/audit/processed_delivery/worker_heartbeat`) buduje
 `build_persistence_delivery_models(base)` z
 `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`.
 
 ## Kluczowe pliki
 
-- `shell/platform/application/ports/unit_of_work.py`
+- `shell/platform/application/ports/persistence/unit_of_work.py`
 - `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`
 - `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`
 - `shell/platform/infrastructure/persistence/sql/models/event_delivery.py`
-- `shell/platform/infrastructure/serialization/event_serializer.py`
+- `shell/platform/infrastructure/serialization/event/integration_event_serializer.py`
 - `shell/platform/domain/exceptions/concurrent_modification_error.py`
 - `shell/platform/domain/base/aggregate_root.py`
 

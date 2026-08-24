@@ -35,7 +35,6 @@ class InMemorySessionUnitOfWork(UnitOfWork):
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
-        self._staged_messages: list[object] = []
         self._committed_events: list[DomainEvent] = []
 
     def repository(self, repo_type: type[TRepository]) -> TRepository:
@@ -60,10 +59,6 @@ class InMemorySessionUnitOfWork(UnitOfWork):
         domain_events = aggregate.pull_events()  # type: ignore[attr-defined]
         mapped = [self._mapper.map(event) for event in domain_events]
         self.stage_events(mapped)
-        self.stage_messages(aggregate.pull_messages())  # type: ignore[attr-defined]
-
-    def stage_messages(self, messages: list[object]) -> None:
-        self._staged_messages.extend(messages)
 
     @property
     def events(self) -> list[DomainEvent]:
@@ -76,7 +71,6 @@ class InMemorySessionUnitOfWork(UnitOfWork):
     async def __aenter__(self) -> InMemorySessionUnitOfWork:
         self._committed = False
         self._staged_events = []
-        self._staged_messages = []
         self._committed_events = []
         return self
 
@@ -90,7 +84,6 @@ class InMemorySessionUnitOfWork(UnitOfWork):
         self._committed = True
         self._committed_events.extend(self._staged_events)
         self._staged_events.clear()
-        self._staged_messages.clear()
 
     async def rollback(self) -> None:
         self._staged_events.clear()

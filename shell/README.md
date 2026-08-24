@@ -403,7 +403,7 @@ platform/
 ├── domain/exceptions/              ← DomainError
 ├── domain/ports/                   ← RepositoryPort (generic Protocol)
 ├── domain/value_objects/           ← Shared VOs (CreatedAt, UpdatedAt itp.)
-├── application/bus/                ← CommandBus, QueryBus, EventBus, MessageBus
+├── application/bus/                ← CommandBus, QueryBus, EventBus
 ├── application/context/            ← CorrelationId, CausationId
 ├── application/exceptions/         ← ApplicationError
 ├── application/ports/              ← UnitOfWork, Clock, IdGenerator itp.
@@ -505,7 +505,7 @@ dto: UserDto | None = await query_bus.dispatch(
 | **execution** | `workflow`, `graph_execution`, `node_execution`, `edge_execution`, `session_execution`, `task_execution`, `envelope`, `node_result`, `prompt` |
 | **project** | `project`, `project_skill`, `project_state` |
 | **scheduling** | `scheduler_definition`, `scheduler_job`, `scheduler_execution` |
-| **ingestion** | `ingestion`, `outbox_event`, `inbox_event`, `outbox_message`, `inbox_message`, `outbox_command`, `inbox_command`, `audit_event` |
+| **ingestion** | `ingestion`, `outbox_event`, `inbox_event`, `outbox_command`, `inbox_command`, `audit_event` |
 | **pozostałe BC** | własne tabele domenowe oraz te same lokalne tabele delivery |
 
 ### Migracje

@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Implementuje wzorzec transactional outbox dla eventów, messages i commands. Stan domeny oraz odpowiedni outbox są zapisywane atomowo przez `SqlAlchemyUnitOfWorkBase.commit()` → `_write_staged_outbox()`, a `OutboxToTransportRelay` publikuje każdy rodzaj przez jeden kontrakt transportowy.
+Implementuje wzorzec transactional outbox dla eventów (atomowo ze stanem domeny) i komend (niezależny zapis poza UoW). Stan domeny oraz odpowiedni outbox są zapisywane atomowo przez `SqlAlchemyUnitOfWorkBase.commit()` → `_write_staged_outbox()`, a `OutboxToTransportRelay` publikuje każdy rodzaj przez jeden kontrakt transportowy.
 
 ## Problem
 
@@ -12,7 +12,7 @@ Klasyczny dual write — zapis stanu w bazie i wysłanie do brokera w osobnych t
 
 ### Zapis w jednym UoW
 
-`SqlAlchemyUnitOfWorkBase` (port `UnitOfWork`) gromadzi zdarzenia przez `stage_events()` (a wiadomości przez `stage_messages()`). W `commit()` wywoływany jest `_write_staged_outbox()`, który w tej samej sesji i transakcji:
+`SqlAlchemyUnitOfWorkBase` (port `UnitOfWork`) gromadzi zdarzenia przez `stage_events()`. W `commit()` wywoływany jest `_write_staged_outbox()`, który w tej samej sesji i transakcji:
 
 - mapuje każde zdarzenie przez `ReflectiveIntegrationMapper` do `IntegrationEvent`;
 - serializuje IntegrationEvent przez `IntegrationEventSerializer.to_envelope(...)`;
@@ -22,23 +22,17 @@ Klasyczny dual write — zapis stanu w bazie i wysłanie do brokera w osobnych t
 
 Commit w trybie zwykłym wykonuje `session.commit()`. W trybie deferred (`__aenter__` z aktywnym scope) wykonuje tylko `session.flush()` — fizyczny commit należy do procesora inbox, dzięki czemu efekt + outbox + ack są jednym.
 
-### Zapis message i command poza UoW domenowym
+### Zapis command poza UoW domenowym
 
-`SqlMessageOutboxPublisher.publish(messages: Sequence[object])` i `SqlCommandOutboxPublisher.publish(...)` zapisują kontrakt do odpowiedniego outboxa, gdy powstaje poza domenowym UoW:
+`SqlCommandOutboxPublisher.publish(...)` zapisuje komendę do outboxa, gdy powstaje poza domenowym UoW:
 
-- odczytują kontekst tracingu: `correlation_id = get_correlation_id()`, `causation_id = get_causation_id()`;
-- tworzą serializer kontraktu i dla każdego obiektu:
-  - `payload = serializer.to_payload(...)`;
-  - `session.add(self._outbox_model(id=str(uuid.uuid4()), event_type|message_type=type(obj).__name__, occurred_at=obj.occurred_at.value, payload=payload, correlation_id=correlation_id, causation_id=causation_id, published_at=None))`;
-- commit w `async with self._session_factory() as session`.
-
-`SqlCommandOutboxPublisher.publish(command_type, payload, occurred_at)` ma jawniejszy kontrakt — przyjmuje gotowy `command_type` i `payload`, zapisuje wiersz z `correlation_id`/`causation_id` z kontekstu (bez kolumny `published_at` w wywołaniu, bo model komend go nie ma) i commituje.
-
-Publisher message/command pracuje na własnej sesji per wywołanie. Każdy zapisany rekord jest później publikowany wyłącznie przez `OutboxToTransportRelay`. Właścicielem modeli jest per-BC bundle delivery, budowany z platformowych fabryk — patrz [delivery-models](delivery-models.md).
+- odczytuje kontekst tracingu: `correlation_id = get_correlation_id()`, `causation_id = get_causation_id()`;
+- zapisuje wiersz z `command_type`, `payload`, `correlation_id`/`causation_id` z kontekstu i commituje we własnej sesji per wywołanie.
+- Każdy zapisany rekord jest później publikowany wyłącznie przez `OutboxToTransportRelay`. Właścicielem modeli jest per-BC bundle delivery, budowany z platformowych fabryk — patrz [delivery-models](delivery-models.md).
 
 ### Nieudana serializacja
 
-W event/message publisherach niepowodzenie `to_payload` jest logowane jako `critical` („Failed to serialize event ... — event LOST") i ponownie podnoszone (`raise`) — wiadomość nigdy nie jest cicho porzucana.
+W publisherach niepowodzenie serializacji jest logowane jako `critical` i ponownie podnoszone (`raise`) — wiadomość nigdy nie jest cicho porzucana.
 
 ### Rola relaya
 
@@ -46,10 +40,9 @@ Wiersz outboxa zostaje z `published_at=None`; `OutboxToTransportRelay` publikuje
 
 ## Kluczowe pliki
 
-- `shell/platform/infrastructure/messaging/message/sql_message_outbox_publisher.py`
 - `shell/platform/infrastructure/messaging/command/sql_command_outbox_publisher.py`
 - `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py` (`_write_staged_outbox`)
-- `shell/platform/application/ports/unit_of_work.py` (`UnitOfWork`)
+- `shell/platform/application/ports/persistence/unit_of_work.py` (`UnitOfWork`)
 
 ## Powiązane koncepcje
 

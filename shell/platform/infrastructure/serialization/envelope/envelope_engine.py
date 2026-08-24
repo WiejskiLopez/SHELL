@@ -1,8 +1,8 @@
-"""Shared envelope engine for event/message/command payloads.
+"""Shared envelope engine for event and command delivery payloads.
 
-The three delivery kinds differ only in the envelope key (``event_type``,
-``message_type``) and the registry they deserialize against.  This module
-implements that shape once; event/message/command modules are thin facades.
+The two delivery kinds differ only in the envelope key (``event_type``,
+``command_type``) and the registry they deserialize against.  This module
+implements that shape once; event/command modules are thin facades.
 """
 
 from __future__ import annotations
@@ -68,7 +68,7 @@ class EnvelopeDeserializer:
         registry: dict[str, type],
         upcaster: PayloadUpcaster | None = None,
         payload_deserializer: PayloadObjectDeserializer | None = None,
-        kind: str = "message",
+        kind: str = "event",
     ) -> None:
         self._registry = registry or {}
         self._upcaster = upcaster

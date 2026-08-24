@@ -17,7 +17,6 @@ class SessionSqlAlchemyModelBase(SqlAlchemyModelBase):
 
 PERSISTENCE_DELIVERY_MODELS = build_persistence_delivery_models(SessionSqlAlchemyModelBase)
 EVENT_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.events
-MESSAGE_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.messages
 COMMAND_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.commands
 InboxEventModel = EVENT_DELIVERY_MODELS.inbox
 OutboxEventModel = EVENT_DELIVERY_MODELS.outbox

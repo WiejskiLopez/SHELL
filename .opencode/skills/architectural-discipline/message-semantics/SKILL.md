@@ -1,9 +1,23 @@
 ---
 name: message-semantics
-description: "Semantyka Message w architekturze SHELL: adresowana tresc (tekst lub bufor danych) przekazywana od zrodla do wskazanego odbiorcy. Uzywaj przy projektowaniu, review lub serializacji DomainMessage i IntegrationMessage."
+description: "STATUS: KANAŁ MESSAGE USUNIĘTY (2026-08-24). Niniejszy skill opisuje historiczną semantykę i warunki, w jakich kanał treści mógłby wrócić. Używaj wyłącznie przy ocenie, czy realna potrzeba uzasadnia ponowne wprowadzenie content-delivery."
 ---
 
 # Message Semantics
+
+## STATUS: kanał usunięty
+
+Kanał **Message** (adresowana treść) został **usunięty** z SHELL 2026-08-24 —
+nie miał ani producenta, ani konsumenta w produkcji; komunikację realizują
+wyłącznie **Event** (broadcast faktu) i **Command** (intencja, Command Port/HTTP).
+Decyzja i uzasadnienie: `docs/messages-removed.md`.
+
+**Nie odtwarzaj maszynerii message bez realnego wymagania.** Poniższa semantyka
+opisuje tylko *jak wyglądałby* kanał treści, gdyby taka potrzeba faktycznie
+istniała (np. asynchroniczny, wieloetapowy pipeline treści systemu agentowego).
+Decyzja o kanale treści zawsze wg tabeli w `docs/messages-removed.md`:
+skutek faktu → **event**; proste adresowane zapisanie/akcja → **Command Port**;
+dopiero długofalowy pipeline → **content-delivery** wg poniższych reguł.
 
 ## Definicja
 
@@ -55,10 +69,10 @@ Message jest adresowana do konkretnego agregatu, wiec transport jest **point-to-
 
 ## Zrodlo-swiadoma atomowosc
 
-Zmiana-stanu nie jest zrodlem message zawsze. Sposob zapisu do outbox_message zalezy od zrodla:
+Zmiana-stanu nie jest zrodlem message zawsze. Sposob zapisu do outboxa message zalezy od zrodla:
 
-- **API / process** — message nie jest skutkiem mutacji agregatu; niezalezny zapis do `outbox_message` (wlasna sesja publishera) jest poprawny — nie ma stanu domeny do atomizacji;
-- **agregat** — message powstaje przy zmianie stanu (`append_message`); zapis atomowy przez UoW (`pull_messages` → `stage_messages` → `outbox_message` w tej samej transakcji).
+- **API / process** — message nie jest skutkiem mutacji agregatu; niezalezny zapis do outboxa message (wlasna sesja publishera) jest poprawny — nie ma stanu domeny do atomizacji;
+- **agregat** — message powstaje przy zmianie stanu (`append_message`); zapis atomowy przez UoW (`pull_messages` → `stage_messages` → outbox message w tej samej transakcji).
 
 Message z agregatu nigdy nie jest gubiona miedzy commitem domeny a outboxem; zapis i stan domeny tworza jedna transakcje.
 
@@ -67,9 +81,9 @@ Message z agregatu nigdy nie jest gubiona miedzy commitem domeny a outboxem; zap
 ```text
 zrodlo (API | process | agregat)
     -> Message (DomainMessage / IntegrationMessage)
-    -> outbox_message
+    -> outbox message
     -> relay -> transport
-    -> inbox_message
+    -> inbox message
     -> MessageInboxProcessor -> MessageBus -> handler
     -> agregat odbiorcy
 ```

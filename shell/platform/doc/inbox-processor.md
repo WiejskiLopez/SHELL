@@ -98,13 +98,14 @@ return timedelta(seconds=delay + jitter)
 
 Domyślnie `retry_backoff_seconds=30`, `max_retry_backoff_seconds=3600`, `retry_jitter_seconds=0.0`, `max_retries=3`.
 
-### Podtypy (Event / Message / Command)
+### Podtypy (Event / Command)
 
 - **`EventInboxProcessor`** (`.../messaging/event/processor/event_inbox_processor.py`) — `_dispatch` → `self._event_bus.publish([domain_object])`; `_causation_value` z `event_id` (`.value` gdy obecny); `_type_name` → `event_row.event_type`; deserializacja przez `EventDeserializer(registry, upcaster)`.
-- **`MessageInboxProcessor`** (`.../messaging/message/processor/message_inbox_processor.py`) — `_dispatch` → `self._message_bus.publish([domain_object])`; `_causation_value` z `message_id`; `_type_name` → `message_row.message_type`; `MessageDeserializer(registry, upcaster)`.
 - **`CommandInboxProcessor`** (`.../messaging/command/processor/command_inbox_processor.py`) — `_dispatch` → `self._command_bus.dispatch(domain_object)`; `_causation_value` → `str(getattr(row, "causation_id", ""))`; `_type_name` → `command_row.command_type`; `CommandDeserializer(registry, upcaster)`.
 
-Wszystkie trzy wołają `super().__init__(...)` z tymi samymi parametrami operacyjnymi (`batch_size`, `max_retries`, backoff, `lease_duration_seconds`, `max_concurrency`, heartbeat, `max_batch_time_seconds`, opcjonalnie `processed_delivery_model` + `consumer_name`). Uruchamiane przez [polling-worker](polling-worker.md) (`PollingTask.run_once()`).
+> Kanał `MessageInboxProcessor` został usunięty — patrz `docs/messages-removed.md`.
+
+Oba wołają `super().__init__(...)` z tymi samymi parametrami operacyjnymi (`batch_size`, `max_retries`, backoff, `lease_duration_seconds`, `max_concurrency`, heartbeat, `max_batch_time_seconds`, opcjonalnie `processed_delivery_model` + `consumer_name`). Uruchamiane przez [polling-worker](polling-worker.md) (`PollingTask.run_once()`).
 
 ### Czas — zegar bazy
 
@@ -116,7 +117,6 @@ Wszystkie trzy wołają `super().__init__(...)` z tymi samymi parametrami operac
 - `shell/platform/infrastructure/messaging/inbox/inbox_batch_result.py`
 - `shell/platform/infrastructure/messaging/inbox/inbox_claim_service.py`
 - `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py`
-- `shell/platform/infrastructure/messaging/message/processor/message_inbox_processor.py`
 - `shell/platform/infrastructure/messaging/command/processor/command_inbox_processor.py`
 - `shell/platform/infrastructure/messaging/inbox/processed_delivery_store.py`
 

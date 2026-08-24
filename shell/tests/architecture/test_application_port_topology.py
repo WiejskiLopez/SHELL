@@ -18,7 +18,6 @@ PORTS = ROOT / "platform" / "application" / "ports"
 def test_application_ports_have_canonical_grouped_topology() -> None:
     expected_paths = (
         PORTS / "messaging" / "event_publisher.py",
-        PORTS / "messaging" / "message_publisher.py",
         PORTS / "persistence" / "unit_of_work.py",
         PORTS / "transport" / "delivery_transport.py",
         PORTS / "transport" / "delivery_dedup_store.py",

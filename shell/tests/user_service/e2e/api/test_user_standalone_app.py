@@ -99,8 +99,6 @@ async def test_user_baseline_creates_required_tables(tmp_path: pathlib.Path) -> 
         "audit_event",
         "outbox_event",
         "inbox_event",
-        "outbox_message",
-        "inbox_message",
         "outbox_command",
         "inbox_command",
         "processed_delivery",

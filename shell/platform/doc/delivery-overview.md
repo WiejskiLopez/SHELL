@@ -2,7 +2,9 @@
 
 ## Cel / Co realizuje
 
-Opisuje jedną ścieżkę przekazywania deliverable (event, message, command) między bounded contextami platformy SHELL: zapis w transakcyjnym outboxie, wspólny relay do transportu i brokera, zapis w inboxie, claim z lease, procesor oraz atomowy ack w konsumenckim BC. Wszystkie rodzaje korzystają z `OutboxToTransportRelay`, `DeliveryEnvelope`, `EnvelopeCodec` i odpowiedniego procesora inbox.
+Opisuje jedną ścieżkę przekazywania deliverable (event, command) między bounded contextami platformy SHELL: zapis w transakcyjnym outboxie, wspólny relay do transportu i brokera, zapis w inboxie, claim z lease, procesor oraz atomowy ack w konsumenckim BC. Wszystkie rodzaje korzystają z `OutboxToTransportRelay`, `DeliveryEnvelope`, `EnvelopeCodec` i odpowiedniego procesora inbox.
+
+> Kanał Message został usunięty — patrz `docs/messages-removed.md`.
 
 ## Problem
 
@@ -17,7 +19,7 @@ BC A (producent)
   API/CLI → Command → CommandBus → CommandHandler
     → UnitOfWork (SqlAlchemyUnitOfWorkBase) → Aggregate mutacja → stage_events()
     → commit: stan agregatu + outbox_event + audit (_write_staged_outbox)
-    UoW / outbox writer → outbox_event|outbox_message|outbox_command
+    UoW / outbox writer → outbox_event|outbox_command
   OutboxToTransportRelay → EnvelopeCodec.encode → DeliveryTransport.deliver → broker
                                    (JSON: kind, outbox_id, contract_type,
                                     occurred_at, schema_version, payload, metadata)
@@ -27,7 +29,7 @@ BC B (konsument)
   InboxClaimService.claim_batch
     → SELECT ... FOR UPDATE SKIP LOCKED (PENDING/RETRY i przeterminowane PROCESSING)
     → status=PROCESSING, claimed_by, lease_until (krótka transakcja)
-  InboxProcessorBase (Event/Message/CommandInboxProcessor)
+  InboxProcessorBase (Event/CommandInboxProcessor)
     _process_in_transaction
       → is_duplicate? (ProcessedDeliveryStore) → dispatch (bus) → handler w session scope
       → commit: efekt biznesowy + lokalny outbox + ack PROCESSED (jedna transakcja)
@@ -40,9 +42,9 @@ Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-
 - **Outbox (producent)** — trwały bufor deliverable zapisywany atomowo ze stanem domeny przez `SqlAlchemyUnitOfWorkBase`; `published_at` pozostaje puste do czasu potwierdzonego transportu.
 - **Relay** — jedyny `OutboxToTransportRelay` czyta odpowiednią tabelę outbox i publikuje kopertę do brokera. Pełny opis w [relay](relay.md).
 - **Transport** — port `DeliveryTransport`, realizowany przez adaptery brokerskie. `EnvelopeCodec` koduje `DeliveryEnvelope` do JSON z `outbox_id`, `contract_type`, `schema_version`, payloadem i metadanymi. Szczegóły w [delivery-transport](delivery-transport.md).
-- **Inbox (konsument)** — konsument generuje lokalne `inbox_event.id`/`inbox_message.id`/`inbox_command.id`, zapisuje `outbox_id` jako referencję do rekordu nadawcy i stosuje idempotencję po źródle oraz outboxie.
+- **Inbox (konsument)** — konsument generuje lokalne `inbox_event.id`/`inbox_command.id`, zapisuje `outbox_id` jako referencję do rekordu nadawcy i stosuje idempotencję po źródle oraz outboxie.
 - **Claim z lease** — `InboxClaimService.claim_batch()` przejmuje rekordy w krótkiej transakcji bez trzymania zamka na czas handlera (`SELECT ... FOR UPDATE SKIP LOCKED` na PostgreSQL; SQLite bez skip locked). Szczegóły w [claim-lease](claim-lease.md).
-- **Processor** — `InboxProcessorBase` realizuje wspólny cykl claim→process→ack; podtypy `EventInboxProcessor` (dispatch przez `EventPublisher`), `MessageInboxProcessor` (dispatch przez `MessagePublisher`), `CommandInboxProcessor` (dispatch przez `CommandBus`) dostarczają tylko deserializację, dispatch i wartość causation. Uruchamiany przez [polling-worker](polling-worker.md) (`PollingWorker.run()` → `task.run_once()`).
+- **Processor** — `InboxProcessorBase` realizuje wspólny cykl claim→process→ack; podtypy `EventInboxProcessor` (dispatch przez `EventPublisher`), `CommandInboxProcessor` (dispatch przez `CommandBus`) dostarczają tylko deserializację, dispatch i wartość causation. Uruchamiany przez [polling-worker](polling-worker.md) (`PollingWorker.run()` → `task.run_once()`).
 - **Handler w session scope** — `_process_in_transaction` publikuje sesję jako ambientowy scope (`DeliverySessionScope`), więc UoW handlera współdzieli tę samą sesję i odracza commit; jeden commit utrwala efekt + outbox + ack atomowo. Patrz [session-scope](session-scope.md).
 - **Dedup (fallback)** — dla handlerów, które nie mogą współdzielić transakcji procesora, wiersz `processed_delivery` zapisywany atomowo z efektem; `is_duplicate` sprawdzany przed dispatch. Patrz [processed-delivery-dedup](processed-delivery-dedup.md).
 - **Ack warunkowy** — `_acknowledge_in_session` ustawia `PROCESSED` warunkowym UPDATE kluczowanym po lokalnym `inbox.id + status + claimed_by`; jeżeli lease wygasł i rekord przejął inny worker, ack nie zmienia wiersza (rowcount=0).
@@ -63,10 +65,8 @@ Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-
 - `shell/platform/infrastructure/messaging/inbox/inbox_batch_result.py` (`InboxBatchResult`)
 - `shell/platform/infrastructure/messaging/inbox/processed_delivery_store.py` (`ProcessedDeliveryStore`)
 - `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` (`EventInboxProcessor`)
-- `shell/platform/infrastructure/messaging/message/processor/message_inbox_processor.py` (`MessageInboxProcessor`)
 - `shell/platform/infrastructure/messaging/command/processor/command_inbox_processor.py` (`CommandInboxProcessor`)
 - `shell/platform/infrastructure/serialization/event/integration_event_serializer.py` (`IntegrationEventSerializer`)
-- `shell/platform/infrastructure/messaging/message/sql_message_outbox_publisher.py` (`SqlMessageOutboxPublisher`)
 - `shell/platform/infrastructure/messaging/command/sql_command_outbox_publisher.py` (`SqlCommandOutboxPublisher`)
 - `shell/platform/infrastructure/messaging/transport/envelope_codec.py` (`EnvelopeCodec`)
 - `shell/platform/infrastructure/messaging/polling_worker.py` (`PollingWorker`, `PollingTask`, `PollingWorkerConfig`)

@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Mechanizm wersjonowania i walidacji schematu payloadu dostaw. `EnvelopeValidator` (`shell/platform/infrastructure/messaging/inbox/envelope_validator.py`) klasyfikuje problemy kontraktowe koperty (nieznana wersja schematu, brak wymaganych ID, za duży payload) do jawnych kodów błędów zanim rekord trafi do deserializacji. `PayloadUpcaster` (`shell/platform/infrastructure/serialization/upcaster.py`) migruje payload z wersji N do N+1 łańcuchem transformacji, dzięki czemu deserializery zawsze budują aktualny kształt obiektu. `EventDeserializer`, `MessageDeserializer` i `CommandDeserializer` odtwarzają obiekty domenowe z payloadu przy współpracy registry typów.
+Mechanizm wersjonowania i walidacji schematu payloadu dostaw. `EnvelopeValidator` (`shell/platform/infrastructure/messaging/inbox/envelope_validator.py`) klasyfikuje problemy kontraktowe koperty (nieznana wersja schematu, brak wymaganych ID, za duży payload) do jawnych kodów błędów zanim rekord trafi do deserializacji. `PayloadUpcaster` (`shell/platform/infrastructure/serialization/upcaster.py`) migruje payload z wersji N do N+1 łańcuchem transformacji, dzięki czemu deserializery zawsze budują aktualny kształt obiektu. `EventDeserializer` i `CommandDeserializer` odtwarzają obiekty domenowe z payloadu przy współpracy registry typów.
 
 ## Problem
 
@@ -38,35 +38,31 @@ Stałe kodów w `envelope_validator.py`: `DESERIALIZATION_ERROR`, `UNSUPPORTED_S
 
 ### Serializery i deserializery
 
-`DomainEventSerializer` (`serialization/event_serializer.py`): `to_payload(event)` (pomija `occurred_at`, `schema_version`), `to_outbox_payload(event)` (dokument `{id, event_type, occurred_at, payload}`), `from_payload(event_cls, occurred_at, payload, schema_version=1)` — buduje obiekt z `SchemaVersion(schema_version)` i konwersją typów (`CreatedAt`, datetime, list/dict, zagnieżdżone dataclass) przez `_serialize_value`/`_deserialize_value`.
+`DomainEventSerializer` (`serialization/event/domain_event_serializer.py`): `to_payload(event)` (pomija `occurred_at`, `schema_version`), `to_outbox_payload(event)` (dokument `{id, event_type, occurred_at, payload}`), `from_payload(event_cls, occurred_at, payload, schema_version=1)` — buduje obiekt z `SchemaVersion(schema_version)` i konwersją typów (`CreatedAt`, datetime, list/dict, zagnieżdżone dataclass) przez `_serialize_value`/`_deserialize_value`.
 
-`DomainMessageSerializer` (`serialization/message_serializer.py`): analogiczny, dodatkowo obsługuje `OccurredAt` i używa `get_type_hints(cls)` do rozstrzygania typów pól (`_resolve_hints`).
+> `DomainMessageSerializer`/`MessageDeserializer` zostały usunięte razem z kanałem Message — patrz `docs/messages-removed.md`.
 
 Deserializery:
 
-- `EventDeserializer` (`serialization/event_deserializer.py`): `deserialize(event_type, occurred_at, payload, schema_version=1)` — szuka klasy w `_registry`, nieznany typ → log `Unknown event type` i `None`; przy `upcaster` wykonuje upcast, potem `self._serializer.from_payload(...)`; błędy `KeyError/ValueError/TypeError` → log `Failed to deserialize event` i `None`.
-- `MessageDeserializer` (`serialization/message_deserializer.py`): ten sam przepływ z `DomainMessageSerializer`.
-- `CommandDeserializer` (`messaging/serialization/command_deserializer.py`): `deserialize(command_type, payload, schema_version=1)` — `cls = registry.get(command_type)`, brak klasy → `None`; przy upcasterze najpierw upcast, potem `cls(**payload)` (komenda budowana bezpośrednio z payloadu).
+- `EventDeserializer` (`serialization/event/event_deserializer.py`): `deserialize(event_type, occurred_at, payload, schema_version=1)` — szuka klasy w `_registry`, nieznany typ → log `Unknown event type` i `None`; przy `upcaster` wykonuje upcast, potem `self._serializer.from_payload(...)`; błędy `KeyError/ValueError/TypeError` → log `Failed to deserialize event` i `None`.
+- `CommandDeserializer` (`serialization/command/deserializer.py`): `deserialize(command_type, payload, schema_version=1)` — `cls = registry.get(command_type)`, brak klasy → `None`; przy upcasterze najpierw upcast, potem `cls(**payload)` (komenda budowana bezpośrednio z payloadu).
 
 ### Registry
 
-- `build_type_registry(types) -> dict[str, type]` w `serialization/type_registry.py` — rejestr kluczowany nazwą klasy: `{item.__name__: item for item in types}`;
-- `build_event_registry(event_types)` w `serialization/event_registry.py` — otoczka `build_type_registry`; `discover_event_types(package_name, base_type)` — odkrywa klasy w `integration_events/*.py` poniżej pakietu aplikacji BC (importlib + rglob), pomijając `__init__.py` i klasy spoza modułu;
-- `build_message_registry(message_types)` w `serialization/message_registry.py` oraz `build_command_registry(command_types)` w `serialization/command_registry.py` — analogiczne otoczki.
+- `build_type_registry(types) -> dict[str, type]` w `serialization/registries/type_registry.py` — rejestr kluczowany nazwą klasy: `{item.__name__: item for item in types}`;
+- `build_event_registry(event_types)` w `serialization/registries/event_registry.py` — otoczka `build_type_registry`; `discover_event_types(package_name, base_type)` — odkrywa klasy w `integration_events/*.py` poniżej pakietu aplikacji BC (importlib + rglob), pomijając `__init__.py` i klasy spoza modułu;
+- `build_command_registry(command_types)` w `serialization/registries/command_registry.py` — analogiczna otoczka.
 
 ## Kluczowe pliki
 
 - `shell/platform/infrastructure/messaging/inbox/envelope_validator.py`
 - `shell/platform/infrastructure/serialization/upcaster.py`
-- `shell/platform/infrastructure/serialization/event_deserializer.py`
-- `shell/platform/infrastructure/serialization/event_serializer.py`
-- `shell/platform/infrastructure/serialization/message_deserializer.py`
-- `shell/platform/infrastructure/serialization/message_serializer.py`
-- `shell/platform/infrastructure/messaging/serialization/command_deserializer.py`
-- `shell/platform/infrastructure/serialization/type_registry.py`
-- `shell/platform/infrastructure/serialization/event_registry.py`
-- `shell/platform/infrastructure/serialization/message_registry.py`
-- `shell/platform/infrastructure/serialization/command_registry.py`
+- `shell/platform/infrastructure/serialization/event/event_deserializer.py`
+- `shell/platform/infrastructure/serialization/event/domain_event_serializer.py`
+- `shell/platform/infrastructure/serialization/command/deserializer.py`
+- `shell/platform/infrastructure/serialization/registries/type_registry.py`
+- `shell/platform/infrastructure/serialization/registries/event_registry.py`
+- `shell/platform/infrastructure/serialization/registries/command_registry.py`
 
 ## Powiązane koncepcje
 

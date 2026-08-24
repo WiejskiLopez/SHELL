@@ -86,7 +86,8 @@ Funkcje dostępu (z tego samego modułu):
 
 `Envelope.correlation_id` jest przekazywane przez `transport_metadata["correlation_id"]`
 - Ustawiane w `SqlAlchemyUnitOfWork.commit()` przy `Envelope.from_message(correlation_id=get_correlation_id())`
-- W `outbox_message`/`inbox_message` metadata zyje w JSON envelope.
+
+> Kanał Message został usunięty — patrz `docs/messages-removed.md`. Tracing context eventów żyje w osobnych kolumnach `outbox_event`/`inbox_event`.
 
 ## Reguły (invariants)
 

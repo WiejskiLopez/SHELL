@@ -1,7 +1,15 @@
 # Plan kanałów komunikacji SHELL: Event, Message, Command (wg realnych potrzeb)
 
-Status: plan wdrożenia (akceptacja wymagań)
-Data: 2026-08-22
+> **STATUS 2026-08-24: plan częściowo zrealizowany i CZĘŚCIOWO ODWOŁANY.**
+> Krok 0 (inventory) potwierdził, że kanał **Message** nie ma ani producenta ani
+> konsumenta w produkcji. W efekcie kanał Message został **uprzątnięty i usunięty**
+> (kontrakty, bus, serializacja, outbox/inbox, `stage_messages`, `IngestionPayload`,
+> `SchedulerService`, testy) — decyzja i uzasadnienie w `docs/messages-removed.md`,
+> ścieżka decyzyjna wg tabeli w tym dokumencie.
+> Przed ponownym rozważeniem message przeczytaj `docs/messages-removed.md`.
+
+Status: plan wdrożenia (akceptacja wymagań) — patrz STATUS powyżej
+Data: 2026-08-22 (aktualizacja: 2026-08-24)
 Zakres: SHELL platforma + wszystkie Bounded Context (BC) — definition, execution, ingestion, project, scheduling, session, user.
 
 > **Nota**: dokument zastępuje wcześniejszą wersję „unifikacja outbox do jednej tabeli `outbox`/`inbox`". Po analizie ten wariant jest **odrzucony** — konsolidacja tabel rozwiązuje estetykę schematu, nie realne problemy. Prawdziwy problem leży w tym, że maszyneria dostarczania jest zaprojektowana pod **eventy** (broadcast), a próbuje się przez nią pchać **message** (adresowaną treść) i **command** (intencję). Ten plan porządkuje kanały wg ich natury.
@@ -38,7 +46,7 @@ Trzy pary tabel per BC:
 
 ```text
 outbox_event   / inbox_event      (eventy)
-outbox_message / inbox_message    (message)
+outbox / inbox (kanał message — usunięty, patrz STATUS)
 outbox_command / inbox_command    (command)
 ```
 
@@ -48,7 +56,7 @@ Osobne maszyny: 3 procesory inbox (`EventInboxProcessor`, `MessageInboxProcessor
 
 | # | Problem | Dowód w kodzie | Konsekwencja |
 |---|---|---|---|
-| P1 | **Message bez jasnej definicji operacyjnej** — „pasywne dane" bez adresata i natury | `message-semantics` (stara wersja) + `outbox_message` nieużywane | Maszyneria message stoi; brak pierwszorzędnego kanału treści, którego potrzebuje system agentowy |
+| P1 | **Message bez jasnej definicji operacyjnej** — „pasywne dane" bez adresata i natury | `message-semantics` (stara wersja) + tabele message nieużywane | Maszyneria message stoi; brak pierwszorzędnego kanału treści, którego potrzebuje system agentowy |
 | P2 | **UoW nie zbiera message z agregatu** — `save()` robi tylko `pull_events()`, nie `pull_messages()`; `stage_messages` martwe | `sql_alchemy_uow_base.py:116` vs `:110` | Message wyemitowane przez agregat są gubione; protokół zapowiada funkcję, która nie działa |
 | P3 | **Command wpychane w async broker** jako broadcast (`outbox_command`) | `outbox_command`, `CommandInboxProcessor` — nieużywane w produkcji | Intencje (zwykle synchroniczne) nie powinny iść przez async event-backbone; brak decyzji o kanale |
 | P4 | **Maszyneria message/command nieużywana w produkcji** (tylko testy) | `SqlMessageOutboxPublisher`/`SqlCommandOutboxPublisher` tylko w `tests/` | Utrzymanie martwych ścieżek; P4 wymaga decyzji: ożywić (message) albo usunąć (command) |
@@ -89,7 +97,7 @@ Osobne maszyny: 3 procesory inbox (`EventInboxProcessor`, `MessageInboxProcessor
 
 1. **Istniejąca maszyneria jest broadcastowa, a to pasuje tylko do eventu.** Topic `shell.delivery` + routing `{kind}.{contract_type}` to model „publikuj, zainteresowani słuchają". Fakt (event) wpisuje się w to idealnie. Adresowana treść (message) wymaga point-to-point; intencja (command) wymaga bezpośredniego wywołania. Pchanie wszystkich trzech przez jedną maszynerię wymusza nadmiarową złożoność na message/command.
 2. **Message to najważniejszy kanał w systemie agentowym.** Treść (tekst/kontekst) przesyłana między agentami jest "mięsem" tego systemu, nie efektem ubocznym. Zasługuje na własny, dopracowany content-delivery, a nie na kopię ścieżki eventów.
-3. **Atomiczność jest potrzebna tylko dla skutków mutacji agregatu.** Event zawsze powstaje przy zmianie stanu → atomiczny outbox. Message z agregatu → tak samo (przez `stage_messages` w UoW). Message z API/process nie mają stanu do atomizacji → niezależny zapis do `outbox_message` jest poprawny i prostszy (dual-write nie występuje, bo nie ma transakcji domeny).
+3. **Atomiczność jest potrzebna tylko dla skutków mutacji agregatu.** Event zawsze powstaje przy zmianie stanu → atomiczny outbox. Message z agregatu → tak samo (przez `stage_messages` w UoW). Message z API/process nie mają stanu do atomizacji → niezależny zapis do outboxa message jest poprawny i prostszy (dual-write nie występuje, bo nie ma transakcji domeny).
 4. **Duże bufory wymuszają referencję.** Broker nie jest magazynem treści. Kontrakt message nosi `content_ref` (a dla małych treści `text` inline); koperta transportowa pozostaje lekka.
 5. **Konsolidacja tabel została odrzucona.** Dawała mniej tabel, ale nie naprawiała żadnego z P1–P10 i niosła koszt (migracja 6→2, churn ~60 plików, okno przejściowe). Zachowujemy trzy pary tabel i porządkujemy kanały.
 6. **Command nie powinien iść przez async broadcast.** Intencja oczekuje wykonania; synchroniczny Command Port (HTTP) daje prostsze obsługiwanie błędów, odpowiedzi i niższą latencję. Async ma sens tylko dla operacji długich/odpornych — wtedy świadoma, mała kolejka, nie event-backbone.
@@ -108,7 +116,7 @@ Osobne maszyny: 3 procesory inbox (`EventInboxProcessor`, `MessageInboxProcessor
 
 ```text
 outbox_event   / inbox_event      (event, broadcast, atomiczny)
-outbox_message / inbox_message    (message, content-delivery)
+outbox / inbox (kanał message — usunięty)
 outbox_command / inbox_command    (decyzja w kroku 4: użycie lub usunięcie)
 ```
 
@@ -151,7 +159,7 @@ Każdy krok ma: **Zmianę** (co → na co), **Jak** (jak zrealizować), **Weryfi
 ### Krok 0 — Inventory użycia kanałów (dane, nie intuicja)
 
 - **Zmiana**: brak → raport użycia Event/Message/Command w produkcji.
-- **Jak**: przeplatać repozytorium: które BC publikują/odbierają message i komendy poza `tests/`; czy `outbox_message`/`outbox_command` mają choć jednego producenta/konsumenta; liczba kolumn/wierszy w realnych bazach; istniejące handlery `MessageBus`/`CommandBus`.
+- **Jak**: przeplatać repozytorium: które BC publikują/odbierają message i komendy poza `tests/`; czy outbox message/command mają choć jednego producenta/konsumenta; liczba kolumn/wierszy w realnych bazach; istniejące handlery `MessageBus`/`CommandBus`.
 - **Weryfikacja**: raport udostępniony; decyzje w krokach 3–5 (message: ożywić; command: kanał direct lub usunięcie) oparte na nim, nie na założeniach.
 
 ### Krok 1 — Utwardzenie ścieżki eventów (tanie, bez ryzyka)
@@ -162,12 +170,12 @@ Każdy krok ma: **Zmianę** (co → na co), **Jak** (jak zrealizować), **Weryfi
 
 ### Krok 2 — Message: kontrakt + źródło-świadoma atomowość
 
-- **Zmiana**: (a) kontrakt `IntegrationMessage` + pola `recipient_aggregate_id/name`, `text`/`content_ref`, `stage` (reguła docelowa); (b) `UoW.save()` zbiera `pull_messages()` obok `pull_events()` i `_write_staged_outbox()` zapisuje `_staged_messages` **atomowo** do `outbox_message`; (c) źródła API/process używają niezależnego publishera (wzorzec `SqlMessageOutboxPublisher` — **zostaje**, osobna sesja jest tu poprawna).
+- **Zmiana**: (a) kontrakt `IntegrationMessage` + pola `recipient_aggregate_id/name`, `text`/`content_ref`, `stage` (reguła docelowa); (b) `UoW.save()` zbiera `pull_messages()` obok `pull_events()` i `_write_staged_outbox()` zapisuje `_staged_messages` **atomowo** do outboxa message; (c) źródła API/process używają niezależnego publishera (wzorzec `SqlMessageOutboxPublisher` — **zostaje**, osobna sesja jest tu poprawna).
 - **Jak**:
   - `save()`: `self.stage_messages(aggregate.pull_messages())`;
-  - `_write_staged_outbox()`: wiersze `outbox_message` dla `_staged_messages` (payload przez `DomainMessageSerializer`, `occurred_at`, correlation/causation) w tej samej transakcji;
+  - `_write_staged_outbox()`: wiersze outboxa message dla `_staged_messages` (payload przez `DomainMessageSerializer`, `occurred_at`, correlation/causation) w tej samej transakcji;
   - kontrakt wg sekcji 5.3; `text` XOR `content_ref`, `recipient_*` wymagane.
-- **Weryfikacja**: test transakcyjny — commit daje wiersz `outbox_message`, rollback **zero** (dla źródła-agregat); test API — message zapisana niezależnie, bez transakcji domeny; test kontraktu — `text`/`content_ref` rozłączne.
+- **Weryfikacja**: test transakcyjny — commit daje wiersz outboxa message, rollback **zero** (dla źródła-agregat); test API — message zapisana niezależnie, bez transakcji domeny; test kontraktu — `text`/`content_ref` rozłączne.
 
 ### Krok 3 — Message: transport point-to-point
 

@@ -65,7 +65,6 @@ Konwencja nazw: konkretne eventy biznesowe (np. `OrderPlaced`) dziedziczą po `D
 ## Powiązane koncepcje
 
 - [aggregate-root](aggregate-root.md)
-- [domain-message](domain-message.md)
 - [entity-id](entity-id.md)
 - [value-object](value-object.md)
 - [transactional-outbox](transactional-outbox.md)

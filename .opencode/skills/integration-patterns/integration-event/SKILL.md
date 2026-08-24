@@ -145,8 +145,10 @@ Kazdy publiczny IntegrationEvent powinien miec test w `shell/tests/contracts/`, 
 Projektuj osobne klasy i registry dla:
 
 ```text
-IntegrationEvent != DomainMessage != Command
+IntegrationEvent != Command
 ```
+
+> Kanał Message (DomainMessage/IntegrationMessage) został usunięty — patrz `docs/messages-removed.md`.
 
 Wspolna moze byc niskopoziomowa konwersja wartosci technicznych. Semantyka, registry, schema version, serializer i deserializer musza pozostac rozdzielone wedlug typu kontraktu.
 

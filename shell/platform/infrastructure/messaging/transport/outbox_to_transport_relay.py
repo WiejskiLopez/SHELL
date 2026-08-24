@@ -33,9 +33,6 @@ if TYPE_CHECKING:
     from shell.platform.infrastructure.persistence.sql.models.event_delivery import (
         EventDeliveryModels,
     )
-    from shell.platform.infrastructure.persistence.sql.models.message_delivery import (
-        MessageDeliveryModels,
-    )
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +73,7 @@ class OutboxToTransportRelay:
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
-        models: EventDeliveryModels | MessageDeliveryModels | CommandDeliveryModels,
+        models: EventDeliveryModels | CommandDeliveryModels,
         transport: DeliveryTransport,
         kind: DeliveryKind,
         batch_size: int = 100,

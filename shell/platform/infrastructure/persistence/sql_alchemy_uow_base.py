@@ -16,8 +16,6 @@ from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.platform.infrastructure.context import (
-    get_causation_id,
-    get_correlation_id,
     get_session_scope,
 )
 from shell.platform.infrastructure.messaging.transport.source_service import (
@@ -25,9 +23,6 @@ from shell.platform.infrastructure.messaging.transport.source_service import (
 )
 from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
     IntegrationEventSerializer,
-)
-from shell.platform.infrastructure.serialization.message.domain_message_serializer import (
-    DomainMessageSerializer,
 )
 
 if TYPE_CHECKING:
@@ -68,7 +63,6 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
 
         self._id_generator = id_generator or UuidTechnicalIdGenerator()
         self._staged_events: list[DomainEvent] = []
-        self._staged_messages: list[object] = []
         self._committed = False
         self._deferred_commit = False
         self._session: AsyncSession | None = None
@@ -112,15 +106,11 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             raise TypeError("SqlAlchemyUnitOfWorkBase stages DomainEvent instances only")
         self._staged_events.extend(cast("Sequence[DomainEvent]", events))
 
-    def stage_messages(self, messages: list[object]) -> None:
-        self._staged_messages.extend(messages)
-
     async def save(self, repo_type: type, aggregate: object) -> None:
         repo: Any = self.repository(repo_type)
         await repo.save(aggregate)
         domain_events = aggregate.pull_events()  # type: ignore[attr-defined]
         self.stage_events(domain_events)
-        self.stage_messages(aggregate.pull_messages())  # type: ignore[attr-defined]
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWorkBase:
         scope = get_session_scope()
@@ -159,7 +149,6 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             else:
                 await self._session.commit()
             self._staged_events.clear()
-            self._staged_messages.clear()
             self._committed = True
         except StaleDataError as exc:
             await self._session.rollback()
@@ -199,26 +188,10 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
                 )
             )
 
-        if self._staged_messages:
-            message_serializer = DomainMessageSerializer()
-            for domain_message in self._staged_messages:
-                self._session.add(
-                    self._models.messages.outbox(
-                        id=self._id_generator.new_id(),
-                        message_type=type(domain_message).__name__,
-                        occurred_at=domain_message.occurred_at.value,  # type: ignore[attr-defined]
-                        payload=message_serializer.to_payload(domain_message),
-                        correlation_id=get_correlation_id(),
-                        causation_id=get_causation_id(),
-                        published_at=None,
-                    )
-                )
-
     async def rollback(self) -> None:
         if self._session is not None:
             await self._session.rollback()
         self._staged_events.clear()
-        self._staged_messages.clear()
         if self._deferred_commit:
             scope = get_session_scope()
             if scope is not None:

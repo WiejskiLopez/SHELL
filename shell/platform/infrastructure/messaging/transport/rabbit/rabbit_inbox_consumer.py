@@ -38,9 +38,6 @@ if TYPE_CHECKING:
     from shell.platform.infrastructure.persistence.sql.models.event_delivery import (
         EventDeliveryModels,
     )
-    from shell.platform.infrastructure.persistence.sql.models.message_delivery import (
-        MessageDeliveryModels,
-    )
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +49,7 @@ class RabbitInboxConsumer:
         self,
         url: str,
         session_factory: async_sessionmaker[AsyncSession],
-        models: EventDeliveryModels | MessageDeliveryModels | CommandDeliveryModels,
+        models: EventDeliveryModels | CommandDeliveryModels,
         queue_name: str,
         routing_keys: list[str] | None = None,
         exchange_name: str = EXCHANGE_NAME,

@@ -1,12 +1,13 @@
-# Kontrakty integracyjne (IntegrationEvent / IntegrationMessage)
+# Kontrakty integracyjne (IntegrationEvent)
 
 ## Cel / Co realizuje
 
 Definiuje jawny, wersjonowany kontrakt wymiany danych między bounded contextami:
-bazowe klasy `IntegrationEvent` i `IntegrationMessage` oraz mapowanie zdarzeń
-domenowych na zdarzenia integracyjne (`ReflectiveIntegrationMapper`). Każdy event
-lub message wychodzący poza BC jest instancją tych klas i niesie kompletny
-envelope tracingowy.
+bazowa klasa `IntegrationEvent` oraz mapowanie zdarzeń domenowych na zdarzenia
+integracyjne (`ReflectiveIntegrationMapper`). Każdy event wychodzący poza BC
+jest instancją tej klasy i niesie kompletny envelope tracingowy.
+
+> Kanał `IntegrationMessage` został usunięty — patrz `docs/messages-removed.md`.
 
 ## Problem
 
@@ -18,13 +19,11 @@ tworzenie nie może wymagać ręcznych mapperów per agregat.
 
 ## Realizacja techniczna
 
-### Bazowe klasy kontraktów
+### Bazowa klasa kontraktu
 
 - `IntegrationEvent` (`application/events/integration_event.py`): frozen dataclass
   z polami `event_id`, `correlation_id`, `causation_id`, `occurred_at`,
   `aggregate_id`, `aggregate_name`, `schema_version`.
-- `IntegrationMessage` (`application/messages/integration_message.py`): analogiczna
-  klasa dla wiadomości (pole `message_id` zamiast `event_id`).
 
 ### ReflectiveIntegrationMapper
 
@@ -48,7 +47,7 @@ zdarzenia jako wewnętrznego.
 
 ### Serializacja kontraktu
 
-`DomainEventSerializer` (`infrastructure/serialization/event_serializer.py`):
+`DomainEventSerializer` (`infrastructure/serialization/event/domain_event_serializer.py`):
 - `to_payload` — serializuje pola dataclass (pomija `occurred_at`,
   `schema_version`); wartości VO przez `.value`, `datetime` przez `isoformat`;
 - `from_payload` — odtwarza obiekt z payloadu z obsługą `list`/`dict`,
@@ -57,10 +56,9 @@ zdarzenia jako wewnętrznego.
 ## Kluczowe pliki
 
 - `shell/platform/application/events/integration_event.py`
-- `shell/platform/application/messages/integration_message.py`
 - `shell/platform/infrastructure/mapping/reflective_integration_mapper.py`
 - `shell/platform/infrastructure/mapping/integration_mapping_error.py`
-- `shell/platform/infrastructure/serialization/event_serializer.py`
+- `shell/platform/infrastructure/serialization/event/domain_event_serializer.py`
 
 ## Powiązane koncepcje
 

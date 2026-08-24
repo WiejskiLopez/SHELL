@@ -2,7 +2,9 @@
 
 ## Cel / Co realizuje
 
-`PersistenceDeliveryModels` (w `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`) to typowany `NamedTuple` grupujący wszystkie platformowe modele ORM dostarczania wiadomości, zbudowane dla jednego Bounded Context (BC). Fabryka `build_persistence_delivery_models(base: type[DeclarativeBase]) -> PersistenceDeliveryModels` tworzy komplet modeli: event/message/command inbox+outbox, `audit_event`, `processed_delivery` i `worker_heartbeat` — wszystkie podpięte do przekazanego rejestru metadanych (`metadata`) danego BC.
+`PersistenceDeliveryModels` (w `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`) to typowany `NamedTuple` grupujący wszystkie platformowe modele ORM dostarczania wiadomości, zbudowane dla jednego Bounded Context (BC). Fabryka `build_persistence_delivery_models(base: type[DeclarativeBase]) -> PersistenceDeliveryModels` tworzy komplet modeli: event/command inbox+outbox, `audit_event`, `processed_delivery` i `worker_heartbeat` — wszystkie podpięte do przekazanego rejestru metadanych (`metadata`) danego BC.
+
+> Kanał Message (tabele message outbox/inbox, `message_delivery.py`) został usunięty — patrz `docs/messages-removed.md`.
 
 ## Problem
 
@@ -17,7 +19,6 @@ Model dostarczania wiadomości (outbox/inbox) jest funkcjonalnością platformow
 ```python
 class PersistenceDeliveryModels(NamedTuple):
     events: EventDeliveryModels
-    messages: MessageDeliveryModels
     commands: CommandDeliveryModels
     audit: type[DeclarativeBase]
     processed_delivery: type[DeclarativeBase]
@@ -29,7 +30,6 @@ class PersistenceDeliveryModels(NamedTuple):
 ```python
 return PersistenceDeliveryModels(
     events=build_event_delivery_models(base),
-    messages=build_message_delivery_models(base),
     commands=build_command_delivery_models(base),
     audit=build_audit_event_model(base),
     processed_delivery=build_processed_delivery_model(base),
@@ -39,7 +39,7 @@ return PersistenceDeliveryModels(
 
 ### Fabryki outbox/inbox
 
-Każda z trzech fabryk (`build_event_delivery_models`, `build_message_delivery_models`, `build_command_delivery_models`) zwraca `NamedTuple` z polami `outbox` i `inbox`:
+Każda z dwóch fabryk (`build_event_delivery_models`, `build_command_delivery_models`) zwraca `NamedTuple` z polami `outbox` i `inbox`:
 
 ```python
 class EventDeliveryModels(NamedTuple):
@@ -47,7 +47,7 @@ class EventDeliveryModels(NamedTuple):
     inbox: type[DeclarativeBase]
 ```
 
-Definiowane klasy to `OutboxEventModel`/`InboxEventModel`, `OutboxMessageModel`/`InboxMessageModel`, `OutboxCommandModel`/`InboxCommandModel` z tabelami `outbox_event`/`inbox_event`, `outbox_message`/`inbox_message`, `outbox_command`/`inbox_command`. Po utworzeniu fabryka nadaje klasom unikalne nazwy w rejestrze metadanych:
+Definiowane klasy to `OutboxEventModel`/`InboxEventModel`, `OutboxCommandModel`/`InboxCommandModel` z tabelami `outbox_event`/`inbox_event`, `outbox_command`/`inbox_command`. Po utworzeniu fabryka nadaje klasom unikalne nazwy w rejestrze metadanych:
 
 ```python
 OutboxEventModel.__name__ = f"{base.__name__}OutboxEventModel"
@@ -57,7 +57,7 @@ OutboxEventModel.__qualname__ = OutboxEventModel.__name__
 Wspólne kolumny nośnika (payload):
 
 - `id: Mapped[str]` — klucz główny,
-- `event_type` / `message_type` / `command_type: Mapped[str]` — typ nośnika,
+- `event_type` / `command_type: Mapped[str]` — typ nośnika,
 - `occurred_at: Mapped[datetime]` (`DateTime(timezone=True)`) — czas zdarzenia biznesowego,
 - `payload: Mapped[dict[str, object]]` — typ `JSONB` (patrz `_compat`),
 - `correlation_id` i `causation_id: Mapped[str]` — z defaultem `""` (śledzenie korelacji),
@@ -95,8 +95,6 @@ Index(f"ix_{table_name}_status_lease_until", "status", "lease_until"),
 ```
 
 Stany w `InboxStatus` (`shell/platform/domain/value_objects/inbox_status.py`, `ValueObject` + `StrEnum`): `PENDING`, `PROCESSING`, `PROCESSED`, `RETRY`, `DEAD_LETTER`.
-
-Uwaga: `InboxMessageModel` dodatkowo nadpisuje `__table_args__`, dodając `Index("ix_inbox_message_processed_at", "processed_at")` przed indeksami z mixinu.
 
 ### processed_delivery (deduplikacja)
 
@@ -136,7 +134,6 @@ Dzięki temu `create_all` nie tworzy niechcianych tabel platformowych — tylko 
 
 - `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`
 - `shell/platform/infrastructure/persistence/sql/models/event_delivery.py`
-- `shell/platform/infrastructure/persistence/sql/models/message_delivery.py`
 - `shell/platform/infrastructure/persistence/sql/models/command_delivery.py`
 - `shell/platform/infrastructure/persistence/sql/models/audit_delivery.py`
 - `shell/platform/infrastructure/persistence/sql/models/processed_delivery.py`

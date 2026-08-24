@@ -2,11 +2,11 @@
 
 ## Cel / Co realizuje
 
-`EntityId` (w `shell/platform/domain/base/entity_id.py`) jest generycznym value object dla wszystkich identyfikatorów encji i agregatów. Definiuje wspólny kontrakt: niepusta wartość `str`, walidacja w `__post_init__`, reprezentacja tekstowa i generowanie losowego UUID. Na jego bazie budowane są typowane identyfikatory domenowe (`AggregateId`, `EventId`, `MessageId`).
+`EntityId` (w `shell/platform/domain/base/entity_id.py`) jest generycznym value object dla wszystkich identyfikatorów encji i agregatów. Definiuje wspólny kontrakt: niepusta wartość `str`, walidacja w `__post_init__`, reprezentacja tekstowa i generowanie losowego UUID. Na jego bazie budowane są typowane identyfikatory domenowe (`AggregateId`, `EventId`).
 
 ## Problem
 
-Identyfikatory w modelu domenowym nie mogą być gołymi `str` — byłoby to mylące (każdy `str` wygląda tak samo), a różne typy identyfikatorów byłyby wymienne. Potrzebne jest silne typowanie: `AggregateId`, `EventId`, `MessageId` jako osobne typy, z walidacją przy tworzeniu i możliwością deterministycznego generowania.
+Identyfikatory w modelu domenowym nie mogą być gołymi `str` — byłoby to mylące (każdy `str` wygląda tak samo), a różne typy identyfikatorów byłyby wymienne. Potrzebne jest silne typowanie: `AggregateId`, `EventId` jako osobne typy, z walidacją przy tworzeniu i możliwością deterministycznego generowania.
 
 ## Realizacja techniczna
 
@@ -38,9 +38,10 @@ Zachowania:
 
 Typowane identyfikatory w `shell/platform/domain/value_objects/`:
 
-- `AggregateId` — `@dataclass(frozen=True, slots=True) class AggregateId(ValueObject)` z polem `value: str`; identyfikator agregatu osadzany w eventach i wiadomościach domenowych.
+- `AggregateId` — `@dataclass(frozen=True, slots=True) class AggregateId(ValueObject)` z polem `value: str`; identyfikator agregatu osadzany w eventach domenowych.
 - `EventId` — jak wyżej, z `generate()` (`uuid.uuid4`); identyfikator eventu domenowego (patrz [domain-event](domain-event.md)).
-- `MessageId` — jak wyżej, z `generate()` (`uuid.uuid4`); identyfikator wiadomości domenowej (patrz [domain-message](domain-message.md)).
+
+> `MessageId` został usunięty razem z kanałem Message — patrz `docs/messages-removed.md`.
 
 W portach domenowych typ jest ograniczany przez bound `TId = TypeVar("TId", bound=EntityId)` (port `IdGenerator` w `shell/platform/domain/ports/identity.py`), co wymusza, by generowane identyfikatory były zawsze pochodnymi `EntityId`.
 
@@ -49,7 +50,6 @@ W portach domenowych typ jest ograniczany przez bound `TId = TypeVar("TId", boun
 - `shell/platform/domain/base/entity_id.py`
 - `shell/platform/domain/value_objects/aggregate_id.py`
 - `shell/platform/domain/value_objects/event_id.py`
-- `shell/platform/domain/value_objects/message_id.py`
 - `shell/platform/domain/ports/identity.py`
 
 ## Powiązane koncepcje
@@ -58,5 +58,4 @@ W portach domenowych typ jest ograniczany przez bound `TId = TypeVar("TId", boun
 - [entity](entity.md)
 - [aggregate-root](aggregate-root.md)
 - [domain-event](domain-event.md)
-- [domain-message](domain-message.md)
 - [ports-and-adapters](ports-and-adapters.md)

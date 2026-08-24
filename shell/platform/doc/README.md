@@ -30,13 +30,12 @@ DDD, CQRS, transactional outbox, inbox z lease, at-least-once).
 - [entity-id](entity-id.md) — Typowane identyfikatory (EntityId)
 - [value-object](value-object.md) — Value Object
 - [domain-event](domain-event.md) — Domain Events
-- [domain-message](domain-message.md) — Domain Messages
 - [domain-errors](domain-errors.md) — Wyjątki domenowe
 - [domain-ports](domain-ports.md) — Porty domenowe (repozytoria, czas, identyfikatory, log)
 
 ### Warstwa aplikacji
 
-- [cqrs-buses](cqrs-buses.md) — CommandBus / QueryBus / EventBus / MessageBus
+- [cqrs-buses](cqrs-buses.md) — CommandBus / QueryBus / EventBus
 - [unit-of-work](unit-of-work.md) — Unit of Work i transactional outbox
 - [ports-and-adapters](ports-and-adapters.md) — Porty aplikacji i adaptery
 - [tracing-context](tracing-context.md) — correlation_id / causation_id
@@ -45,7 +44,7 @@ DDD, CQRS, transactional outbox, inbox z lease, at-least-once).
 
 ### Kontrakty integracyjne
 
-- [integration-contracts](integration-contracts.md) — IntegrationEvent / IntegrationMessage i mapowanie
+- [integration-contracts](integration-contracts.md) — IntegrationEvent i mapowanie
 
 ### Delivery (Inbox/Outbox)
 
