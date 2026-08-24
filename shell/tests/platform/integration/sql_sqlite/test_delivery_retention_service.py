@@ -89,9 +89,7 @@ async def _inbox_ids(session_factory: async_sessionmaker) -> set[str]:
 
 async def _processed_ids(session_factory: async_sessionmaker) -> set[str]:
     async with session_factory() as session:
-        rows = (
-            (await session.execute(select(_PROCESSED_DELIVERY_MODEL.outbox_id))).scalars().all()
-        )
+        rows = (await session.execute(select(_PROCESSED_DELIVERY_MODEL.outbox_id))).scalars().all()
         return set(rows)
 
 

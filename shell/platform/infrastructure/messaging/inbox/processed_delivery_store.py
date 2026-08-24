@@ -128,5 +128,3 @@ class ProcessedDeliveryStore:
                 "session instead"
             )
         return cast("AsyncSession", scope.session)
-
-

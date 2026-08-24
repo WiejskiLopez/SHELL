@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.serialization.envelope.envelope_engine import (
     EnvelopeDeserializer,
@@ -25,16 +25,24 @@ class CommandDeserializer(EnvelopeDeserializer):
         super().__init__(registry=registry, upcaster=upcaster, kind="command")
 
     def deserialize(
-        self, command_type: str, payload: dict[str, Any], schema_version: int = 1
-    ) -> Any | None:
-        cls = self._registry.get(command_type)
+        self,
+        type_name: str,
+        occurred_at: object,
+        payload: dict[str, object],
+        schema_version: int = 1,
+        **envelope_metadata: object,
+    ) -> object | None:
+        cls = self._registry.get(type_name)
         if cls is None:
             return None
         try:
-            upcasted_payload: dict[str, object] = dict(payload)
+            merged_payload: dict[str, object] = dict(payload)
+            merged_payload.update(
+                {name: value for name, value in envelope_metadata.items() if value is not None}
+            )
             if self._upcaster is not None:
-                upcasted_payload, schema_version = self._upcaster.upcast(
-                    command_type, schema_version, upcasted_payload
+                merged_payload, schema_version = self._upcaster.upcast(
+                    type_name, schema_version, merged_payload
                 )
             if self._payload_deserializer is None:
                 from shell.platform.infrastructure.serialization.payload.payload_object_deserializer import (
@@ -44,10 +52,10 @@ class CommandDeserializer(EnvelopeDeserializer):
                 self._payload_deserializer = PayloadObjectDeserializer()
             return self._payload_deserializer.deserialize(
                 object_cls=cls,
-                occurred_at=None,
-                payload=upcasted_payload,
+                occurred_at=occurred_at,
+                payload=merged_payload,
                 schema_version=schema_version,
             )
         except (KeyError, ValueError, TypeError, SerializationError) as exc:
-            _logger.error("Failed to deserialize command %s: %s", command_type, exc)
+            _logger.error("Failed to deserialize command %s: %s", type_name, exc)
             return None

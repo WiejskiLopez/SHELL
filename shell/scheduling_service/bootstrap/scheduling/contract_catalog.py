@@ -41,6 +41,12 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         producers=(OWNER,),
     ),
     ContractEntry(
+        type_name="SchedulerExecutionCreatedIntegrationEvent",
+        owner=OWNER,
+        supported_schema_versions=frozenset({1}),
+        producers=(OWNER,),
+    ),
+    ContractEntry(
         type_name="SchedulerExecutionDeletedIntegrationEvent",
         owner=OWNER,
         supported_schema_versions=frozenset({1}),

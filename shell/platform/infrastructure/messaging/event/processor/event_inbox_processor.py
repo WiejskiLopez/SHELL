@@ -86,13 +86,13 @@ class EventInboxProcessor(InboxProcessorBase):
             id_generator=id_generator,
         )
         self._event_bus = event_bus
-        self._deserializer = EventDeserializer(registry=registry, upcaster=upcaster)
+        self._deserializer = EventDeserializer(registry=registry or {}, upcaster=upcaster)
 
     def _deserialize(self, row: object) -> object | None:
         event_row = cast("_EventRow", row)
         return self._deserializer.deserialize(
             event_row.event_type,
-            event_row.occurred_at,  # type: ignore[arg-type]
+            event_row.occurred_at,
             event_row.payload,
             schema_version=getattr(row, "schema_version", 1),
             event_id=event_row.event_id,

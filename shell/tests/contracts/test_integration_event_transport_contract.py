@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -26,7 +26,6 @@ from shell.platform.infrastructure.serialization.event.integration_event_seriali
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
 
 
 class RecordingBus:
@@ -66,7 +65,9 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     async with engine.begin() as connection:
         await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.events.outbox.metadata.create_all)
         await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.events.inbox.metadata.create_all)
-        await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.processed_delivery.metadata.create_all)
+        await connection.run_sync(
+            PERSISTENCE_DELIVERY_MODELS.processed_delivery.metadata.create_all
+        )
     await engine.dispose()
 
     session_factory = build_session_factory(url)
@@ -180,12 +181,10 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     assert restored.graph_definition_id == event.graph_definition_id
 
     async with session_factory() as session:
-        inbox = (
-            await session.execute(
-                select(PERSISTENCE_DELIVERY_MODELS.events.inbox).where(
-                    PERSISTENCE_DELIVERY_MODELS.events.inbox.id == "inbox-1"
-                )
-            )
+        inbox_model: Any = PERSISTENCE_DELIVERY_MODELS.events.inbox
+        inbox_row = (
+            await session.execute(select(inbox_model).where(inbox_model.id == "inbox-1"))
         ).scalar_one()
+    inbox: Any = inbox_row
     assert inbox.outbox_id == "outbox-1"
     assert inbox.source_service == "definition_service"

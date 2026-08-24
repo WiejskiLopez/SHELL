@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from sqlalchemy import DateTime, Index, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
@@ -44,8 +44,8 @@ def build_event_delivery_models(base: type[DeclarativeBase]) -> EventDeliveryMod
     class InboxEventModel(InboxStateMixin, base):  # type: ignore[misc, valid-type]
         __tablename__ = "inbox_event"
 
-        @declared_attr
-        def __table_args__(cls: type[object]) -> tuple[Index | UniqueConstraint, ...]:
+        @declared_attr  # type: ignore[arg-type]
+        def __table_args__(cls: type[Any]) -> tuple[Index | UniqueConstraint, ...]:
             return (
                 UniqueConstraint(
                     "source_service",

@@ -86,13 +86,13 @@ class MessageInboxProcessor(InboxProcessorBase):
             id_generator=id_generator,
         )
         self._message_bus = message_bus
-        self._deserializer = MessageDeserializer(registry=registry, upcaster=upcaster)
+        self._deserializer = MessageDeserializer(registry=registry or {}, upcaster=upcaster)
 
     def _deserialize(self, row: object) -> object | None:
         message_row = cast("_MessageRow", row)
         return self._deserializer.deserialize(
             message_row.message_type,
-            message_row.occurred_at,  # type: ignore[arg-type]
+            message_row.occurred_at,
             message_row.payload,
             schema_version=getattr(row, "schema_version", 1),
         )

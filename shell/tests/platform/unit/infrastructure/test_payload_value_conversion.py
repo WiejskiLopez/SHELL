@@ -81,9 +81,7 @@ class TestPayloadValueDeserializer:
 
     def test_datetime_wrapped_value_object_round_trip(self) -> None:
         timestamp = datetime(2026, 8, 20, 12, 0, tzinfo=UTC)
-        restored = PayloadValueDeserializer().deserialize(
-            timestamp.isoformat(), CreatedAt
-        )
+        restored = PayloadValueDeserializer().deserialize(timestamp.isoformat(), CreatedAt)
         assert isinstance(restored, CreatedAt)
         assert restored == CreatedAt.from_datetime(timestamp)
 
@@ -115,9 +113,7 @@ def test_payload_value_round_trip_supports_scalars_value_objects_and_optional() 
         "json_data": '{"ready": 2}',
     }
 
-    serialized_created_at = PayloadValueSerializer().serialize(
-        CreatedAt.from_datetime(timestamp)
-    )
+    serialized_created_at = PayloadValueSerializer().serialize(CreatedAt.from_datetime(timestamp))
     restored_created_at = PayloadValueDeserializer().deserialize(serialized_created_at, CreatedAt)
     assert isinstance(restored_created_at, CreatedAt)
     assert restored_created_at == CreatedAt.from_datetime(timestamp)
@@ -126,6 +122,6 @@ def test_payload_value_round_trip_supports_scalars_value_objects_and_optional() 
         AggregateId("aggregate-1")
     )
     assert PayloadValueDeserializer().deserialize(payload["optional_text"], str | None) is None
-    assert PayloadValueDeserializer().deserialize(
-        payload["json_data"], WrappedJson
-    ) == WrappedJson(JsonStr('{"ready": 2}'))
+    assert PayloadValueDeserializer().deserialize(payload["json_data"], WrappedJson) == WrappedJson(
+        JsonStr('{"ready": 2}')
+    )

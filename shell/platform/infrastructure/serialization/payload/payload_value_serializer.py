@@ -38,7 +38,7 @@ class PayloadValueSerializer:
         if isinstance(value, JsonStr):
             return value.value
         if isinstance(value, ValueObject):
-            return self.serialize(value.value)
+            return self.serialize(value.value)  # type: ignore[attr-defined]
         if _is_single_value_dataclass(value):
             return self.serialize(value.value)  # type: ignore[attr-defined]
         raise UnsupportedPayloadTypeError(

@@ -43,7 +43,7 @@ class EnvelopeSerializer:
     def to_outbox_payload(self, domain_object: object) -> dict[str, object]:
         raw_occurred_at = getattr(domain_object, "occurred_at", None)
         if hasattr(raw_occurred_at, "value"):
-            raw_occurred_at = raw_occurred_at.value
+            raw_occurred_at = raw_occurred_at.value  # type: ignore[union-attr]
         return {
             "id": None,
             self._type_key: type(domain_object).__name__,
@@ -88,16 +88,10 @@ class EnvelopeDeserializer:
             return None
         try:
             if self._upcaster is not None:
-                payload, schema_version = self._upcaster.upcast(
-                    type_name, schema_version, payload
-                )
+                payload, schema_version = self._upcaster.upcast(type_name, schema_version, payload)
             merged_payload = dict(payload)
             merged_payload.update(
-                {
-                    name: value
-                    for name, value in envelope_metadata.items()
-                    if value is not None
-                }
+                {name: value for name, value in envelope_metadata.items() if value is not None}
             )
             return self._payload_deserializer.deserialize(
                 object_cls=message_cls,

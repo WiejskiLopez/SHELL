@@ -31,5 +31,5 @@ class TestCorrelationId:
 
         results = await asyncio.gather(capture("corr-a"), capture("corr-b"))
 
-        assert results == ["corr-a", "corr-b"]
+        assert tuple(results) == ("corr-a", "corr-b")
         assert get_correlation_id() == baseline

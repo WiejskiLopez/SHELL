@@ -6,6 +6,9 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.integra
 from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_completed_integration_event import (
     SchedulerExecutionCompletedIntegrationEvent,
 )
+from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_created_integration_event import (
+    SchedulerExecutionCreatedIntegrationEvent,
+)
 from shell.scheduling_service.application.scheduling.scheduler_execution.integration_events.scheduler_execution_deleted_integration_event import (
     SchedulerExecutionDeletedIntegrationEvent,
 )
@@ -21,6 +24,7 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.integra
 
 __all__ = [
     "SchedulerExecutionCompletedIntegrationEvent",
+    "SchedulerExecutionCreatedIntegrationEvent",
     "SchedulerExecutionDeletedIntegrationEvent",
     "SchedulerExecutionFailedIntegrationEvent",
     "SchedulerExecutionSkippedIntegrationEvent",

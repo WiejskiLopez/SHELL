@@ -94,6 +94,7 @@ class CommandInboxProcessor(InboxProcessorBase):
         command_row = cast("_CommandRow", row)
         return self._deserializer.deserialize(
             command_row.command_type,
+            getattr(row, "occurred_at", None),
             command_row.payload,
             schema_version=getattr(row, "schema_version", 1),
         )

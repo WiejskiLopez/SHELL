@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from shell.platform.infrastructure.serialization.event.domain_event_serializer import (
-	DomainEventSerializer,
+    DomainEventSerializer,
 )
 from shell.platform.infrastructure.serialization.message.domain_message_serializer import (
-	DomainMessageSerializer,
+    DomainMessageSerializer,
 )
 
 __all__ = ["DomainEventSerializer", "DomainMessageSerializer"]

@@ -42,7 +42,9 @@ class PayloadValueDeserializer:
 
         origin = get_origin(target_type)
         if origin in (Union, UnionType):
-            candidates = [candidate for candidate in get_args(target_type) if candidate is not type(None)]
+            candidates = [
+                candidate for candidate in get_args(target_type) if candidate is not type(None)
+            ]
             if len(candidates) == 1:
                 return self.deserialize(value, candidates[0])
             raise UnsupportedPayloadTypeError(f"Unsupported payload type: {target_type}")
@@ -65,7 +67,9 @@ class PayloadValueDeserializer:
         if target_type is bool:
             return _to_bool(value)
 
-        if target_type in (CreatedAt, OccurredAt, JsonStr) or _is_single_value_dataclass(target_type):
+        if target_type in (CreatedAt, OccurredAt, JsonStr) or _is_single_value_dataclass(
+            target_type
+        ):
             return self._deserialize_single_value_object(value, target_type)
 
         raise UnsupportedPayloadTypeError(f"Unsupported payload type: {target_type}")

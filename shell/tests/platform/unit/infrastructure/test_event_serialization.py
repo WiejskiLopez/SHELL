@@ -87,7 +87,7 @@ def test_event_round_trip_preserves_domain_value_object_types() -> None:
     envelope = EventEnvelopeSerializer(serializer).to_outbox_payload(event)
 
     restored = EventDeserializer(registry={"SampleEvent": SampleEvent}).deserialize(
-        event_type=cast("str", envelope["event_type"]),
+        type_name=cast("str", envelope["event_type"]),
         occurred_at=cast("datetime", envelope["occurred_at"]),
         payload=cast("dict[str, object]", envelope["payload"]),
     )
@@ -108,7 +108,7 @@ def test_integration_event_round_trip_preserves_datetime_and_integer_schema_vers
     restored = EventDeserializer(
         registry={"SampleIntegrationEvent": SampleIntegrationEvent}
     ).deserialize(
-        event_type="SampleIntegrationEvent",
+        type_name="SampleIntegrationEvent",
         occurred_at=cast("datetime", envelope["occurred_at"]),
         payload=cast("dict[str, object]", envelope["payload"]),
         schema_version=event.schema_version,
@@ -131,7 +131,7 @@ def test_event_deserializer_returns_none_for_invalid_typed_payload() -> None:
     payload = DomainEventSerializer().to_payload(event)
 
     restored = EventDeserializer(registry={"SampleEvent": SampleEvent}).deserialize(
-        event_type="SampleEvent",
+        type_name="SampleEvent",
         occurred_at=cast("datetime", "not-a-datetime"),
         payload=payload,
     )

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from typing import cast
 
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.ingestion import Ingestion
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
@@ -99,10 +100,12 @@ class TestDomainMessage:
 
         envelope = MessageEnvelopeSerializer().to_outbox_payload(message)
 
+        payload = cast("dict[str, object]", envelope["payload"])
+
         assert envelope["message_type"] == "IngestionPayload"
         assert envelope["occurred_at"] == message.occurred_at.value
-        assert "occurred_at" not in envelope["payload"]
-        assert "schema_version" not in envelope["payload"]
+        assert "occurred_at" not in payload
+        assert "schema_version" not in payload
 
 
 class TestAggregateMessages:

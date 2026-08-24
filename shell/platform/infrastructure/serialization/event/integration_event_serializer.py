@@ -21,10 +21,17 @@ _INTEGRATION_ENVELOPE_FIELDS = frozenset(
 class IntegrationEventSerializer(PayloadObjectSerializer):
     """Serializes integration events at the transport boundary."""
 
-    def to_payload(self, event: object) -> dict[str, object]:
+    def to_payload(
+        self,
+        event: object,
+        excluded_fields: frozenset[str] | None = None,
+    ) -> dict[str, object]:
         if not isinstance(event, IntegrationEvent):
             raise TypeError("IntegrationEventSerializer requires an IntegrationEvent")
-        return super().to_payload(event, excluded_fields=_INTEGRATION_ENVELOPE_FIELDS)
+        return super().to_payload(
+            event,
+            excluded_fields=(_INTEGRATION_ENVELOPE_FIELDS | (excluded_fields or frozenset())),
+        )
 
     def to_envelope(
         self,

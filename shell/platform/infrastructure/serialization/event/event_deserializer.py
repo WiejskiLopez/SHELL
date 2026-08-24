@@ -31,14 +31,14 @@ class EventDeserializer(EnvelopeDeserializer):
 
     def deserialize(
         self,
-        event_type: str,
+        type_name: str,
         occurred_at: object,
         payload: dict[str, object],
         schema_version: int = 1,
         **envelope_metadata: object,
     ) -> object | None:
         return super().deserialize(
-            event_type,
+            type_name,
             occurred_at,
             payload,
             schema_version=schema_version,

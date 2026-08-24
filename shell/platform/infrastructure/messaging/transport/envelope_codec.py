@@ -70,13 +70,11 @@ class EnvelopeCodec:
             source_service=(
                 str(document["source_service"]) if document.get("source_service") else None
             ),
-            aggregate_id=(
-                str(document["aggregate_id"]) if document.get("aggregate_id") else None
-            ),
+            aggregate_id=(str(document["aggregate_id"]) if document.get("aggregate_id") else None),
             aggregate_name=(
                 str(document["aggregate_name"]) if document.get("aggregate_name") else None
             ),
-            schema_version=int(document.get("schema_version", 1)),
+            schema_version=cast("int", document.get("schema_version", 1)),
         )
 
     @staticmethod
