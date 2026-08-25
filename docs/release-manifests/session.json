@@ -1,0 +1,19 @@
+{
+  "service": "shell-session-service",
+  "version": "0.1.0",
+  "commit": "7e4f135d9bda1d3ac0a259f56be9df8b0e783d6a",
+  "source_status": "dirty",
+  "image": "shell-session-service:release-manifest",
+  "image_id": "sha256:084368f3469198eadef889bf3b0ecbbb8e78a3232d110c0759f6181a63784cfa",
+  "image_digest": "sha256:084368f3469198eadef889bf3b0ecbbb8e78a3232d110c0759f6181a63784cfa",
+  "image_digest_type": "local-image-id",
+  "independence_filesystem_digest": "18e91160a00ea871bd294e64d63f2b9ec6f0fb704115a36d53832a00bd107d6c",
+  "platform_version": "0.1.0",
+  "migration_head": "0001_session_baseline",
+  "artifact_sha256": {
+    "shell_platform-0.1.0-py3-none-any.whl": "af1a93d8447fa434f6fdf9d460f3f229972dd66f10de84b716fcfce35f338fcf",
+    "shell_session_service-0.1.0-py3-none-any.whl": "8407612f45ed488aa409950f151175b384794c5199bbafee60a348a87e93a94c"
+  },
+  "verified_at": "2026-08-25T22:15:29.628096+00:00",
+  "status": "candidate"
+}

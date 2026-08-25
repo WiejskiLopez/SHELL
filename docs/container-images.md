@@ -58,6 +58,18 @@ Dla pozostałych usług należy użyć nazw z tabeli i tego samego tagu.
 
 ## Weryfikacja lokalna
 
+Trwałe manifesty ostatniej lokalnej weryfikacji znajdują się w katalogu [release-manifests](release-manifests/):
+
+- [definition.json](release-manifests/definition.json)
+- [execution.json](release-manifests/execution.json)
+- [ingestion.json](release-manifests/ingestion.json)
+- [project.json](release-manifests/project.json)
+- [scheduling.json](release-manifests/scheduling.json)
+- [session.json](release-manifests/session.json)
+- [user.json](release-manifests/user.json)
+
+Manifesty są artefaktami z kontroli lokalnej. Obecny komplet ma status `candidate`, ponieważ został wygenerowany z repozytorium zawierającego niezatwierdzone zmiany. Po commicie należy wygenerować nowy komplet bez `--allow-dirty`; wtedy manifesty mogą otrzymać status `verified`.
+
 Sprawdzenie dostępności tagu:
 
 ```powershell

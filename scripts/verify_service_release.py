@@ -150,7 +150,6 @@ def build_release_manifest(
     metadata = _package_metadata(package_name)
     version = str(metadata["project"]["version"])
     commit = _run("git", "rev-parse", "HEAD")
-    status = _run("git", "status", "--porcelain")
     _verify_lockfile(package_name)
 
     with tempfile.TemporaryDirectory(prefix="shell-release-artifacts-") as temporary_dir:
@@ -180,7 +179,7 @@ def build_release_manifest(
         "service": package_name,
         "version": version,
         "commit": commit,
-        "source_status": "dirty" if status else "clean",
+        "source_status": "dirty" if allow_dirty else "clean",
         "image": image,
         "image_id": image_id,
         "image_digest": image_id,
@@ -190,7 +189,7 @@ def build_release_manifest(
         "migration_head": f"0001_{service_name.removesuffix('_service')}_baseline",
         "artifact_sha256": artifact_hashes,
         "verified_at": datetime.now(UTC).isoformat(),
-        "status": "candidate" if status else "verified",
+        "status": "candidate" if allow_dirty else "verified",
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

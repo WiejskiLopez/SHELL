@@ -1,0 +1,19 @@
+{
+  "service": "shell-definition-service",
+  "version": "0.1.0",
+  "commit": "7e4f135d9bda1d3ac0a259f56be9df8b0e783d6a",
+  "source_status": "dirty",
+  "image": "shell-definition-service:release-manifest",
+  "image_id": "sha256:6afb46ff78c067360baa7f5c7eaf4f9a428289a5730183692a4b9bda0a56ba84",
+  "image_digest": "sha256:6afb46ff78c067360baa7f5c7eaf4f9a428289a5730183692a4b9bda0a56ba84",
+  "image_digest_type": "local-image-id",
+  "independence_filesystem_digest": "5de1960b7106532b2e59d9b0373d2ecfef9e4c33fcfcac2105b919f2aa381071",
+  "platform_version": "0.1.0",
+  "migration_head": "0001_definition_baseline",
+  "artifact_sha256": {
+    "shell_definition_service-0.1.0-py3-none-any.whl": "07925c04200b2766cbfedce6cdb787d0a654c342ed213f53e799b2126459d5f5",
+    "shell_platform-0.1.0-py3-none-any.whl": "af1a93d8447fa434f6fdf9d460f3f229972dd66f10de84b716fcfce35f338fcf"
+  },
+  "verified_at": "2026-08-25T22:12:05.518994+00:00",
+  "status": "candidate"
+}
