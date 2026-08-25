@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 from shell.session_service.application.session.session.event_handlers.auth_session_created_event_handler import (
     AuthSessionCreatedEventHandler,
 )
+from shell.session_service.application.session.session.integration_events.auth_session_created_integration_event import (
+    AuthSessionCreatedIntegrationEvent,
+)
 from shell.session_service.application.session.session.integration_events.session_opened_integration_event import (
     SessionOpenedIntegrationEvent,
 )
 from shell.session_service.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
-)
-from shell.user_service.application.user.auth_session.integration_events.auth_session_created_integration_event import (
-    AuthSessionCreatedIntegrationEvent,
 )
 
 if TYPE_CHECKING:

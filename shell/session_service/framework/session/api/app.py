@@ -7,12 +7,13 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.health import mount_readiness
+from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import (
     CorrelationIdMiddleware,
 )
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
-from shell.platform.framework.api.readiness import create_readiness_router
 from shell.session_service.framework.session.session.api.router import router as sessions_router
 
 if TYPE_CHECKING:
@@ -23,22 +24,34 @@ SESSION_OPENAPI_TAGS = (
     {"name": "Sessions", "description": "Session lifecycle operations."},
     {"name": "Health", "description": "Service health and readiness."},
 )
+SESSION_PUBLIC_EXACT = frozenset({"/health", "/readiness"})
+SESSION_PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
-def create_session_app(core_container: ContainerProtocol) -> FastAPI:
+def create_session_app(
+    core_container: ContainerProtocol,
+    *,
+    api_key: str = "",
+    auth_enabled: bool = True,
+) -> FastAPI:
     """Tworzy aplikację FastAPI dla BC Session."""
     app = FastAPI(title="shell — session", version="0.1.0")
     app.state.core_container = core_container
 
     app.add_middleware(CorrelationIdMiddleware)
+    if auth_enabled:
+        app.add_middleware(
+            AuthMiddleware,
+            api_key=api_key,
+            public_exact=SESSION_PUBLIC_EXACT,
+            public_prefix=SESSION_PUBLIC_PREFIX,
+        )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     app.include_router(sessions_router, prefix="/api/v1")
     configure_openapi(app, tags=SESSION_OPENAPI_TAGS)
 
-    readiness_probe = getattr(core_container, "readiness_probe", None)
-    if readiness_probe is not None:
-        app.include_router(create_readiness_router(readiness_probe()))
+    mount_readiness(app, core_container)
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, object]:

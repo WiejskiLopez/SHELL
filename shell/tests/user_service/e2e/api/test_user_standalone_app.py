@@ -92,6 +92,7 @@ async def test_user_baseline_creates_required_tables(tmp_path: pathlib.Path) -> 
     await engine.dispose()
 
     assert tables == {
+        "alembic_version",
         "user",
         "auth_sessions",
         "user_skill",

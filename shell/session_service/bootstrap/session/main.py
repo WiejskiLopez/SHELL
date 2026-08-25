@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 from pathlib import Path
 
 import uvicorn
@@ -57,10 +58,18 @@ def main() -> None:
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service
-    database_url = args.db_url or deployment.database_url
+    database_url = (
+        args.db_url
+        or os.environ.get("SESSION_SERVICE_DATABASE_URL")
+        or deployment.database_url
+    )
+    broker_url = os.environ.get("SESSION_SERVICE_BROKER_URL") or runtime.events.broker_url
+    api_key = os.environ.get("SESSION_SERVICE_API_KEY") or config.auth.api_key
+    if not api_key:
+        raise ValueError("SESSION_SERVICE_API_KEY is required")
     container = SessionCoreContainer()
     container.config.db_url.from_value(database_url)
-    container.config.broker_url.from_value(runtime.events.broker_url)
+    container.config.broker_url.from_value(broker_url)
     container.config.worker_heartbeat_interval_seconds.from_value(
         runtime.events.worker_heartbeat_interval_seconds
     )
@@ -70,7 +79,7 @@ def main() -> None:
     container.config.worker_id.from_value("session-event-processor")
     container.config.command_worker_id.from_value("session-command-processor")
     configure_session_container(container)
-    app = create_session_app(container)
+    app = create_session_app(container, api_key=api_key)
     server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port, reload=args.reload))
 
     async def run() -> None:

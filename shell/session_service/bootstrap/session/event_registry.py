@@ -12,17 +12,17 @@ from shell.platform.infrastructure.serialization.registries.event_registry impor
     build_event_registry,
     discover_event_types,
 )
-from shell.session_service.bootstrap.session.contract_catalog import SESSION_CONTRACT_CATALOG
-from shell.user_service.application.user.auth_session.integration_events.auth_session_created_integration_event import (
+from shell.session_service.application.session.session.integration_events.auth_session_created_integration_event import (
     AuthSessionCreatedIntegrationEvent,
 )
+from shell.session_service.bootstrap.session.contract_catalog import SESSION_CONTRACT_CATALOG
 
 
 def build_session_event_registry() -> dict[str, type]:
     """Build the event registry owned by the Session bounded context.
 
     Includes the Session BC's own integration events plus the explicitly consumed
-    ``AuthSessionCreatedIntegrationEvent`` from the User BC.
+    local representation of the public User BC login contract.
     """
     owned = discover_event_types("shell.session_service.application.session", IntegrationEvent)
     consumed: tuple[type, ...] = (AuthSessionCreatedIntegrationEvent,)

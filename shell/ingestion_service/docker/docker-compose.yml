@@ -7,7 +7,8 @@ services:
       dockerfile: shell/ingestion_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      INGESTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/ingestion.db
+      INGESTION_SERVICE_BROKER_URL: ${INGESTION_SERVICE_BROKER_URL:?INGESTION_SERVICE_BROKER_URL is required}
     ports:
       - "8004:8004"
     healthcheck:
@@ -19,7 +20,6 @@ services:
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     networks:
       - shell-net
 
@@ -29,18 +29,16 @@ services:
       dockerfile: shell/ingestion_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      INGESTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/ingestion.db
+      INGESTION_SERVICE_BROKER_URL: ${INGESTION_SERVICE_BROKER_URL:?INGESTION_SERVICE_BROKER_URL is required}
     command:
       - python
       - -m
       - shell.ingestion_service.bootstrap.ingestion.main
       - --worker
-      - --db-url
-      - sqlite+aiosqlite:///shell_dev/ingestion.db
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     depends_on:
       shell-ingestion-api:
         condition: service_healthy

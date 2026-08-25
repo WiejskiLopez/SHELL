@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 from pathlib import Path
 
 import uvicorn
@@ -28,10 +29,11 @@ def main() -> None:
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service
-    database_url = args.db_url or deployment.database_url
+    database_url = args.db_url or os.environ.get("EXECUTION_SERVICE_DATABASE_URL") or deployment.database_url
+    broker_url = os.environ.get("EXECUTION_SERVICE_BROKER_URL") or runtime.events.broker_url
     container = ExecutionCoreContainer()
     container.config.db_url.from_value(database_url)
-    container.config.broker_url.from_value(runtime.events.broker_url)
+    container.config.broker_url.from_value(broker_url)
     container.config.worker_id.from_value("execution-event-processor")
     container.config.command_worker_id.from_value("execution-command-processor")
     container.config.worker_heartbeat_interval_seconds.from_value(

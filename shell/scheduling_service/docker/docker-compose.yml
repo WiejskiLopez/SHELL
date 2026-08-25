@@ -7,7 +7,8 @@ services:
       dockerfile: shell/scheduling_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      SCHEDULING_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/scheduling.db
+      SCHEDULING_SERVICE_BROKER_URL: ${SCHEDULING_SERVICE_BROKER_URL:?SCHEDULING_SERVICE_BROKER_URL is required}
     ports:
       - "8006:8006"
     healthcheck:
@@ -19,7 +20,6 @@ services:
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     networks:
       - shell-net
 
@@ -29,18 +29,16 @@ services:
       dockerfile: shell/scheduling_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      SCHEDULING_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/scheduling.db
+      SCHEDULING_SERVICE_BROKER_URL: ${SCHEDULING_SERVICE_BROKER_URL:?SCHEDULING_SERVICE_BROKER_URL is required}
     command:
       - python
       - -m
       - shell.scheduling_service.bootstrap.scheduling.main
       - --worker
-      - --db-url
-      - sqlite+aiosqlite:///shell_dev/scheduling.db
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     depends_on:
       shell-scheduling-api:
         condition: service_healthy

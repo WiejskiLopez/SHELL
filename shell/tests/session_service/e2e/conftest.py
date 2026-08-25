@@ -24,7 +24,7 @@ async def make_session_app(tmp_path):
     container = SessionCoreContainer()
     container.config.db_url.from_value(db_url)
     configure_session_container(container)
-    app = create_session_app(container)
+    app = create_session_app(container, auth_enabled=False)
     app.dependency_overrides[get_principal] = lambda: TEST_PRINCIPAL
     app.dependency_overrides[require_user_principal] = lambda: TEST_PRINCIPAL
     return app

@@ -1,67 +1,29 @@
-"""Fresh baseline schema for the standalone User bounded context."""
+"""Versioned schema migrations for the standalone User bounded context."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+import asyncio
+from pathlib import Path
 
-from sqlalchemy.ext.asyncio import create_async_engine
+from alembic import command
+from alembic.config import Config
 
-from shell.user_service.infrastructure.user.auth_session.persistence.sql.models.auth_session import (
-    AuthSessionModel,
-)
-from shell.user_service.infrastructure.user.persistence.sql.models.base import (
-    PERSISTENCE_DELIVERY_MODELS,
-    InboxEventModel,
-    OutboxEventModel,
-    UserSqlAlchemyModelBase,
-)
-from shell.user_service.infrastructure.user.user.persistence.sql.models.user import UserModel
-from shell.user_service.infrastructure.user.user_skill.persistence.sql.models.user_skill import (
-    UserSkillModel,
-)
-from shell.user_service.infrastructure.user.user_state.persistence.sql.models.user_state import (
-    UserStateModel,
-)
+_MIGRATIONS_DIR = Path(__file__).resolve().parent
 
-if TYPE_CHECKING:
-    from sqlalchemy import Table
 
-_USER_TABLES: tuple[Table, ...] = cast(
-    "tuple[Table, ...]",
-    (
-        UserModel.__table__,
-        AuthSessionModel.__table__,
-        UserSkillModel.__table__,
-        UserStateModel.__table__,
-        PERSISTENCE_DELIVERY_MODELS.audit.__table__,
-        OutboxEventModel.__table__,
-        InboxEventModel.__table__,
-        PERSISTENCE_DELIVERY_MODELS.commands.outbox.__table__,
-        PERSISTENCE_DELIVERY_MODELS.commands.inbox.__table__,
-        PERSISTENCE_DELIVERY_MODELS.processed_delivery.__table__,
-        PERSISTENCE_DELIVERY_MODELS.worker_heartbeat.__table__,
-    ),
-)
+def _sync_database_url(url: str) -> str:
+    return url.replace("+aiosqlite", "").replace("+asyncpg", "")
+
+
+def _upgrade(url: str, reset_db: bool) -> None:
+    config = Config()
+    config.set_main_option("script_location", str(_MIGRATIONS_DIR))
+    config.set_main_option("sqlalchemy.url", _sync_database_url(url))
+    if reset_db:
+        command.downgrade(config, "base")
+    command.upgrade(config, "head")
 
 
 async def run_user_baseline(url: str, reset_db: bool = False) -> None:
-    """Create the current User schema on a fresh database.
-
-    This intentionally creates a new baseline for the standalone User BC.
-    migration history. Existing databases require an explicit data migration.
-    When ``reset_db`` is true, all User tables are dropped first.
-    """
-    engine = create_async_engine(
-        url,
-        future=True,
-        connect_args={"check_same_thread": False} if "sqlite" in url else {},
-    )
-    async with engine.begin() as connection:
-        if reset_db:
-            await connection.run_sync(
-                UserSqlAlchemyModelBase.metadata.drop_all, tables=list(_USER_TABLES)
-            )
-        await connection.run_sync(
-            UserSqlAlchemyModelBase.metadata.create_all, tables=list(_USER_TABLES)
-        )
-    await engine.dispose()
+    """Apply the standalone User migration history up to ``head``."""
+    await asyncio.to_thread(_upgrade, url, reset_db)

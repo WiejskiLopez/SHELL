@@ -1,0 +1,104 @@
+name: User Service
+
+on:
+  push:
+    tags:
+      - "v*"
+    paths:
+      - "packaging/shell-platform/**"
+      - "packaging/shell-user-service/**"
+      - "scripts/build_user_service_artifacts.py"
+      - "scripts/verify_service_release.py"
+      - "scripts/verify_user_service_image.py"
+      - "shell/platform/**"
+      - "shell/user_service/**"
+      - "shell/tests/architecture/test_user_service_artifact_isolation.py"
+      - "shell/tests/architecture/test_release_manifest.py"
+      - "shell/tests/user_service/**"
+      - ".github/workflows/user-service.yml"
+  pull_request:
+    paths:
+      - "packaging/shell-platform/**"
+      - "packaging/shell-user-service/**"
+      - "scripts/build_user_service_artifacts.py"
+      - "scripts/verify_service_release.py"
+      - "scripts/verify_user_service_image.py"
+      - "shell/platform/**"
+      - "shell/user_service/**"
+      - "shell/tests/architecture/test_user_service_artifact_isolation.py"
+      - "shell/tests/architecture/test_release_manifest.py"
+      - "shell/tests/user_service/**"
+      - ".github/workflows/user-service.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-test-release:
+    name: Build and verify User service
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Require clean release source
+        run: test -z "$(git status --porcelain)"
+
+      - name: Install repository test dependencies
+        run: uv sync --locked
+
+      - name: Verify User dependency lockfile
+        run: |
+          lock_check_dir=$(mktemp -d)
+          cp -R packaging/shell-platform "$lock_check_dir/shell-platform"
+          cp -R packaging/shell-user-service "$lock_check_dir/shell-user-service"
+          (cd "$lock_check_dir/shell-user-service" && uv lock --check)
+
+      - name: Verify User BC tests and artifact isolation
+        run: uv run pytest shell/tests/architecture/test_user_service_artifact_isolation.py shell/tests/user_service -q
+
+      - name: Verify independent service contract
+        run: uv run pytest shell/tests/architecture/test_independent_service_contract.py -q
+
+      - name: Verify public integration contracts
+        run: uv run pytest shell/tests/contracts -q
+
+      - name: Build independent wheels
+        run: uv run python -m scripts.build_user_service_artifacts --output-dir dist/user-service
+
+      - name: Build versioned User service image
+        run: |
+          USER_SERVICE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('packaging/shell-user-service/pyproject.toml', 'rb'))['project']['version'])")
+          docker build \
+            --file shell/user_service/docker/Dockerfile \
+            --tag shell-user-service:${{ github.sha }} \
+            --tag shell-user-service:${USER_SERVICE_VERSION} \
+            .
+
+      - name: Verify isolated User service image
+        run: uv run python -m scripts.verify_user_service_image --image shell-user-service:${{ github.sha }}
+
+      - name: Generate release manifest
+        run: uv run python -m scripts.verify_service_release --image shell-user-service:${{ github.sha }} --output dist/user-service/release-manifest.json
+
+      - name: Log in to GitHub Container Registry
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish version and Git SHA image tags
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          USER_SERVICE_VERSION=$(python -c "import tomllib; print(tomllib.load(open('packaging/shell-user-service/pyproject.toml', 'rb'))['project']['version'])")
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}/shell-user-service"
+          docker tag shell-user-service:${{ github.sha }} ${IMAGE_NAME}:${USER_SERVICE_VERSION}
+          docker tag shell-user-service:${{ github.sha }} ${IMAGE_NAME}:${{ github.sha }}
+          docker push ${IMAGE_NAME}:${USER_SERVICE_VERSION}
+          docker push ${IMAGE_NAME}:${{ github.sha }}

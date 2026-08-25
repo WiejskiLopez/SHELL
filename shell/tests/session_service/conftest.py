@@ -8,6 +8,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -94,4 +97,8 @@ def sql_uow(
     session_factory: async_sessionmaker,
     events: FakeEventPublisher,
 ) -> SqlAlchemySessionUnitOfWork:
-    return SqlAlchemySessionUnitOfWork(session_factory, models=PERSISTENCE_DELIVERY_MODELS)
+    return SqlAlchemySessionUnitOfWork(
+        session_factory,
+        mapper=ReflectiveIntegrationMapper(),
+        models=PERSISTENCE_DELIVERY_MODELS,
+    )

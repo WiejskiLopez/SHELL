@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -104,11 +105,17 @@ def main() -> None:
     runtime = config.platform_runtime
     service = config.service
     auth = config.auth
-    database_url = args.db_url or deployment.database_url
+    database_url = (
+        args.db_url
+        or os.environ.get("USER_SERVICE_DATABASE_URL")
+        or deployment.database_url
+    )
+    broker_url = os.environ.get("USER_SERVICE_BROKER_URL") or runtime.events.broker_url
+    api_key = os.environ.get("USER_SERVICE_API_KEY") or auth.api_key
 
     container = UserCoreContainer()
     container.config.db_url.from_value(database_url)
-    container.config.broker_url.from_value(runtime.events.broker_url)
+    container.config.broker_url.from_value(broker_url)
     container.config.worker_id.from_value("user-outbox-relay")
     container.config.command_worker_id.from_value("user-command-processor")
     container.config.worker_heartbeat_interval_seconds.from_value(
@@ -120,7 +127,7 @@ def main() -> None:
     configure_user_container(container)
     app = create_user_app(
         container,
-        api_key=auth.api_key if args.api_key is None else args.api_key,
+        api_key=api_key if args.api_key is None else args.api_key,
         public_exact=USER_PUBLIC_EXACT,
         public_prefix=USER_PUBLIC_PREFIX,
     )

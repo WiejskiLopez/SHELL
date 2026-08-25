@@ -7,7 +7,9 @@ services:
       dockerfile: shell/user_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      USER_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/user.db
+      USER_SERVICE_API_KEY: ${USER_SERVICE_API_KEY:?USER_SERVICE_API_KEY is required}
+      USER_SERVICE_BROKER_URL: ${USER_SERVICE_BROKER_URL:?USER_SERVICE_BROKER_URL is required}
     ports:
       - "8001:8001"
     healthcheck:
@@ -19,7 +21,6 @@ services:
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     networks:
       - shell-net
 
@@ -29,20 +30,17 @@ services:
       dockerfile: shell/user_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      USER_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/user.db
+      USER_SERVICE_API_KEY: ${USER_SERVICE_API_KEY:?USER_SERVICE_API_KEY is required}
+      USER_SERVICE_BROKER_URL: ${USER_SERVICE_BROKER_URL:?USER_SERVICE_BROKER_URL is required}
     command:
       - python
       - -m
       - shell.user_service.bootstrap.user.main
       - --worker
-      - --db-url
-      - sqlite+aiosqlite:///shell_dev/user.db
-      - --api-key
-      - dev-user-key
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     depends_on:
       shell-user-api:
         condition: service_healthy

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from shell.session_service.application.session.session.integration_events.auth_session_created_integration_event import (
+    AuthSessionCreatedIntegrationEvent,
+)
 from shell.session_service.application.session.session.integration_events.session_changed_integration_event import (
     SessionChangedIntegrationEvent,
 )
@@ -18,4 +21,5 @@ __all__ = [
     "SessionDeletedIntegrationEvent",
     "SessionOpenedIntegrationEvent",
     "SessionChangedIntegrationEvent",
+    "AuthSessionCreatedIntegrationEvent",
 ]

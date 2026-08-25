@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shell-execution-service"
+version = "0.1.0"
+description = "SHELL Execution bounded context service"
+requires-python = ">=3.11"
+dependencies = [
+    "aiosqlite>=0.20.0",
+    "alembic>=1.18.5",
+    "dependency-injector>=4.49.1",
+    "fastapi>=0.139.0",
+    "httpx>=0.28.1",
+    "pydantic>=2.13.4",
+    "sqlalchemy>=2.0.51",
+    "shell-platform>=0.1.0,<0.2.0",
+    "uvicorn[standard]>=0.30.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["shell.execution_service*"]
+
+[tool.uv.sources]
+shell-platform = { path = "../shell-platform" }
+
+[tool.setuptools.package-data]
+"shell.execution_service.bootstrap.execution" = ["config/*.yaml"]
+"shell.execution_service.migrations" = ["script.py.mako"]

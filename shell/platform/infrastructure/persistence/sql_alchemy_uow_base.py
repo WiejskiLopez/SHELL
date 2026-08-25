@@ -53,7 +53,11 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         if models is None:
             raise ValueError("SqlAlchemyUnitOfWorkBase requires a persistence delivery bundle")
         if mapper is None:
-            raise ValueError("SqlAlchemyUnitOfWorkBase requires an integration mapper")
+            from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+                ReflectiveIntegrationMapper,
+            )
+
+            mapper = ReflectiveIntegrationMapper()
         self._factory = session_factory
         self._mapper = mapper
         self._models = models

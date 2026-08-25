@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
 from sqlalchemy import select
 
+from shell.platform.domain.events import DomainEvent
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.mapping.integration_mapping_error import (
     IntegrationMappingError,
 )
@@ -34,22 +37,24 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
-class _UnmappedDomainEvent:
+@dataclass(frozen=True, slots=True, kw_only=True)
+class _UnmappedDomainEvent(DomainEvent):
     """A domain event that has no ``*IntegrationEvent`` counterpart."""
 
-    __module__ = "shell.session_service.domain.session.aggregates.session.events.no_such_event"
-    __name__ = "NoSuchEvent"
-    event_id = type("id", (), {"value": "x"})()
-    occurred_at = type("oa", (), {"value": datetime(2025, 1, 1, tzinfo=UTC)})()
-    aggregate_id = type("id", (), {"value": ""})()
-    aggregate_name = type("n", (), {"value": ""})()
-    schema_version = type("v", (), {"value": 1})()
+
+_UnmappedDomainEvent.__module__ = (
+    "shell.session_service.domain.session.aggregates.session.events.no_such_event"
+)
 
 
 class TestMissingIntegrationEvent:
     async def test_mapper_raises_for_unmapped_domain_event(self) -> None:
         with pytest.raises(IntegrationMappingError, match="Cannot find integration event"):
-            ReflectiveIntegrationMapper().map(_UnmappedDomainEvent())
+            ReflectiveIntegrationMapper().map(
+                _UnmappedDomainEvent(
+                    occurred_at=OccurredAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
+                )
+            )
 
     async def test_uow_save_with_mapper_does_not_write_outbox_when_mapping_fails(
         self,
@@ -68,7 +73,11 @@ class TestMissingIntegrationEvent:
         )
         # Append a domain event that has no integration contract to simulate a
         # missing mapping.
-        session.append_event(_UnmappedDomainEvent())  # type: ignore[arg-type]
+        session.append_event(
+            _UnmappedDomainEvent(
+                occurred_at=OccurredAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
+            )
+        )
 
         with pytest.raises(IntegrationMappingError):
             async with uow as unit_of_work:
@@ -97,7 +106,11 @@ class TestMissingIntegrationEvent:
             user_id=UserIdRef("user-x"),
             now=CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC)),
         )
-        session.append_event(_UnmappedDomainEvent())  # type: ignore[arg-type]
+        session.append_event(
+            _UnmappedDomainEvent(
+                occurred_at=OccurredAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
+            )
+        )
 
         with pytest.raises(IntegrationMappingError):
             async with uow as unit_of_work:

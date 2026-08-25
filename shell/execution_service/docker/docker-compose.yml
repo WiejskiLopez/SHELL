@@ -7,7 +7,8 @@ services:
       dockerfile: shell/execution_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      EXECUTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/execution.db
+      EXECUTION_SERVICE_BROKER_URL: ${EXECUTION_SERVICE_BROKER_URL:?EXECUTION_SERVICE_BROKER_URL is required}
     ports:
       - "8007:8007"
     healthcheck:
@@ -19,7 +20,6 @@ services:
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     networks:
       - shell-net
 
@@ -29,18 +29,16 @@ services:
       dockerfile: shell/execution_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      EXECUTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/execution.db
+      EXECUTION_SERVICE_BROKER_URL: ${EXECUTION_SERVICE_BROKER_URL:?EXECUTION_SERVICE_BROKER_URL is required}
     command:
       - python
       - -m
       - shell.execution_service.bootstrap.execution.main
       - --worker
-      - --db-url
-      - sqlite+aiosqlite:///shell_dev/execution.db
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     depends_on:
       shell-execution-api:
         condition: service_healthy

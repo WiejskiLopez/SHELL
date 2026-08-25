@@ -280,7 +280,7 @@ def configure_session_container(container: SessionCoreContainer) -> None:
     query_bus.register(ListSessionsQuery, container.list_sessions_handler_factory)
     query_bus.register(GetSessionStateByIdQuery, container.get_session_state_by_id_handler_factory)
 
-    from shell.user_service.application.user.auth_session.integration_events.auth_session_created_integration_event import (
+    from shell.session_service.application.session.session.integration_events.auth_session_created_integration_event import (
         AuthSessionCreatedIntegrationEvent,
     )
 

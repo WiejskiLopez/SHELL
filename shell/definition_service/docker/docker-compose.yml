@@ -7,7 +7,8 @@ services:
       dockerfile: shell/definition_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      DEFINITION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/definition.db
+      DEFINITION_SERVICE_BROKER_URL: ${DEFINITION_SERVICE_BROKER_URL:?DEFINITION_SERVICE_BROKER_URL is required}
     ports:
       - "8002:8002"
     healthcheck:
@@ -19,7 +20,6 @@ services:
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     networks:
       - shell-net
 
@@ -29,18 +29,16 @@ services:
       dockerfile: shell/definition_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SHELL_EVENTS_BROKER_URL: amqp://shell:shell@rabbitmq
+      DEFINITION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/definition.db
+      DEFINITION_SERVICE_BROKER_URL: ${DEFINITION_SERVICE_BROKER_URL:?DEFINITION_SERVICE_BROKER_URL is required}
     command:
       - python
       - -m
       - shell.definition_service.bootstrap.definition.main
       - --worker
-      - --db-url
-      - sqlite+aiosqlite:///shell_dev/definition.db
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
-      - ./config:/app/config
     depends_on:
       shell-definition-api:
         condition: service_healthy

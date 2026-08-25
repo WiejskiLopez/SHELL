@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shell-platform"
+version = "0.1.0"
+description = "Generic SHELL platform contracts and technical mechanisms"
+requires-python = ">=3.11"
+dependencies = [
+    "aio-pika>=10.0.1",
+    "alembic>=1.18.5",
+    "fastapi>=0.139.0",
+    "httpx>=0.28.1",
+    "PyJWT>=2.10.1",
+    "pydantic>=2.13.4",
+    "pyyaml>=6.0",
+    "sqlalchemy>=2.0.51",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["shell", "shell.platform*"]

@@ -1,0 +1,85 @@
+name: Remaining Services
+
+on:
+  push:
+    paths:
+      - "packaging/shell-platform/**"
+      - "packaging/shell-*-service/**"
+      - "scripts/**"
+      - "shell/platform/**"
+      - "shell/definition_service/**"
+      - "shell/execution_service/**"
+      - "shell/ingestion_service/**"
+      - "shell/project_service/**"
+      - "shell/scheduling_service/**"
+      - "shell/tests/architecture/test_remaining_service_artifact_isolation.py"
+      - ".github/workflows/remaining-services.yml"
+  pull_request:
+    paths:
+      - "packaging/shell-platform/**"
+      - "packaging/shell-*-service/**"
+      - "scripts/**"
+      - "shell/platform/**"
+      - "shell/definition_service/**"
+      - "shell/execution_service/**"
+      - "shell/ingestion_service/**"
+      - "shell/project_service/**"
+      - "shell/scheduling_service/**"
+      - "shell/tests/architecture/test_remaining_service_artifact_isolation.py"
+      - ".github/workflows/remaining-services.yml"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  service:
+    name: ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: definition_service
+            package: shell-definition-service
+            tests: shell/tests/definition_service
+            port: 8002
+          - service: execution_service
+            package: shell-execution-service
+            tests: shell/tests/execution_service
+            port: 8007
+          - service: ingestion_service
+            package: shell-ingestion-service
+            tests: shell/tests/ingestion_service
+            port: 8004
+          - service: project_service
+            package: shell-project-service
+            tests: shell/tests/project_service
+            port: 8005
+          - service: scheduling_service
+            package: shell-scheduling-service
+            tests: shell/tests/scheduling_service
+            port: 8006
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install repository dependencies
+        run: uv sync --locked
+      - name: Verify service lockfile
+        run: |
+          lock_check_dir=$(mktemp -d)
+          cp -R packaging/shell-platform "$lock_check_dir/shell-platform"
+          cp -R packaging/${{ matrix.package }} "$lock_check_dir/${{ matrix.package }}"
+          (cd "$lock_check_dir/${{ matrix.package }}" && uv lock --check)
+      - name: Run service tests
+        run: uv run pytest ${{ matrix.tests }} -q
+      - name: Verify all remaining artifact boundaries
+        run: uv run pytest shell/tests/architecture/test_remaining_service_artifact_isolation.py -q
+      - name: Verify independent service contract
+        run: uv run pytest shell/tests/architecture/test_independent_service_contract.py -q
+      - name: Build service image
+        run: docker build --file shell/${{ matrix.service }}/docker/Dockerfile --tag ${{ matrix.package }}:${{ github.sha }} .
+      - name: Verify service release candidate
+        run: uv run python -m scripts.verify_service_release --service ${{ matrix.service }} --package ${{ matrix.package }} --image ${{ matrix.package }}:${{ github.sha }} --output dist/${{ matrix.package }}/release-manifest.json

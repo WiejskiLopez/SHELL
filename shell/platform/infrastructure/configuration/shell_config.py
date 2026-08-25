@@ -23,6 +23,9 @@ _VALID_LOG_LEVELS = frozenset({"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"})
 
 def _config_dir() -> Path:
     """Resolve the shared environment config directory."""
+    configured_dir = os.environ.get("SHELL_CONFIG_DIR")
+    if configured_dir:
+        return Path(configured_dir)
     return Path(__file__).resolve().parents[3] / "config"
 
 
@@ -107,7 +110,11 @@ class LoadedConfiguration:
 
         Safety: reset_db is only honored when active_profile is 'dev'.
         """
-        config_dir = _config_dir()
+        config_dir = (
+            component_config_dir
+            if component_config_dir is not None and (component_config_dir / "default.yaml").exists()
+            else _config_dir()
+        )
 
         # 1. Load defaults
         defaults = _load_yaml(config_dir / "default.yaml")
