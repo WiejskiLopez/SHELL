@@ -1,19 +1,19 @@
 {
   "service": "shell-ingestion-service",
   "version": "0.1.0",
-  "commit": "7e4f135d9bda1d3ac0a259f56be9df8b0e783d6a",
-  "source_status": "dirty",
-  "image": "shell-ingestion-service:release-manifest",
-  "image_id": "sha256:6cb317a2f8e761e1abcb827d750ea7fe90686a5a2fd1c9f4349b27d70b889297",
-  "image_digest": "sha256:6cb317a2f8e761e1abcb827d750ea7fe90686a5a2fd1c9f4349b27d70b889297",
+  "commit": "627661bbfdd9d34d1e5fb75457f90884f9760103",
+  "source_status": "clean",
+  "image": "shell-ingestion-service:verified-627661bb",
+  "image_id": "sha256:fb7183b79501e87c70870767e455e28c3c9f0046758d2711f2ce2b2a047f216f",
+  "image_digest": "sha256:fb7183b79501e87c70870767e455e28c3c9f0046758d2711f2ce2b2a047f216f",
   "image_digest_type": "local-image-id",
-  "independence_filesystem_digest": "d78e0781603ca61b5730e3afb26f87c7a45d6d3648612ef206ac269fd5d0af30",
+  "independence_filesystem_digest": "8c8d4d57b8b40f9c88d00a0ea9b397b64dbde584a0d04e8b093e3944e6106440",
   "platform_version": "0.1.0",
   "migration_head": "0001_ingestion_baseline",
   "artifact_sha256": {
-    "shell_ingestion_service-0.1.0-py3-none-any.whl": "a816763a4b41dd99576ea6d52265462de480e1f0cfcd0d51c9c3d0f6cd3d1c55",
-    "shell_platform-0.1.0-py3-none-any.whl": "af1a93d8447fa434f6fdf9d460f3f229972dd66f10de84b716fcfce35f338fcf"
+    "shell_ingestion_service-0.1.0-py3-none-any.whl": "a4c0069ce69df7928f3509eaf5734b2b7411db0aab496eea92b7fc33a9ba20e9",
+    "shell_platform-0.1.0-py3-none-any.whl": "5adedb1df8a7c46890b75180e6a75afa75651f81a42c515f2af7e4cedc32bce0"
   },
-  "verified_at": "2026-08-25T22:13:36.145275+00:00",
-  "status": "candidate"
+  "verified_at": "2026-08-25T22:33:13.086836+00:00",
+  "status": "verified"
 }

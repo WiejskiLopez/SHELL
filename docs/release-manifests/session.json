@@ -1,19 +1,19 @@
 {
   "service": "shell-session-service",
   "version": "0.1.0",
-  "commit": "7e4f135d9bda1d3ac0a259f56be9df8b0e783d6a",
-  "source_status": "dirty",
-  "image": "shell-session-service:release-manifest",
-  "image_id": "sha256:084368f3469198eadef889bf3b0ecbbb8e78a3232d110c0759f6181a63784cfa",
-  "image_digest": "sha256:084368f3469198eadef889bf3b0ecbbb8e78a3232d110c0759f6181a63784cfa",
+  "commit": "627661bbfdd9d34d1e5fb75457f90884f9760103",
+  "source_status": "clean",
+  "image": "shell-session-service:verified-627661bb",
+  "image_id": "sha256:50f30b78a794cc8b665e3511f4be28e6d94093fffeb4cd6312c774b5c767f6b2",
+  "image_digest": "sha256:50f30b78a794cc8b665e3511f4be28e6d94093fffeb4cd6312c774b5c767f6b2",
   "image_digest_type": "local-image-id",
-  "independence_filesystem_digest": "18e91160a00ea871bd294e64d63f2b9ec6f0fb704115a36d53832a00bd107d6c",
+  "independence_filesystem_digest": "9daa67b69be5836353765f244f719aeb76c1dd8c21d28fb0cc1fd89dc58a89ae",
   "platform_version": "0.1.0",
   "migration_head": "0001_session_baseline",
   "artifact_sha256": {
-    "shell_platform-0.1.0-py3-none-any.whl": "af1a93d8447fa434f6fdf9d460f3f229972dd66f10de84b716fcfce35f338fcf",
-    "shell_session_service-0.1.0-py3-none-any.whl": "8407612f45ed488aa409950f151175b384794c5199bbafee60a348a87e93a94c"
+    "shell_platform-0.1.0-py3-none-any.whl": "5adedb1df8a7c46890b75180e6a75afa75651f81a42c515f2af7e4cedc32bce0",
+    "shell_session_service-0.1.0-py3-none-any.whl": "00853449d407ab76d21517d1fdd10dc2e05c9bd1d5442679eb340172de70de50"
   },
-  "verified_at": "2026-08-25T22:15:29.628096+00:00",
-  "status": "candidate"
+  "verified_at": "2026-08-25T22:35:34.537565+00:00",
+  "status": "verified"
 }
