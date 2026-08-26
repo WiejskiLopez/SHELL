@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.changed_at import ChangedAt
+from shell.scheduling_service.application.scheduling.scheduler_execution.exceptions.scheduler_execution_not_found_error import (
+    SchedulerExecutionNotFoundError,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
     SchedulerExecutionRepository,
 )
@@ -16,10 +19,6 @@ if TYPE_CHECKING:
     from shell.scheduling_service.application.scheduling.scheduler_execution.commands.change_scheduler_execution_command import (
         ChangeSchedulerExecutionCommand,
     )
-
-
-class SchedulerExecutionNotFoundError(Exception):
-    pass
 
 
 class ChangeSchedulerExecutionHandler:

@@ -12,18 +12,3 @@ class UserDto:
     created_at: datetime
     changed_at: datetime
     deleted_at: datetime | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class CreateUserRequest:
-    email: str
-
-
-@dataclass(frozen=True, slots=True)
-class CreateUserResponse:
-    id: str
-
-
-@dataclass(frozen=True, slots=True)
-class ChangeUserRequest:
-    email: str

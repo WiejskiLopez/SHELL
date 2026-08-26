@@ -25,10 +25,6 @@ if TYPE_CHECKING:
     )
 
 
-class SchedulerExecutionNotFoundError(Exception):
-    pass
-
-
 class CreateSchedulerExecutionHandler:
     def __init__(
         self,

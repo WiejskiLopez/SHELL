@@ -222,7 +222,11 @@ from shell.execution_service.infrastructure.execution.workflow_state.persistence
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
-from shell.platform.infrastructure.context.client import CorrelationIdAsyncClient
+from shell.platform.infrastructure.context.client import ResilientAsyncClient
+from shell.platform.infrastructure.context.resilience import (
+    CircuitBreakerPolicy,
+    RetryPolicy,
+)
 from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
@@ -264,16 +268,20 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
 
     definition_http_client = providers.Factory(
-        CorrelationIdAsyncClient,
+        ResilientAsyncClient,
         base_url=config.definition_service_url,
         service_api_key=config.definition_service_api_key,
         timeout=config.service_http_timeout,
+        retry_policy=providers.Object(RetryPolicy(max_attempts=3)),
+        circuit_breaker_policy=providers.Object(CircuitBreakerPolicy()),
     )
     session_http_client = providers.Factory(
-        CorrelationIdAsyncClient,
+        ResilientAsyncClient,
         base_url=config.session_service_url,
         service_api_key=config.session_service_api_key,
         timeout=config.service_http_timeout,
+        retry_policy=providers.Object(RetryPolicy(max_attempts=3)),
+        circuit_breaker_policy=providers.Object(CircuitBreakerPolicy()),
     )
     graph_definition_provider = providers.Factory(
         GraphDefinitionProviderHttpAdapter,

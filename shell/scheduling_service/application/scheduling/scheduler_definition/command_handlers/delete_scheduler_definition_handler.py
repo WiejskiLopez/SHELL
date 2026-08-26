@@ -18,8 +18,9 @@ if TYPE_CHECKING:
     )
 
 
-class SchedulerDefinitionNotFoundError(Exception):
-    pass
+from shell.scheduling_service.application.scheduling.scheduler_definition.exceptions.scheduler_definition_not_found_error import (
+    SchedulerDefinitionNotFoundError,
+)
 
 
 class DeleteSchedulerDefinitionHandler:

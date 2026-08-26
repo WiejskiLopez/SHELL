@@ -10,9 +10,11 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.user_service.infrastructure.user.seed.builders import (
-    build_user_model,
+from shell.user_service.infrastructure.user.seed.build_user_model import build_user_model
+from shell.user_service.infrastructure.user.seed.build_user_skill_model import (
     build_user_skill_model,
+)
+from shell.user_service.infrastructure.user.seed.build_user_state_model import (
     build_user_state_model,
 )
 from shell.user_service.infrastructure.user.user.persistence.sql.models.user import UserModel

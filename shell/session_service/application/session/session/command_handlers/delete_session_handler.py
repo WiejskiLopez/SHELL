@@ -18,12 +18,9 @@ if TYPE_CHECKING:
     )
 
 
-class SessionNotFoundError(Exception):
-    pass
-
-
-class SessionAlreadyDeletedError(Exception):
-    pass
+from shell.session_service.application.session.session.exceptions.session_not_found_error import (
+    SessionNotFoundError,
+)
 
 
 class DeleteSessionHandler:

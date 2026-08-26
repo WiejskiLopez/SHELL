@@ -16,12 +16,15 @@ if TYPE_CHECKING:
     )
 
 
-class UserNotFoundError(Exception):
-    pass
+__all__ = ["DeleteUserHandler", "UserNotFoundError", "UserAlreadyDeletedError"]
 
 
-class UserAlreadyDeletedError(Exception):
-    pass
+from shell.user_service.application.user.user.exceptions.user_already_deleted_error import (
+    UserAlreadyDeletedError,
+)
+from shell.user_service.application.user.user.exceptions.user_not_found_error import (
+    UserNotFoundError,
+)
 
 
 class DeleteUserHandler:

@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.project_service.application.project.project.exceptions.project_not_found_error import (
+    ProjectNotFoundError,
+)
 from shell.project_service.domain.project.aggregates.project.repositories.project_repository import (
     ProjectRepository,
 )
@@ -16,14 +19,6 @@ if TYPE_CHECKING:
     from shell.project_service.application.project.project.commands.delete_project_command import (
         DeleteProjectCommand,
     )
-
-
-class ProjectNotFoundError(Exception):
-    pass
-
-
-class ProjectAlreadyDeletedError(Exception):
-    pass
 
 
 class DeleteProjectHandler:

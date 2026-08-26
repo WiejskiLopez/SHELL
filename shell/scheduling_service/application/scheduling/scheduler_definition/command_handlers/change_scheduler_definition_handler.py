@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.changed_at import ChangedAt
+from shell.scheduling_service.application.scheduling.scheduler_definition.exceptions.scheduler_definition_not_found_error import (
+    SchedulerDefinitionNotFoundError,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
     SchedulerDefinitionRepository,
 )
@@ -16,10 +19,6 @@ if TYPE_CHECKING:
     from shell.scheduling_service.application.scheduling.scheduler_definition.commands.change_scheduler_definition_command import (
         ChangeSchedulerDefinitionCommand,
     )
-
-
-class SchedulerDefinitionNotFoundError(Exception):
-    pass
 
 
 class ChangeSchedulerDefinitionHandler:

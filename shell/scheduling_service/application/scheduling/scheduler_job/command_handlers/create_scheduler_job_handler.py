@@ -39,8 +39,6 @@ if TYPE_CHECKING:
     )
 
 
-class SchedulerJobNotFoundError(Exception):
-    pass
 
 
 class CreateSchedulerJobHandler:

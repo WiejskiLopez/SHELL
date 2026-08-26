@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.user_service.application.user.user.dto.user import UserDto
+    from shell.user_service.application.user.user.dto.user_dto import UserDto
 
 
 class UserQueryService(Protocol):

@@ -17,8 +17,9 @@ if TYPE_CHECKING:
     )
 
 
-class UserNotFoundError(Exception):
-    pass
+from shell.user_service.application.user.user.exceptions.user_not_found_error import (
+    UserNotFoundError,
+)
 
 
 class ChangeUserHandler:

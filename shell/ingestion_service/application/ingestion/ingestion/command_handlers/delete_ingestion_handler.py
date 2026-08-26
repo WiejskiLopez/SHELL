@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.ingestion_service.application.ingestion.ingestion.exceptions.ingestion_not_found_error import (
+    IngestionNotFoundError,
+)
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.repositories.ingestion_repository import (
     IngestionRepository,
 )
@@ -16,14 +19,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-
-
-class IngestionNotFoundError(Exception):
-    pass
-
-
-class IngestionAlreadyDeletedError(Exception):
-    pass
 
 
 class DeleteIngestionHandler:

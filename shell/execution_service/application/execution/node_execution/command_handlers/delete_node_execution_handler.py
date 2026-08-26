@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.node_execution.exceptions.node_execution_not_found_error import (
+    NodeExecutionNotFoundError,
+)
 from shell.execution_service.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
@@ -16,14 +19,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-
-
-class NodeExecutionNotFoundError(Exception):
-    pass
-
-
-class NodeExecutionAlreadyDeletedError(Exception):
-    pass
 
 
 class DeleteNodeExecutionHandler:

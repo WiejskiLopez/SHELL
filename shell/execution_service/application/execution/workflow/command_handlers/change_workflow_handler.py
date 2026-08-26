@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.workflow.exceptions.workflow_not_found_error import (
+    WorkflowNotFoundError,
+)
 from shell.execution_service.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
@@ -16,10 +19,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-
-
-class WorkflowNotFoundError(Exception):
-    pass
 
 
 class ChangeWorkflowHandler:

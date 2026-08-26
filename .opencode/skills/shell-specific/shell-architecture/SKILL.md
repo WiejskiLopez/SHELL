@@ -16,6 +16,8 @@ overview alone:
 - `bounded-context-boundary` — BC isolation and standalone composition roots;
 - `test-topology` — ownership and placement of tests;
 - `integration-contracts` — HTTP/event communication between BCs.
+- `resilient-http-client` — timeout, retry, circuit breaker and authenticated
+    HTTP clients for service-to-service calls;
 - `provider-service-separation` — rozdzielenie portów odczytu (`Provider`) od
     portów operacji i mutacji (`Service`) między BC.
 

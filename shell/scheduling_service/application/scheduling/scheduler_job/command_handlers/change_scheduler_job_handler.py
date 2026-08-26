@@ -18,8 +18,9 @@ if TYPE_CHECKING:
     )
 
 
-class SchedulerJobNotFoundError(Exception):
-    pass
+from shell.scheduling_service.application.scheduling.scheduler_job.exceptions.scheduler_job_not_found_error import (
+    SchedulerJobNotFoundError,
+)
 
 
 class ChangeSchedulerJobHandler:

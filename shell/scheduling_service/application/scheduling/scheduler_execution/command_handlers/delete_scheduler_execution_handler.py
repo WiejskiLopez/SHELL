@@ -18,8 +18,9 @@ if TYPE_CHECKING:
     )
 
 
-class SchedulerExecutionNotFoundError(Exception):
-    pass
+from shell.scheduling_service.application.scheduling.scheduler_execution.exceptions.scheduler_execution_not_found_error import (
+    SchedulerExecutionNotFoundError,
+)
 
 
 class DeleteSchedulerExecutionHandler:

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.changed_at import ChangedAt
+from shell.project_service.application.project.project.exceptions.project_not_found_error import (
+    ProjectNotFoundError,
+)
 from shell.project_service.domain.project.aggregates.project.repositories.project_repository import (
     ProjectRepository,
 )
@@ -21,11 +23,6 @@ if TYPE_CHECKING:
     from shell.project_service.application.project.project.commands.change_project_command import (
         ChangeProjectCommand,
     )
-
-
-class ProjectNotFoundError(DomainError):
-    def __init__(self, project_id: str) -> None:
-        super().__init__(f"Project not found: {project_id}")
 
 
 class ChangeProjectHandler:

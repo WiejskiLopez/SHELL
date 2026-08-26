@@ -31,7 +31,7 @@ from shell.user_service.framework.user.user.api.login_response import (
 from shell.user_service.framework.user.user.api.user_response import UserResponse as ApiUserResponse
 
 if TYPE_CHECKING:
-    from shell.user_service.application.user.user.dto.user import UserDto
+    from shell.user_service.application.user.user.dto.user_dto import UserDto
 
 
 def _dto_to_response(dto: UserDto) -> ApiUserResponse:

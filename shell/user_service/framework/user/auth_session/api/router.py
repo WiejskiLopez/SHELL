@@ -17,9 +17,13 @@ from shell.user_service.application.user.auth_session.queries.get_current_auth_s
 from shell.user_service.domain.user.aggregates.auth_session.exceptions.auth_session_login_denied_error import (
     AuthSessionLoginDeniedError,
 )
-from shell.user_service.framework.user.auth_session.api.models import (
+from shell.user_service.framework.user.auth_session.api.auth_session_id_response import (
     AuthSessionIdResponse,
+)
+from shell.user_service.framework.user.auth_session.api.current_user_response import (
     CurrentUserResponse,
+)
+from shell.user_service.framework.user.auth_session.api.login_auth_session_request import (
     LoginAuthSessionRequest,
 )
 
