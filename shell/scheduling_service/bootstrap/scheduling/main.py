@@ -32,6 +32,9 @@ def main() -> None:
     service = config.service
     database_url = args.db_url or os.environ.get("SCHEDULING_SERVICE_DATABASE_URL") or deployment.database_url
     broker_url = os.environ.get("SCHEDULING_SERVICE_BROKER_URL") or runtime.events.broker_url
+    api_key = os.environ.get("SCHEDULING_SERVICE_API_KEY") or config.auth.api_key
+    if not api_key:
+        raise ValueError("SCHEDULING_SERVICE_API_KEY is required")
     container = SchedulingCoreContainer()
     container.config.db_url.from_value(database_url)
     container.config.broker_url.from_value(broker_url)
@@ -44,7 +47,7 @@ def main() -> None:
     container.config.worker_id.from_value("scheduling-event-processor")
     container.config.command_worker_id.from_value("scheduling-command-processor")
     configure_scheduling_container(container)
-    app = create_scheduling_app(container)
+    app = create_scheduling_app(container, api_key=api_key)
     server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port))
 
     async def run() -> None:

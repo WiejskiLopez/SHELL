@@ -39,6 +39,9 @@ def main() -> None:
     service = config.service
     database_url = args.db_url or os.environ.get("DEFINITION_SERVICE_DATABASE_URL") or deployment.database_url
     broker_url = os.environ.get("DEFINITION_SERVICE_BROKER_URL") or runtime.events.broker_url
+    api_key = os.environ.get("DEFINITION_SERVICE_API_KEY") or config.auth.api_key
+    if not api_key:
+        raise ValueError("DEFINITION_SERVICE_API_KEY is required")
     container = DefinitionCoreContainer()
     container.config.db_url.from_value(database_url)
     container.config.broker_url.from_value(broker_url)
@@ -50,7 +53,7 @@ def main() -> None:
         runtime.events.worker_max_batch_time_seconds
     )
     configure_definition_container(container)
-    app = create_definition_app(container)
+    app = create_definition_app(container, api_key=api_key)
     server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port, reload=args.reload))
 
     async def run() -> None:

@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       SESSION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/session.db
+      SESSION_SERVICE_API_KEY: ${SESSION_SERVICE_API_KEY:?SESSION_SERVICE_API_KEY is required}
       SESSION_SERVICE_BROKER_URL: ${SESSION_SERVICE_BROKER_URL:?SESSION_SERVICE_BROKER_URL is required}
     ports:
       - "8003:8003"
@@ -30,6 +31,8 @@ services:
     restart: unless-stopped
     environment:
       SESSION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/session.db
+      # wykonane
+      SESSION_SERVICE_API_KEY: ${SESSION_SERVICE_API_KEY:?SESSION_SERVICE_API_KEY is required}
       SESSION_SERVICE_BROKER_URL: ${SESSION_SERVICE_BROKER_URL:?SESSION_SERVICE_BROKER_URL is required}
     command:
       - python

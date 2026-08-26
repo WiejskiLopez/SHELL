@@ -6,8 +6,8 @@ services:
     container_name: shell-rabbitmq
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: shell
-      RABBITMQ_DEFAULT_PASS: shell
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
       RABBITMQ_DEFAULT_VHOST: /
     ports:
       - "5672:5672"

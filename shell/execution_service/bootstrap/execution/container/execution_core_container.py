@@ -177,6 +177,9 @@ from shell.execution_service.infrastructure.execution.edge_link_execution.persis
 from shell.execution_service.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
     SqlAlchemyEdgeLinkExecutionUnitOfWork,
 )
+from shell.execution_service.infrastructure.execution.graph_execution.adapters.graph_definition.graph_definition_provider_http_adapter import (
+    GraphDefinitionProviderHttpAdapter,
+)
 from shell.execution_service.infrastructure.execution.graph_execution.persistence.sql.services.graph_execution_query_service import (
     GraphExecutionQueryService,
 )
@@ -188,6 +191,9 @@ from shell.execution_service.infrastructure.execution.node_execution.persistence
 )
 from shell.execution_service.infrastructure.execution.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS,
+)
+from shell.execution_service.infrastructure.execution.session_execution.adapters.session_query_provider.session_query_provider_http_adapter import (
+    SessionQueryProviderHttpAdapter,
 )
 from shell.execution_service.infrastructure.execution.session_execution.persistence.sql.services.session_execution_query_service import (
     SessionExecutionQueryService,
@@ -216,6 +222,7 @@ from shell.execution_service.infrastructure.execution.workflow_state.persistence
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.infrastructure.context.client import CorrelationIdAsyncClient
 from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
@@ -255,6 +262,27 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     """Minimal container for BC Execution — used when starting the execution microservice."""
 
     config = providers.Configuration()
+
+    definition_http_client = providers.Factory(
+        CorrelationIdAsyncClient,
+        base_url=config.definition_service_url,
+        service_api_key=config.definition_service_api_key,
+        timeout=config.service_http_timeout,
+    )
+    session_http_client = providers.Factory(
+        CorrelationIdAsyncClient,
+        base_url=config.session_service_url,
+        service_api_key=config.session_service_api_key,
+        timeout=config.service_http_timeout,
+    )
+    graph_definition_provider = providers.Factory(
+        GraphDefinitionProviderHttpAdapter,
+        client=definition_http_client,
+    )
+    session_query_provider = providers.Factory(
+        SessionQueryProviderHttpAdapter,
+        client=session_http_client,
+    )
 
     # Infrastruktura bazodanowa
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)

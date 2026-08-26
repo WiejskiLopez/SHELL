@@ -64,6 +64,9 @@ jobs:
       - name: Verify independent service contract
         run: uv run pytest shell/tests/architecture/test_independent_service_contract.py -q
 
+      - name: Verify production secret policy
+        run: uv run pytest shell/tests/architecture/test_production_secret_policy.py -q
+
       - name: Verify public integration contracts
         run: uv run pytest shell/tests/contracts -q
 

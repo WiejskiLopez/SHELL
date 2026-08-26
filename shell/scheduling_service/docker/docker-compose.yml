@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       SCHEDULING_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/scheduling.db
+      SCHEDULING_SERVICE_API_KEY: ${SCHEDULING_SERVICE_API_KEY:?SCHEDULING_SERVICE_API_KEY is required}
       SCHEDULING_SERVICE_BROKER_URL: ${SCHEDULING_SERVICE_BROKER_URL:?SCHEDULING_SERVICE_BROKER_URL is required}
     ports:
       - "8006:8006"
@@ -30,6 +31,7 @@ services:
     restart: unless-stopped
     environment:
       SCHEDULING_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/scheduling.db
+      SCHEDULING_SERVICE_API_KEY: ${SCHEDULING_SERVICE_API_KEY:?SCHEDULING_SERVICE_API_KEY is required}
       SCHEDULING_SERVICE_BROKER_URL: ${SCHEDULING_SERVICE_BROKER_URL:?SCHEDULING_SERVICE_BROKER_URL is required}
     command:
       - python

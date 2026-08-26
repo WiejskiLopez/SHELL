@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       PROJECT_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/project.db
+      PROJECT_SERVICE_API_KEY: ${PROJECT_SERVICE_API_KEY:?PROJECT_SERVICE_API_KEY is required}
       PROJECT_SERVICE_BROKER_URL: ${PROJECT_SERVICE_BROKER_URL:?PROJECT_SERVICE_BROKER_URL is required}
     ports:
       - "8005:8005"
@@ -30,6 +31,7 @@ services:
     restart: unless-stopped
     environment:
       PROJECT_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/project.db
+      PROJECT_SERVICE_API_KEY: ${PROJECT_SERVICE_API_KEY:?PROJECT_SERVICE_API_KEY is required}
       PROJECT_SERVICE_BROKER_URL: ${PROJECT_SERVICE_BROKER_URL:?PROJECT_SERVICE_BROKER_URL is required}
     command:
       - python

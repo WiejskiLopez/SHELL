@@ -79,6 +79,8 @@ jobs:
         run: uv run pytest shell/tests/architecture/test_remaining_service_artifact_isolation.py -q
       - name: Verify independent service contract
         run: uv run pytest shell/tests/architecture/test_independent_service_contract.py -q
+      - name: Verify production secret policy
+        run: uv run pytest shell/tests/architecture/test_production_secret_policy.py -q
       - name: Build service image
         run: docker build --file shell/${{ matrix.service }}/docker/Dockerfile --tag ${{ matrix.package }}:${{ github.sha }} .
       - name: Verify service release candidate

@@ -11,6 +11,7 @@ from shell.definition_service.framework.definition.graph_definition.api.router i
 )
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.health import mount_readiness
+from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
@@ -25,12 +26,19 @@ DEFINITION_OPENAPI_TAGS = (
 )
 
 
-def create_definition_app(core_container: ContainerProtocol) -> FastAPI:
+def create_definition_app(core_container: ContainerProtocol, *, api_key: str = "") -> FastAPI:
     """Tworzy aplikację FastAPI dla BC Definition."""
     app = FastAPI(title="shell — definition", version="0.1.0")
     app.state.core_container = core_container
 
     app.add_middleware(CorrelationIdMiddleware)
+    if api_key:
+        app.add_middleware(
+            AuthMiddleware,
+            api_key=api_key,
+            public_exact={"/health", "/readiness"},
+            public_prefix={"/docs", "/redoc", "/openapi.json"},
+        )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     app.include_router(graph_definitions_router, prefix="/api/v1")

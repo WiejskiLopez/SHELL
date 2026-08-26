@@ -58,7 +58,7 @@ async def _make_session_app(tmp_path):
     core_container = SessionCoreContainer()
     core_container.config.db_url.from_value(db_url)
     configure_session_container(core_container)
-    app = create_session_app(core_container)
+    app = create_session_app(core_container, api_key=TEST_API_KEY)
 
     @app.middleware("http")
     async def add_test_principal(request: Request, call_next):

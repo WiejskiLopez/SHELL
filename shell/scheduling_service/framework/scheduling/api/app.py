@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from shell.platform.framework.api.health import mount_readiness
+from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.openapi import configure_openapi
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.router import (
     router as scheduler_definition_router,
@@ -22,10 +23,17 @@ SCHEDULING_OPENAPI_TAGS = (
 )
 
 
-def create_scheduling_app(container: object | None = None) -> FastAPI:
+def create_scheduling_app(container: object | None = None, *, api_key: str = "") -> FastAPI:
     app = FastAPI(title="shell - scheduling", version="0.1.0")
     if container is not None:
         app.state.core_container = container
+        if api_key:
+            app.add_middleware(
+                AuthMiddleware,
+                api_key=api_key,
+                public_exact={"/health", "/readiness"},
+                public_prefix={"/docs", "/redoc", "/openapi.json"},
+            )
         app.include_router(scheduler_definition_router, prefix="/api/v1")
         app.include_router(scheduler_execution_router, prefix="/api/v1")
         app.include_router(scheduler_job_router, prefix="/api/v1")

@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       INGESTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/ingestion.db
+      INGESTION_SERVICE_API_KEY: ${INGESTION_SERVICE_API_KEY:?INGESTION_SERVICE_API_KEY is required}
       INGESTION_SERVICE_BROKER_URL: ${INGESTION_SERVICE_BROKER_URL:?INGESTION_SERVICE_BROKER_URL is required}
     ports:
       - "8004:8004"
@@ -30,6 +31,7 @@ services:
     restart: unless-stopped
     environment:
       INGESTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/ingestion.db
+      INGESTION_SERVICE_API_KEY: ${INGESTION_SERVICE_API_KEY:?INGESTION_SERVICE_API_KEY is required}
       INGESTION_SERVICE_BROKER_URL: ${INGESTION_SERVICE_BROKER_URL:?INGESTION_SERVICE_BROKER_URL is required}
     command:
       - python

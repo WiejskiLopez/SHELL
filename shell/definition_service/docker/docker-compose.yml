@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       DEFINITION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/definition.db
+      DEFINITION_SERVICE_API_KEY: ${DEFINITION_SERVICE_API_KEY:?DEFINITION_SERVICE_API_KEY is required}
       DEFINITION_SERVICE_BROKER_URL: ${DEFINITION_SERVICE_BROKER_URL:?DEFINITION_SERVICE_BROKER_URL is required}
     ports:
       - "8002:8002"
@@ -30,6 +31,7 @@ services:
     restart: unless-stopped
     environment:
       DEFINITION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/definition.db
+      DEFINITION_SERVICE_API_KEY: ${DEFINITION_SERVICE_API_KEY:?DEFINITION_SERVICE_API_KEY is required}
       DEFINITION_SERVICE_BROKER_URL: ${DEFINITION_SERVICE_BROKER_URL:?DEFINITION_SERVICE_BROKER_URL is required}
     command:
       - python

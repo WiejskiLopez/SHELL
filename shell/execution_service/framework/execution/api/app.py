@@ -23,6 +23,7 @@ from shell.execution_service.framework.execution.workflow.api.router import (
 )
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.health import mount_readiness
+from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
@@ -45,12 +46,20 @@ def create_execution_app(
     core_container: ContainerProtocol,
     *,
     include_routes: bool = True,
+    api_key: str = "",
 ) -> FastAPI:
     """Tworzy aplikację FastAPI dla BC Execution."""
     app = FastAPI(title="shell — execution", version="0.1.0")
     app.state.core_container = core_container
 
     app.add_middleware(CorrelationIdMiddleware)
+    if api_key:
+        app.add_middleware(
+            AuthMiddleware,
+            api_key=api_key,
+            public_exact={"/health", "/readiness"},
+            public_prefix={"/docs", "/redoc", "/openapi.json"},
+        )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     if include_routes:

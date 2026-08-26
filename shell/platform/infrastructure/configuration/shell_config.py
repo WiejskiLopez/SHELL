@@ -86,7 +86,7 @@ class EventsConfig:
     worker_max_backoff: float = 30.0
     worker_heartbeat_interval_seconds: float = 15.0
     worker_max_batch_time_seconds: float = 45.0
-    broker_url: str = "amqp://shell:shell@localhost:5672"
+    broker_url: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -255,7 +255,7 @@ class LoadedConfiguration:
                     worker_max_backoff=worker_max_backoff,
                     worker_heartbeat_interval_seconds=worker_heartbeat_interval_seconds,
                     worker_max_batch_time_seconds=worker_max_batch_time_seconds,
-                    broker_url=events.get("broker_url", "amqp://shell:shell@localhost:5672"),
+                    broker_url=events.get("broker_url", ""),
                 ),
             ),
             auth=AuthConfig(api_key=str(merged.get("api_key", ""))),

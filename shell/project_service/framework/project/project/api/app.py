@@ -8,6 +8,7 @@ from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.health import mount_readiness
+from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
@@ -23,7 +24,7 @@ PROJECT_OPENAPI_TAGS = (
 )
 
 
-def create_project_app(container: ContainerProtocol) -> FastAPI:
+def create_project_app(container: ContainerProtocol, *, api_key: str = "") -> FastAPI:
     """Tworzy aplikację FastAPI dla agregatu Project.
 
     Może być używana jako samodzielny mikroserwis lub jako część BC Project.
@@ -32,6 +33,13 @@ def create_project_app(container: ContainerProtocol) -> FastAPI:
     app.state.core_container = container
 
     app.add_middleware(CorrelationIdMiddleware)
+    if api_key:
+        app.add_middleware(
+            AuthMiddleware,
+            api_key=api_key,
+            public_exact={"/health", "/readiness"},
+            public_prefix={"/docs", "/redoc", "/openapi.json"},
+        )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     app.include_router(router, prefix="/api/v1")

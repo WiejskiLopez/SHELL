@@ -71,6 +71,7 @@ def test_every_service_has_an_independent_runtime_contract() -> None:
         assert "COPY shell/ ./shell/" not in dockerfile_text
         assert "pip install --no-cache-dir /tmp/wheels/*.whl" in dockerfile_text
         assert f"{service_slug.upper()}_SERVICE_BROKER_URL" in compose_text
+        assert f"{service_slug.upper()}_SERVICE_API_KEY" in compose_text
         assert "SHELL_EVENTS_BROKER_URL" not in compose_text
         assert "--db-url" not in compose_text
         assert "create_all" not in baseline_text

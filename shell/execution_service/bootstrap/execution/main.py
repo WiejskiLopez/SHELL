@@ -31,9 +31,27 @@ def main() -> None:
     service = config.service
     database_url = args.db_url or os.environ.get("EXECUTION_SERVICE_DATABASE_URL") or deployment.database_url
     broker_url = os.environ.get("EXECUTION_SERVICE_BROKER_URL") or runtime.events.broker_url
+    api_key = os.environ.get("EXECUTION_SERVICE_API_KEY") or config.auth.api_key
+    if not api_key:
+        raise ValueError("EXECUTION_SERVICE_API_KEY is required")
     container = ExecutionCoreContainer()
     container.config.db_url.from_value(database_url)
     container.config.broker_url.from_value(broker_url)
+    container.config.definition_service_url.from_value(
+        os.environ.get("DEFINITION_SERVICE_URL", "http://shell-definition-api:8002")
+    )
+    container.config.session_service_url.from_value(
+        os.environ.get("SESSION_SERVICE_URL", "http://shell-session-api:8003")
+    )
+    container.config.definition_service_api_key.from_value(
+        os.environ.get("DEFINITION_SERVICE_API_KEY", "")
+    )
+    container.config.session_service_api_key.from_value(
+        os.environ.get("SESSION_SERVICE_API_KEY", "")
+    )
+    container.config.service_http_timeout.from_value(
+        float(os.environ.get("SERVICE_HTTP_TIMEOUT", "5"))
+    )
     container.config.worker_id.from_value("execution-event-processor")
     container.config.command_worker_id.from_value("execution-command-processor")
     container.config.worker_heartbeat_interval_seconds.from_value(
@@ -43,7 +61,7 @@ def main() -> None:
         runtime.events.worker_max_batch_time_seconds
     )
     configure_execution_container(container)
-    app = create_execution_app(container, include_routes=True)
+    app = create_execution_app(container, include_routes=True, api_key=api_key)
     server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port))
 
     async def run() -> None:

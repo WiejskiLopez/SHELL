@@ -1,0 +1,81 @@
+name: Security Scan
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  python-security:
+    name: Python dependency and code scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - name: Install repository dependencies
+        run: uv sync --locked
+      - name: Audit Python dependencies
+        run: uvx --from pip-audit pip-audit --strict
+      - name: Scan Python code with Bandit
+        run: uvx --from bandit bandit -r shell -x shell/tests -ll
+
+  repository-security:
+    name: Repository secrets and filesystem scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan repository for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Scan filesystem with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  container-security:
+    name: Container scan (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: definition_service
+            package: shell-definition-service
+          - service: execution_service
+            package: shell-execution-service
+          - service: ingestion_service
+            package: shell-ingestion-service
+          - service: project_service
+            package: shell-project-service
+          - service: scheduling_service
+            package: shell-scheduling-service
+          - service: session_service
+            package: shell-session-service
+          - service: user_service
+            package: shell-user-service
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build service image
+        run: docker build --file shell/${{ matrix.service }}/docker/Dockerfile --tag ${{ matrix.package }}:${{ github.sha }} .
+      - name: Scan service image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ matrix.package }}:${{ github.sha }}
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"

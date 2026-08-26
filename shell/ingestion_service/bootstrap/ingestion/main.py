@@ -31,6 +31,9 @@ def main() -> None:
     service = config.service
     database_url = args.db_url or os.environ.get("INGESTION_SERVICE_DATABASE_URL") or deployment.database_url
     broker_url = os.environ.get("INGESTION_SERVICE_BROKER_URL") or runtime.events.broker_url
+    api_key = os.environ.get("INGESTION_SERVICE_API_KEY") or config.auth.api_key
+    if not api_key:
+        raise ValueError("INGESTION_SERVICE_API_KEY is required")
     container = IngestionCoreContainer()
     container.config.db_url.from_value(database_url)
     container.config.broker_url.from_value(broker_url)
@@ -43,7 +46,7 @@ def main() -> None:
         runtime.events.worker_max_batch_time_seconds
     )
     configure_ingestion_container(container)
-    app = create_ingestion_app(container)
+    app = create_ingestion_app(container, api_key=api_key)
     server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port))
 
     async def run() -> None:
