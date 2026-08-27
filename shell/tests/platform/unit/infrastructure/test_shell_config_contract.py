@@ -124,3 +124,66 @@ def test_invalid_yaml_shape_fails_before_startup(
 
     with pytest.raises(ValueError, match="does not contain a mapping"):
         LoadedConfiguration.from_environment()
+
+
+@pytest.mark.parametrize(
+    "missing_variable",
+    [
+        "DEFINITION_SERVICE_DATABASE_URL",
+        "DEFINITION_SERVICE_BROKER_URL",
+        "DEFINITION_SERVICE_API_KEY",
+    ],
+)
+def test_production_service_configuration_requires_owned_values(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+    missing_variable: str,
+) -> None:
+    _write_profile(tmp_path, "prod")
+    monkeypatch.setattr(shell_config, "_config_dir", lambda: tmp_path)
+    for variable in (
+        "DEFINITION_SERVICE_DATABASE_URL",
+        "DEFINITION_SERVICE_BROKER_URL",
+        "DEFINITION_SERVICE_API_KEY",
+    ):
+        monkeypatch.setenv(variable, "configured")
+    monkeypatch.delenv(missing_variable)
+
+    with pytest.raises(ValueError, match=missing_variable):
+        LoadedConfiguration.from_environment(service_name="definition")
+
+
+def test_production_service_configuration_uses_owned_values(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _write_profile(tmp_path, "prod")
+    monkeypatch.setattr(shell_config, "_config_dir", lambda: tmp_path)
+    monkeypatch.setenv(
+        "DEFINITION_SERVICE_DATABASE_URL", "postgresql+asyncpg://definition/db"
+    )
+    monkeypatch.setenv("DEFINITION_SERVICE_BROKER_URL", "amqp://definition")
+    monkeypatch.setenv("DEFINITION_SERVICE_API_KEY", "definition-key")
+    monkeypatch.setenv("SHELL_DATABASE_URL", "postgresql+asyncpg://shared/db")
+    monkeypatch.setenv("SHELL_EVENTS_BROKER_URL", "amqp://shared")
+    monkeypatch.setenv("SHELL_API_KEY", "shared-key")
+
+    config = LoadedConfiguration.from_environment(service_name="definition")
+
+    assert config.deployment.database_url == "postgresql+asyncpg://definition/db"
+    assert config.platform_runtime.events.broker_url == "amqp://definition"
+    assert config.auth.api_key == "definition-key"
+
+
+def test_production_service_configuration_rejects_empty_owned_api_key(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _write_profile(tmp_path, "prod")
+    monkeypatch.setattr(shell_config, "_config_dir", lambda: tmp_path)
+    monkeypatch.setenv("DEFINITION_SERVICE_DATABASE_URL", "postgresql+asyncpg://definition/db")
+    monkeypatch.setenv("DEFINITION_SERVICE_BROKER_URL", "amqp://definition")
+    monkeypatch.setenv("DEFINITION_SERVICE_API_KEY", "")
+
+    with pytest.raises(ValueError, match="DEFINITION_SERVICE_API_KEY"):
+        LoadedConfiguration.from_environment(service_name="definition")

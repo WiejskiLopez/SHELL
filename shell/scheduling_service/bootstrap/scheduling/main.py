@@ -26,7 +26,9 @@ def main() -> None:
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--worker-interval", type=float, default=1.0)
     args = parser.parse_args()
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="scheduling"
+    )
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service

@@ -100,7 +100,12 @@ class LoadedConfiguration:
     test_db_dir: str | None = None
 
     @classmethod
-    def from_environment(cls, component_config_dir: Path | None = None) -> LoadedConfiguration:
+    def from_environment(
+        cls,
+        component_config_dir: Path | None = None,
+        *,
+        service_name: str | None = None,
+    ) -> LoadedConfiguration:
         """Build config from YAML files and environment variables.
 
         Loading order (last wins):
@@ -109,6 +114,8 @@ class LoadedConfiguration:
         3. Environment variables (SHELL_DATABASE_URL, SHELL_MAX_STEP, SHELL_RESET_DB)
 
         Safety: reset_db is only honored when active_profile is 'dev'.
+        When service_name is supplied, production requires that service's
+        database, broker, and API key environment variables.
         """
         config_dir = (
             component_config_dir
@@ -136,11 +143,26 @@ class LoadedConfiguration:
         merged["profile"] = active_profile
 
         # 5. Environment variable overrides use one precedence for both profiles.
-        if "SHELL_DATABASE_URL" in os.environ:
-            env_db_url = os.environ["SHELL_DATABASE_URL"]
+        service_prefix = None if service_name is None else f"{service_name.upper()}_SERVICE"
+        database_env = (
+            f"{service_prefix}_DATABASE_URL" if service_prefix is not None else "SHELL_DATABASE_URL"
+        )
+        broker_env = (
+            f"{service_prefix}_BROKER_URL"
+            if service_prefix is not None
+            else "SHELL_EVENTS_BROKER_URL"
+        )
+        api_key_env = (
+            f"{service_prefix}_API_KEY" if service_prefix is not None else "SHELL_API_KEY"
+        )
+
+        if database_env in os.environ:
+            env_db_url = os.environ[database_env]
             if not env_db_url:
-                raise ValueError("Invalid configuration: database_url must not be empty")
+                raise ValueError(f"Invalid configuration: {database_env} must not be empty")
             merged["database_url"] = env_db_url
+        elif service_name is not None and active_profile == "prod":
+            raise ValueError(f"Invalid production configuration: {database_env} is required")
 
         env_max_step = os.environ.get("SHELL_MAX_STEP")
         if env_max_step is not None:
@@ -160,12 +182,18 @@ class LoadedConfiguration:
         if env_log_level:
             merged["log_level"] = env_log_level
 
-        if "SHELL_API_KEY" in os.environ:
-            merged["api_key"] = os.environ["SHELL_API_KEY"]
+        if api_key_env in os.environ:
+            if service_name is not None and active_profile == "prod" and not os.environ[api_key_env]:
+                raise ValueError(f"Invalid production configuration: {api_key_env} must not be empty")
+            merged["api_key"] = os.environ[api_key_env]
+        elif service_name is not None and active_profile == "prod":
+            raise ValueError(f"Invalid production configuration: {api_key_env} is required")
 
-        env_broker_url = os.environ.get("SHELL_EVENTS_BROKER_URL")
+        env_broker_url = os.environ.get(broker_env)
         if env_broker_url:
             merged.setdefault("events", {})["broker_url"] = env_broker_url
+        elif service_name is not None and active_profile == "prod":
+            raise ValueError(f"Invalid production configuration: {broker_env} is required")
 
         env_test_db_dir = os.environ.get("SHELL_TEST_DB_DIR")
         if env_test_db_dir:
@@ -243,7 +271,7 @@ class LoadedConfiguration:
         return cls(
             deployment=DeploymentConfig(
                 profile=merged.get("profile", "prod"),
-                database_url=merged.get("database_url", "sqlite+aiosqlite:///shell.db"),
+                database_url=merged.get("database_url", ""),
             ),
             platform_runtime=PlatformRuntimeConfig(
                 log_level=log_level,

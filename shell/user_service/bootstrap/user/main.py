@@ -58,7 +58,9 @@ class _PollingOutboxRelay:
 
 async def _run_outbox_relay(container: UserCoreContainer) -> None:
     """Periodically deliver the User BC outbox to the broker (Faza 9)."""
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="user"
+    )
     runtime = config.platform_runtime
     worker_id = "user-outbox-relay"
     heartbeat = WorkerHeartbeatRecorder(
@@ -78,7 +80,9 @@ async def _run_outbox_relay(container: UserCoreContainer) -> None:
 
 
 async def _run_command_worker(container: UserCoreContainer) -> None:
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="user"
+    )
     runtime = config.platform_runtime
     await run_event_inbox_worker(
         consumer=container.rabbit_command_inbox_consumer_factory(),
@@ -100,7 +104,9 @@ def main() -> None:
     parser.add_argument("--worker", action="store_true")
     args = parser.parse_args()
 
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="user"
+    )
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service

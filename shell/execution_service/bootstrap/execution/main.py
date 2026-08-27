@@ -25,7 +25,9 @@ def main() -> None:
     parser.add_argument("--db-url", default=None)
     parser.add_argument("--worker", action="store_true")
     args = parser.parse_args()
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="execution"
+    )
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service

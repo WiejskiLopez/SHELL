@@ -22,7 +22,9 @@ from shell.session_service.migrations.baseline import run_session_baseline
 
 async def _run_event_worker(container: SessionCoreContainer) -> None:
     """Consume cross-BC events from the broker and process the local inbox."""
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="session"
+    )
     runtime = config.platform_runtime
 
     await run_delivery_workers(
@@ -54,7 +56,9 @@ def main() -> None:
     parser.add_argument("--db-url", default=None)
     parser.add_argument("--worker", action="store_true")
     args = parser.parse_args()
-    config = LoadedConfiguration.from_environment(Path(__file__).resolve().parent / "config")
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="session"
+    )
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service
