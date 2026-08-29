@@ -28,6 +28,7 @@ from shell.platform.framework.api.middleware.error_handler import domain_error_h
 from shell.platform.framework.api.openapi import configure_openapi
 from shell.platform.observability.framework.api.health import mount_readiness
 from shell.platform.observability.framework.api.metrics import install_metrics
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
@@ -79,6 +80,7 @@ def create_execution_app(
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    mount_readiness(app, core_container)
-    install_metrics(app, core_container, service="execution")
+    providers = ObservabilityProviders.from_container(core_container)
+    mount_readiness(app, providers)
+    install_metrics(app, providers, service="execution")
     return app

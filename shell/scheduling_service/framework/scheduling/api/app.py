@@ -6,6 +6,7 @@ from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.openapi import configure_openapi
 from shell.platform.observability.framework.api.health import mount_readiness
 from shell.platform.observability.framework.api.metrics import install_metrics
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.router import (
     router as scheduler_definition_router,
 )
@@ -45,7 +46,8 @@ def create_scheduling_app(container: object | None = None, *, api_key: str = "")
         return {"status": "ok"}
 
     if container is not None:
-        mount_readiness(app, container)
-        install_metrics(app, container, service="scheduling")
+        providers = ObservabilityProviders.from_container(container)
+        mount_readiness(app, providers)
+        install_metrics(app, providers, service="scheduling")
 
     return app

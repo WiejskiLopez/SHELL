@@ -67,6 +67,25 @@ inbox_metrics_service = providers.Singleton(
 
 `persistence_delivery_models` to `providers.Object(PERSISTENCE_DELIVERY_MODELS)` (patrz [delivery-models](delivery-models.md)); `inbox_model` wskazuje model inboxa z bundle'a.
 
+## Decyzja o implementacji rejestru
+
+Stan: endpoint `/metrics` renderuje własny, dependency-free `MetricsRegistry`
+(`shell/platform/observability/infrastructure/metrics/registry.py`) w formacie
+Prometheus `text/plain; version=0.0.4` (counter, gauge, histogram).
+
+Decyzja: **utrzymujemy własny rejestr** — decyzja jawnie zapisana w
+[docs/adr/0003-metrics-registry-decision.md](../../../docs/adr/0003-metrics-registry-decision.md).
+Powody: stały, mały zbiór metryk o niskiej kardynalności; platforma jest
+świadomie anty-zależnościowa; podmiana silnika pozostaje niskokosztowa, bo
+rejestr jest za portem `MetricsExporter`/`MetricsRegistry`.
+
+Zabezpieczenie: test zgodności wyjścia z formatem Prometheus (parser
+referencyjny/promtool w CI) + kontrakt `observability.v1` przypinający nazwy,
+HELP i etykiety.
+
+Rewizyta decyzji: gdy pojawi się trace/log/metric correlation, propagacja W3C
+`traceparent`, sampling lub eksport do wielu backendów (Etap 2 z `1.md`).
+
 ## Kluczowe pliki
 
 - `shell/platform/observability/application/ports/metrics.py`

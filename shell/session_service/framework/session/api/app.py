@@ -15,6 +15,7 @@ from shell.platform.framework.api.middleware.error_handler import domain_error_h
 from shell.platform.framework.api.openapi import configure_openapi
 from shell.platform.observability.framework.api.health import mount_readiness
 from shell.platform.observability.framework.api.metrics import install_metrics
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 from shell.session_service.framework.session.session.api.router import router as sessions_router
 
 if TYPE_CHECKING:
@@ -52,8 +53,9 @@ def create_session_app(
     app.include_router(sessions_router, prefix="/api/v1")
     configure_openapi(app, tags=SESSION_OPENAPI_TAGS)
 
-    mount_readiness(app, core_container)
-    install_metrics(app, core_container, service="session")
+    providers = ObservabilityProviders.from_container(core_container)
+    mount_readiness(app, providers)
+    install_metrics(app, providers, service="session")
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, object]:

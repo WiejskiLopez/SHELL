@@ -13,6 +13,7 @@ from shell.platform.framework.api.middleware.error_handler import domain_error_h
 from shell.platform.framework.api.openapi import configure_openapi
 from shell.platform.observability.framework.api.health import mount_readiness
 from shell.platform.observability.framework.api.metrics import install_metrics
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 from shell.project_service.framework.project.project.api.router import router
 
 if TYPE_CHECKING:
@@ -50,6 +51,7 @@ def create_project_app(container: ContainerProtocol, *, api_key: str = "") -> Fa
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    mount_readiness(app, container)
-    install_metrics(app, container, service="project")
+    providers = ObservabilityProviders.from_container(container)
+    mount_readiness(app, providers)
+    install_metrics(app, providers, service="project")
     return app

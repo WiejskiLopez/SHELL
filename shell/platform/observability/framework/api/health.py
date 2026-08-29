@@ -2,23 +2,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 from shell.platform.observability.framework.api.readiness import create_readiness_router
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
 
-    from shell.platform.framework.api.dependencies import ContainerProtocol
 
-
-def mount_readiness(app: FastAPI, core_container: ContainerProtocol | Any) -> None:
-    """Mount ``GET /readiness`` when the container exposes a readiness probe.
+def mount_readiness(app: FastAPI, providers: ObservabilityProviders) -> None:
+    """Mount ``GET /readiness``.
 
     ``/health`` remains the liveness signal defined by each BC app; ``/readiness``
-    is added only when a ``readiness_probe`` provider is registered on the
-    container, so BCs without delivery workers stay liveness-only.
+    reflects real readiness (DB, migrations, worker activity, broker, backlog).
+    Błąd providu jest twardy (AttributeError przy braku ``readiness_probe``) —
+    serwis z czytą deklaracją obserwowalności nie może cicho zgubić endpointu.
     """
-    readiness_probe = getattr(core_container, "readiness_probe", None)
-    if readiness_probe is not None:
-        app.include_router(create_readiness_router(readiness_probe()))
+    app.include_router(create_readiness_router(providers.readiness_probe()))

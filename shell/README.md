@@ -407,6 +407,11 @@ platform/
 ├── application/context/            ← CorrelationId, CausationId
 ├── application/exceptions/         ← ApplicationError
 ├── application/ports/              ← UnitOfWork, Clock, IdGenerator itp.
+├── observability/                  ← Capability: metryki, readiness, ekspozycja (ADR-0002)
+│   ├── application/ports/          ← MetricsBackend, MetricsExporter, ReadinessProbe
+│   ├── infrastructure/metrics/     ← MetricsRegistry, Logging/Prometheus backends
+│   ├── infrastructure/health/      ← Composite/Rabbit/Sql readiness probes
+│   └── framework/api/              ← /metrics, /readiness, MetricsMiddleware, mount_*
 ├── infrastructure/persistence/     ← SQLAlchemy Base, session factory, UoW base, migracje
 ├── infrastructure/identity/        ← UUID id generator
 ├── infrastructure/logging/         ← StdlibLogger (JSON, correlation_id)
@@ -530,6 +535,33 @@ $env:shell_DATABASE_URL = "postgresql+asyncpg://user:password@localhost:5432/she
 
 ## 13. Observability
 
+Mechanizmy obserwowalności to wspólna zdolność platformy w
+`shell/platform/observability/` (ADR-0002): metryki, readiness i logowanie.
+Szczegóły w Wiki `shell/platform/doc/`: [metrics](platform/doc/metrics.md),
+[readiness](platform/doc/readiness.md), [logging](platform/doc/logging.md),
+[tracing-context](platform/doc/tracing-context.md).
+
+### Metryki (Prometheus, `/metrics`)
+
+Każdy serwis eksponuje `GET /metrics` w formacie Prometheus
+(`text/plain; version=0.0.4`) — rejestr, backendy i middleware w
+`shell/platform/observability/`. Decyzja o własnym rejestrze: ADR-0003.
+
+```powershell
+# Przykładowy scrape
+curl http://127.0.0.1:8000/metrics
+```
+
+Metryki platformowe obejmują HTTP (inbound/outbound), retry, circuit breaker
+oraz backlog inbox/outbox. Szczegóły: [metrics](platform/doc/metrics.md).
+
+### Readiness (`/readiness`)
+
+Serwis jest gotowy, gdy DB, migracje, worker i broker (RabbitMQ) działają.
+`GET /readiness` zwraca 200 z `status=ready` albo 503 z diagnostycznym ciałem.
+Healthchecki produkcyjne (docker-compose) wołają `/readiness`; `/health`
+pozostaje sygnałem liveness.
+
 ### Logi (JSON)
 
 `StdlibLogger` wypisuje każdy log jako jednolinijkowy JSON na stdout:
@@ -541,7 +573,7 @@ $env:shell_DATABASE_URL = "postgresql+asyncpg://user:password@localhost:5432/she
 Correlation ID jest propagowane przez `contextvars` — ustawiane automatycznie przez `CorrelationIdMiddleware` (API) lub można je ustawić ręcznie:
 
 ```python
-from shell.infrastructure.logging.stdlib_logger import set_correlation_id
+from shell.platform.infrastructure.logging.stdlib_logger import set_correlation_id
 set_correlation_id("moj-request-id")
 ```
 

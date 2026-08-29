@@ -15,6 +15,7 @@ from shell.platform.framework.api.middleware.error_handler import domain_error_h
 from shell.platform.framework.api.openapi import configure_openapi
 from shell.platform.observability.framework.api.health import mount_readiness
 from shell.platform.observability.framework.api.metrics import install_metrics
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 from shell.user_service.application.user.auth_session.queries.get_current_auth_session_query import (
     GetCurrentAuthSessionQuery,
 )
@@ -72,8 +73,9 @@ def create_user_app(
     app.include_router(users_router, prefix="/api/v1")
     app.include_router(auth_sessions_router, prefix="/api/v1")
     configure_openapi(app, tags=USER_OPENAPI_TAGS)
-    mount_readiness(app, core_container)
-    install_metrics(app, core_container, service="user")
+    providers = ObservabilityProviders.from_container(core_container)
+    mount_readiness(app, providers)
+    install_metrics(app, providers, service="user")
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:

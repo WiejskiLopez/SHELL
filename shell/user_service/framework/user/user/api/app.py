@@ -10,6 +10,7 @@ from shell.platform.framework.api.middleware.correlation_id import CorrelationId
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.observability.framework.api.health import mount_readiness
 from shell.platform.observability.framework.api.metrics import install_metrics
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 from shell.user_service.framework.user.user.api.router import router
 
 
@@ -30,6 +31,7 @@ def create_user_app(container: ContainerProtocol) -> FastAPI:
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    mount_readiness(app, container)
-    install_metrics(app, container, service="user")
+    providers = ObservabilityProviders.from_container(container)
+    mount_readiness(app, providers)
+    install_metrics(app, providers, service="user")
     return app

@@ -13,11 +13,10 @@ from fastapi import APIRouter, Response
 
 from shell.platform.observability.application.ports.metrics import MetricsExporter
 from shell.platform.observability.framework.api.middleware.metrics import MetricsMiddleware
+from shell.platform.observability.framework.api.providers import ObservabilityProviders
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
-
-    from shell.platform.framework.api.dependencies import ContainerProtocol
 
 PROMETHEUS_MEDIA_TYPE = "text/plain; version=0.0.4; charset=utf-8"
 
@@ -51,27 +50,30 @@ def create_metrics_router(
     return router
 
 
-def mount_metrics(app: FastAPI, core_container: ContainerProtocol | Any) -> None:
-    """Mount ``GET /metrics`` when the container exposes a metrics exporter."""
-    exporter = getattr(core_container, "metrics_exporter", None)
-    if exporter is None:
-        return
-    inbox = getattr(core_container, "inbox_metrics_service", None)
-    outbox = getattr(core_container, "outbox_metrics_service", None)
+def mount_metrics(app: FastAPI, providers: ObservabilityProviders) -> None:
+    """Mount ``GET /metrics``.
+
+    Błąd providu jest twardy (AttributeError przy braku ``metrics_exporter``),
+    a nie cichym brakiem endpointu — kontener, który deklaruje obserwowalność,
+    musi ją realnie wystawić.
+    """
+    exporter = providers.metrics_exporter()
     app.include_router(
-        create_metrics_router(exporter(), inbox_provider=inbox, outbox_provider=outbox)
+        create_metrics_router(
+            exporter,
+            inbox_provider=providers.inbox_metrics_service,
+            outbox_provider=providers.outbox_metrics_service,
+        )
     )
 
 
 def install_metrics(
     app: FastAPI,
-    core_container: ContainerProtocol | Any,
+    providers: ObservabilityProviders,
     *,
     service: str,
 ) -> None:
     """Mount the metrics middleware (outermost) and the ``/metrics`` router."""
-    exporter = getattr(core_container, "metrics_exporter", None)
-    if exporter is None:
-        return
-    app.add_middleware(MetricsMiddleware, recorder=exporter(), service=service)
-    mount_metrics(app, core_container)
+    exporter = providers.metrics_exporter()
+    app.add_middleware(MetricsMiddleware, recorder=exporter, service=service)
+    mount_metrics(app, providers)
