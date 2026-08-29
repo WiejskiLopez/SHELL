@@ -18,11 +18,15 @@ if TYPE_CHECKING:
 
 class InMemorySessionRepository(InMemoryRepository[Session, SessionId], SessionRepository):
     async def get_open_by_user_id(self, user_id: UserIdRef) -> Session | None:
-        for session in self._store.values():
+        matches = [
+            session
+            for session in self._store.values()
             if (
                 session.user_id == user_id
                 and session.session_status == SessionStatus.OPEN
                 and session.deleted_at.value is None
-            ):
-                return session
-        return None
+            )
+        ]
+        if not matches:
+            return None
+        return min(matches, key=lambda session: session.id.value)

@@ -12,6 +12,8 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 import aio_pika
+import pytest
+from aiormq.exceptions import PublishError
 from sqlalchemy import select
 
 from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
@@ -37,8 +39,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from sqlalchemy.ext.asyncio import async_sessionmaker
-
-import pytest
 
 _INBOX_MODEL: Any = EVENT_DELIVERY_MODELS.inbox
 
@@ -152,3 +152,85 @@ async def test_live_outbox_rabbit_inbox_processor(
             await session.execute(select(_INBOX_MODEL).where(_INBOX_MODEL.id == rows[0].id))
         ).scalar_one()
     assert row.status == InboxStatus.PROCESSED.value
+
+
+@skip_no_rabbit
+async def test_unroutable_delivery_raises_and_is_retried(
+    tmp_path,
+) -> None:
+    """An unroutable publish (routing key with no binding) must raise
+    instead of being silently dropped; after a binding is added the relay
+    delivers the same record (at-least-once)."""
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from shell.platform.infrastructure.persistence.sql import build_session_factory
+
+    outbox_model: Any = EVENT_DELIVERY_MODELS.outbox
+
+    # Isolation: dedicated DB and dedicated exchange, so the shared
+    # ``shell.delivery`` exchange bindings of other tests cannot make the
+    # routing key routable and the run stays deterministic.
+    url = f"sqlite+aiosqlite:///{tmp_path / 'relay-unroutable.db'}"
+    engine = create_async_engine(url)
+    async with engine.begin() as connection:
+        await connection.run_sync(outbox_model.metadata.create_all)
+    await engine.dispose()
+    isolated = build_session_factory(url)
+
+    exchange_name = "shell.delivery.unroutable-test"
+
+    event = _event()
+    envelope = IntegrationEventSerializer().to_envelope(
+        event,
+        outbox_id="outbox-unroutable-1",
+        source_service="execution_service",
+    )
+    async with isolated() as session:
+        session.add(
+            outbox_model(
+                id=envelope["outbox_id"],
+                event_id=envelope["event_id"],
+                source_service=envelope["source_service"],
+                event_type=envelope["event_type"],
+                occurred_at=envelope["occurred_at"],
+                aggregate_id=envelope["aggregate_id"],
+                aggregate_name=envelope["aggregate_name"],
+                schema_version=envelope["schema_version"],
+                payload=envelope["payload"],
+                correlation_id=envelope["correlation_id"],
+                causation_id=envelope["causation_id"],
+            )
+        )
+        await session.commit()
+
+    transport = RabbitDeliveryTransport(RABBIT_TEST_URL, exchange_name=exchange_name)
+    relay = OutboxToTransportRelay(isolated, EVENT_DELIVERY_MODELS, transport, kind="event")
+
+    # No queue is bound on the dedicated exchange yet → publish must raise.
+    with pytest.raises(PublishError):
+        await relay.run_once()
+
+    async with isolated() as session:
+        rows = (await session.execute(select(outbox_model))).scalars().all()
+    assert len(rows) == 1
+    assert rows[0].published_at is None
+
+    # Bind a queue for the routing key and retry → the same record is delivered.
+    rabbit_connection = await aio_pika.connect_robust(RABBIT_TEST_URL)
+    rabbit_channel = await rabbit_connection.channel()
+    exchange = await rabbit_channel.declare_exchange(exchange_name, type="topic", durable=True)
+    queue = await rabbit_channel.declare_queue(
+        "shell-test-unroutable-relay", durable=True, auto_delete=True
+    )
+    await queue.bind(exchange, routing_key="event.#")
+    await queue.purge()
+
+    assert await relay.run_once() == 1
+
+    async with isolated() as session:
+        rows = (await session.execute(select(outbox_model))).scalars().all()
+    assert rows[0].published_at is not None
+
+    await transport.close()
+    await rabbit_channel.close()
+    await rabbit_connection.close()

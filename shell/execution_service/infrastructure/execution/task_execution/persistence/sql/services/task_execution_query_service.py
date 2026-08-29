@@ -81,7 +81,12 @@ class TaskExecutionQueryService:
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(TaskExecutionModel).where(TaskExecutionModel.name == name)
+            stmt = (
+                select(TaskExecutionModel)
+                .where(TaskExecutionModel.name == name)
+                .order_by(TaskExecutionModel.id)
+                .limit(1)
+            )
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:

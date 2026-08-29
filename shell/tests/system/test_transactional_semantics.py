@@ -35,6 +35,7 @@ from shell.session_service.infrastructure.session.session.persistence.sql.models
     SessionModel,
 )
 from shell.session_service.migrations.baseline import run_session_baseline
+from shell.tests.shared.sql_lifecycle import track_session_factory
 
 _OUTBOX_MODEL: Any = SESSION_DELIVERY_MODELS.events.outbox
 
@@ -54,12 +55,14 @@ async def test_duplicate_delivery_opens_exactly_one_session(tmp_path) -> None:
     session_url = f"sqlite+aiosqlite:///{tmp_path / 'session.db'}"
     await run_session_baseline(session_url)
     session_factory = build_session_factory(session_url)
+    track_session_factory(session_factory)
 
     await _purge_queue(QUEUE)
 
     container = SessionCoreContainer()
     container.config.db_url.from_value(session_url)
     configure_session_container(container)
+    track_session_factory(container.session_factory())
     event_bus = container.event_bus()
 
     from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer
@@ -127,11 +130,13 @@ async def test_session_and_outbox_commit_atomically(tmp_path) -> None:
     session_url = f"sqlite+aiosqlite:///{tmp_path / 'session2.db'}"
     await run_session_baseline(session_url)
     session_factory = build_session_factory(session_url)
+    track_session_factory(session_factory)
     await _purge_queue(QUEUE)
 
     container = SessionCoreContainer()
     container.config.db_url.from_value(session_url)
     configure_session_container(container)
+    track_session_factory(container.session_factory())
     event_bus = container.event_bus()
 
     from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer

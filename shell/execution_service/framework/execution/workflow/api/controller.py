@@ -11,6 +11,9 @@ from shell.execution_service.application.execution.workflow.commands.create_work
 from shell.execution_service.application.execution.workflow.commands.delete_workflow_command import (
     DeleteWorkflowCommand,
 )
+from shell.execution_service.application.execution.workflow.exceptions.workflow_not_found_error import (
+    WorkflowNotFoundError,
+)
 from shell.execution_service.application.execution.workflow.queries.get_workflow_by_id_query import (
     GetWorkflowByIdQuery,
 )
@@ -91,15 +94,11 @@ class WorkflowController:
     async def change_workflow(self, workflow_id: str, body: ApiChangeWorkflowRequest) -> None:
         try:
             await self._command_bus.dispatch(ChangeWorkflowCommand(workflow_id=workflow_id))
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except WorkflowNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_workflow(self, workflow_id: str) -> None:
         try:
             await self._command_bus.dispatch(DeleteWorkflowCommand(workflow_id=workflow_id))
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except WorkflowNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

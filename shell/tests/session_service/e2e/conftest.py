@@ -12,6 +12,7 @@ from shell.session_service.bootstrap.session.container.session_core_container im
 )
 from shell.session_service.framework.session.api.app import create_session_app
 from shell.session_service.migrations.baseline import run_session_baseline
+from shell.tests.shared.sql_lifecycle import track_session_factory
 
 TEST_USER_ID = "session-test-user"
 TEST_API_KEY = "test-api-key"
@@ -24,6 +25,7 @@ async def make_session_app(tmp_path):
     container = SessionCoreContainer()
     container.config.db_url.from_value(db_url)
     configure_session_container(container)
+    track_session_factory(container.session_factory())
     app = create_session_app(container, auth_enabled=False)
     app.dependency_overrides[get_principal] = lambda: TEST_PRINCIPAL
     app.dependency_overrides[require_user_principal] = lambda: TEST_PRINCIPAL

@@ -1,10 +1,12 @@
-"""Root conftest — only global markers and hooks. Zero fixtures."""
+"""Root conftest — global markers, hooks and disposal of tracked SQL session factories."""
 
 from __future__ import annotations
 
 import os
 
 import pytest
+
+from shell.tests.shared.sql_lifecycle import dispose_tracked_session_factories
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -19,3 +21,6 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
         for item in items:
             if "sql_postgres" in str(item.fspath):
                 item.add_marker(skip_pg)
+
+
+__all__ = ["dispose_tracked_session_factories"]

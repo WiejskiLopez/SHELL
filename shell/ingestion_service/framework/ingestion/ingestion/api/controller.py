@@ -11,6 +11,9 @@ from shell.ingestion_service.application.ingestion.ingestion.commands.create_ing
 from shell.ingestion_service.application.ingestion.ingestion.commands.delete_ingestion_command import (
     DeleteIngestionCommand,
 )
+from shell.ingestion_service.application.ingestion.ingestion.exceptions.ingestion_not_found_error import (
+    IngestionNotFoundError,
+)
 from shell.ingestion_service.application.ingestion.ingestion.queries.get_ingestion_by_id_query import (
     GetIngestionByIdQuery,
 )
@@ -66,15 +69,11 @@ class IngestionController:
     async def change_ingestion(self, ingestion_id: str, body: ApiChangeIngestionRequest) -> None:
         try:
             await self._command_bus.dispatch(ChangeIngestionCommand(ingestion_id=ingestion_id))
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except IngestionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_ingestion(self, ingestion_id: str) -> None:
         try:
             await self._command_bus.dispatch(DeleteIngestionCommand(ingestion_id=ingestion_id))
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except IngestionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

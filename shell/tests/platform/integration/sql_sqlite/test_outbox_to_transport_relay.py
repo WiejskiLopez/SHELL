@@ -107,6 +107,20 @@ class AcceptedThenTimeoutTransport:
             raise TimeoutError("broker response was lost")
 
 
+class UnroutableThenRoutableTransport:
+    """Fails with an unroutable publish error until a binding is added."""
+
+    def __init__(self) -> None:
+        self.attempts = 0
+        self.delivered: list[DeliveryEnvelope] = []
+
+    async def deliver(self, envelope: DeliveryEnvelope) -> None:
+        self.attempts += 1
+        if self.attempts == 1:
+            raise RuntimeError("NO_ROUTE: unroutable message (binding missing)")
+        self.delivered.append(envelope)
+
+
 class TestOutboxToTransportRelay:
     async def test_delivers_pending_and_marks_published(
         self,
@@ -248,3 +262,43 @@ class TestOutboxToTransportRelay:
         async with isolated() as session:
             row = (await session.execute(select(_OUTBOX_MODEL))).scalar_one()
             assert row.published_at is not None
+
+    async def test_unroutable_error_is_retried_after_binding_added(
+        self,
+        session_factory: async_sessionmaker,
+        tmp_path,
+    ) -> None:
+        """An unroutable publish (no binding) must not mark the record,
+        and the relay must deliver it once the binding exists (retry)."""
+        url = f"sqlite+aiosqlite:///{tmp_path / 'relay-unroutable.db'}"
+        engine = create_async_engine(url)
+        async with engine.begin() as connection:
+            await connection.run_sync(EVENT_DELIVERY_MODELS.outbox.metadata.create_all)
+        await engine.dispose()
+        isolated = build_session_factory(url)
+
+        await _seed_outbox(isolated)
+
+        transport = UnroutableThenRoutableTransport()
+        relay = OutboxToTransportRelay(
+            isolated,
+            EVENT_DELIVERY_MODELS,
+            transport,
+            kind="event",
+        )
+
+        with pytest.raises(RuntimeError, match="NO_ROUTE"):
+            await relay.run_once()
+
+        async with isolated() as session:
+            rows = (await session.execute(select(_OUTBOX_MODEL))).scalars().all()
+        assert len(rows) == 1
+        assert rows[0].published_at is None
+
+        count = await relay.run_once()
+        assert count == 1
+        assert len(transport.delivered) == 1
+
+        async with isolated() as session:
+            rows = (await session.execute(select(_OUTBOX_MODEL))).scalars().all()
+        assert rows[0].published_at is not None

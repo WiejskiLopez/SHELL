@@ -17,6 +17,7 @@ from shell.session_service.bootstrap.session.container.session_core_container im
 )
 from shell.session_service.framework.session.api.app import create_session_app
 from shell.session_service.migrations.baseline import run_session_baseline
+from shell.tests.shared.sql_lifecycle import track_session_factory
 from shell.tests.shared.test_config import resolve_test_db_dir
 
 if TYPE_CHECKING:
@@ -49,6 +50,7 @@ async def _make_app(tmp_path):
     core_container = ExecutionCoreContainer()
     core_container.config.db_url.from_value(db_url)
     configure_execution_container(core_container)
+    track_session_factory(core_container.session_factory())
     return create_execution_app(core_container)
 
 
@@ -58,6 +60,7 @@ async def _make_session_app(tmp_path):
     core_container = SessionCoreContainer()
     core_container.config.db_url.from_value(db_url)
     configure_session_container(core_container)
+    track_session_factory(core_container.session_factory())
     app = create_session_app(core_container, api_key=TEST_API_KEY)
 
     @app.middleware("http")

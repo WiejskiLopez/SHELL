@@ -44,6 +44,7 @@ def run_migrations_online() -> None:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():
             context.run_migrations()
+    connectable.dispose()
 
 
 run_migrations_offline() if context.is_offline_mode() else run_migrations_online()

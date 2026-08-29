@@ -23,6 +23,7 @@ from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
+from shell.tests.shared.sql_lifecycle import track_session_factory
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -71,6 +72,7 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     await engine.dispose()
 
     session_factory = build_session_factory(url)
+    track_session_factory(session_factory)
     event = _event()
     serializer = IntegrationEventSerializer()
     envelope = serializer.to_envelope(

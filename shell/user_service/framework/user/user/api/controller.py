@@ -11,6 +11,12 @@ from shell.platform.framework.api.principal import Principal, PrincipalKind
 from shell.user_service.application.user.user.commands.change_user_command import ChangeUserCommand
 from shell.user_service.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.user_service.application.user.user.commands.delete_user_command import DeleteUserCommand
+from shell.user_service.application.user.user.exceptions.user_already_deleted_error import (
+    UserAlreadyDeletedError,
+)
+from shell.user_service.application.user.user.exceptions.user_not_found_error import (
+    UserNotFoundError,
+)
 from shell.user_service.application.user.user.queries.get_user_by_email_query import (
     GetUserByEmailQuery,
 )
@@ -97,8 +103,9 @@ class UserController:
             await self._command_bus.dispatch(ChangeUserCommand(user_id=user_id, email=body.email))
         except HTTPException:
             raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except (UserNotFoundError, UserAlreadyDeletedError) as exc:
+            status_code = 409 if isinstance(exc, UserAlreadyDeletedError) else 404
+            raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
     async def delete_user(self, user_id: str, principal: Principal) -> None:
         try:
@@ -106,8 +113,9 @@ class UserController:
             await self._command_bus.dispatch(DeleteUserCommand(user_id=user_id))
         except HTTPException:
             raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except (UserNotFoundError, UserAlreadyDeletedError) as exc:
+            status_code = 409 if isinstance(exc, UserAlreadyDeletedError) else 404
+            raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
     @staticmethod
     def _require_access(user_id: str, principal: Principal) -> None:

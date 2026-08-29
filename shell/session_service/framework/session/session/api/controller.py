@@ -17,6 +17,9 @@ from shell.session_service.application.session.session.commands.delete_session_c
 from shell.session_service.application.session.session.commands.open_session_command import (
     OpenSessionCommand,
 )
+from shell.session_service.application.session.session.exceptions.session_not_found_error import (
+    SessionNotFoundError,
+)
 from shell.session_service.application.session.session.queries.get_session_by_id_query import (
     GetSessionByIdQuery,
 )
@@ -109,8 +112,8 @@ class SessionController:
             await self._command_bus.dispatch(ChangeSessionCommand(session_id=session_id))
         except HTTPException:
             raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SessionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_session(self, session_id: str, principal: Principal) -> None:
         try:
@@ -121,8 +124,8 @@ class SessionController:
             await self._command_bus.dispatch(DeleteSessionCommand(session_id=session_id))
         except HTTPException:
             raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SessionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @staticmethod
     def _require_owner(user_id: str, principal: Principal, session_id: str) -> None:

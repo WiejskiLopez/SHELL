@@ -9,22 +9,19 @@ from __future__ import annotations
 
 import zipfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from scripts.build_user_service_artifacts import build_service_artifacts
+if TYPE_CHECKING:
+    from wheel_helpers import ServiceWheels
 
 
-def test_session_service_artifacts_are_isolated(tmp_path: Path) -> None:
-    build_service_artifacts(
-        service_name="session_service",
-        service_package_name="shell-session-service",
-        output_dir=tmp_path,
-    )
-
-    platform_wheel = next(tmp_path.glob("shell_platform-*.whl"))
-    session_wheel = next(tmp_path.glob("shell_session_service-*.whl"))
-    with zipfile.ZipFile(platform_wheel) as archive:
+def test_session_service_artifacts_are_isolated(
+    artifact_services: dict[str, ServiceWheels],
+) -> None:
+    wheels = artifact_services["session_service"]
+    with zipfile.ZipFile(wheels.platform_wheel) as archive:
         platform_files = set(archive.namelist())
-    with zipfile.ZipFile(session_wheel) as archive:
+    with zipfile.ZipFile(wheels.service_wheel) as archive:
         session_files = set(archive.namelist())
 
     assert any(path.startswith("shell/platform/") for path in platform_files)

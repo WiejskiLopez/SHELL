@@ -43,7 +43,12 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         return task_execution_model_to_entity(row) if row else None
 
     async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
-        query = select(TaskExecutionModel).where(TaskExecutionModel.name == name.value)
+        query = (
+            select(TaskExecutionModel)
+            .where(TaskExecutionModel.name == name.value)
+            .order_by(TaskExecutionModel.id)
+            .limit(1)
+        )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_model_to_entity(row) if row else None
 

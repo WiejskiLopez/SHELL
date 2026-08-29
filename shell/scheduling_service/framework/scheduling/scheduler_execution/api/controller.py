@@ -13,6 +13,9 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.command
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
     DeleteSchedulerExecutionCommand,
 )
+from shell.scheduling_service.application.scheduling.scheduler_execution.exceptions.scheduler_execution_not_found_error import (
+    SchedulerExecutionNotFoundError,
+)
 from shell.scheduling_service.application.scheduling.scheduler_execution.queries.get_scheduler_execution_by_id_query import (
     GetSchedulerExecutionByIdQuery,
 )
@@ -105,17 +108,13 @@ class SchedulerExecutionController:
             await self._command_bus.dispatch(
                 ChangeSchedulerExecutionCommand(scheduler_execution_id=scheduler_execution_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SchedulerExecutionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_scheduler_execution(self, scheduler_execution_id: str) -> None:
         try:
             await self._command_bus.dispatch(
                 DeleteSchedulerExecutionCommand(scheduler_execution_id=scheduler_execution_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SchedulerExecutionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -66,13 +66,14 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
+        execution_status: GraphExecutionStatus = GraphExecutionStatus.PENDING,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
         self._parent_graph_execution_id = parent_graph_execution_id
         self._depth = depth
         self._max_subgraph_depth = max_subgraph_depth
-        self._execution_status = GraphExecutionStatus.PENDING
+        self._execution_status = execution_status
         self._graph_definition_id = (
             graph_definition_id
             if graph_definition_id is not None
@@ -95,6 +96,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
+        execution_status: GraphExecutionStatus = GraphExecutionStatus.PENDING,
     ) -> Self:
         instance = cls(
             id=id,
@@ -106,6 +108,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             created_at=created_at,
             changed_at=changed_at,
             deleted_at=deleted_at,
+            execution_status=execution_status,
         )
         return instance
 

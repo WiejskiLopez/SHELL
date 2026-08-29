@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from shell.tests.shared.sql_lifecycle import track_session_factory
 from shell.user_service.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
@@ -16,4 +17,5 @@ async def make_user_app(tmp_path):
     container = UserCoreContainer()
     container.config.db_url.from_value(db_url)
     configure_user_container(container)
+    track_session_factory(container.session_factory())
     return create_user_app(container, api_key=TEST_API_KEY)

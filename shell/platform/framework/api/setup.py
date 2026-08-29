@@ -8,12 +8,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 
+from shell.platform.application.exceptions import ApplicationError
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.constants import API_VERSION_REGISTRY
 from shell.platform.framework.api.middleware.api_version import ApiVersionMiddleware
 from shell.platform.framework.api.middleware.audit_log import AuditLogMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import (
+    application_error_handler,
     domain_error_handler,
     http_exception_handler,
     unhandled_exception_handler,
@@ -60,6 +62,7 @@ def _register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(ApplicationError, application_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, unhandled_exception_handler)
 
 

@@ -106,7 +106,9 @@ def _verify_unrelated_service_does_not_change_image(
     with tempfile.TemporaryDirectory(prefix="shell-release-context-") as temporary_dir:
         isolated_root = Path(temporary_dir)
         (isolated_root / "shell").mkdir()
-        shutil.copytree(REPOSITORY_ROOT / "shell" / "platform", isolated_root / "shell" / "platform")
+        shutil.copytree(
+            REPOSITORY_ROOT / "shell" / "platform", isolated_root / "shell" / "platform"
+        )
         shutil.copytree(
             REPOSITORY_ROOT / "shell" / service_name,
             isolated_root / "shell" / service_name,
@@ -116,7 +118,15 @@ def _verify_unrelated_service_does_not_change_image(
         first_image = "shell-release-independence-before"
         second_image = "shell-release-independence-after"
         try:
-            _run("docker", "build", "--file", str(dockerfile), "--tag", first_image, str(isolated_root))
+            _run(
+                "docker",
+                "build",
+                "--file",
+                str(dockerfile),
+                "--tag",
+                first_image,
+                str(isolated_root),
+            )
             first_digest = _filesystem_digest(first_image)
             unrelated_service = (
                 "definition_service"
@@ -126,7 +136,15 @@ def _verify_unrelated_service_does_not_change_image(
             unrelated_file = isolated_root / "shell" / unrelated_service / "unrelated.py"
             unrelated_file.parent.mkdir(parents=True)
             unrelated_file.write_text("changed = True\n", encoding="utf-8")
-            _run("docker", "build", "--file", str(dockerfile), "--tag", second_image, str(isolated_root))
+            _run(
+                "docker",
+                "build",
+                "--file",
+                str(dockerfile),
+                "--tag",
+                second_image,
+                str(isolated_root),
+            )
             second_digest = _filesystem_digest(second_image)
             if first_digest != second_digest:
                 raise RuntimeError(
@@ -149,6 +167,7 @@ def build_release_manifest(
     output_path: Path,
     allow_dirty: bool = False,
     dry_run: bool = False,
+    artifacts_dir: Path | None = None,
 ) -> dict[str, Any]:
     if not allow_dirty:
         _require_clean_tree()
@@ -157,16 +176,22 @@ def build_release_manifest(
     commit = _run("git", "rev-parse", "HEAD")
     _verify_lockfile(package_name)
 
-    with tempfile.TemporaryDirectory(prefix="shell-release-artifacts-") as temporary_dir:
-        artifact_dir = Path(temporary_dir)
-        build_service_artifacts(
-            service_name=service_name,
-            service_package_name=package_name,
-            output_dir=artifact_dir,
-        )
+    if artifacts_dir is None:
+        with tempfile.TemporaryDirectory(prefix="shell-release-artifacts-") as temporary_dir:
+            artifact_dir = Path(temporary_dir)
+            build_service_artifacts(
+                service_name=service_name,
+                service_package_name=package_name,
+                output_dir=artifact_dir,
+            )
+            artifact_hashes = {
+                path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                for path in artifact_dir.glob("*.whl")
+            }
+    else:
         artifact_hashes = {
             path.name: hashlib.sha256(path.read_bytes()).hexdigest()
-            for path in artifact_dir.glob("*.whl")
+            for path in artifacts_dir.glob("*.whl")
         }
 
     image_id = None if dry_run else _build_image(service_name, image)
@@ -227,7 +252,9 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     service_package = args.package or f"shell-{args.service.removesuffix('_service')}-service"
-    service_image = args.image or f"shell-{args.service.removesuffix('_service')}-service:release-candidate"
+    service_image = (
+        args.image or f"shell-{args.service.removesuffix('_service')}-service:release-candidate"
+    )
     build_release_manifest(
         service_name=args.service,
         package_name=service_package,

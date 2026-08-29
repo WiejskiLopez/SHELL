@@ -15,6 +15,7 @@ param(
     [switch]$SkipTypeCheck,
     [switch]$SkipSecurity,       
     [switch]$SkipArchCheck,      
+    [int]$SecurityAuditTimeout = 60,
     [switch]$Verbose
 )
 
@@ -132,15 +133,24 @@ if (-not $SkipArchCheck) {
 
 if (-not $SkipSecurity) {
     Write-Host "`n--- Dependency Vulnerability Audit ---" -ForegroundColor Yellow
-    Write-Host "Running: $projectRoot\.venv\Scripts\pip-audit.exe" -ForegroundColor Gray
-    $pipJob = Start-Job -ScriptBlock { param($path) & $path } -ArgumentList "$projectRoot\.venv\Scripts\pip-audit.exe"
-    $pipResult = $pipJob | Wait-Job -Timeout 30
-    if ($pipResult -eq $null) {
-        $pipJob | Stop-Job -PassThru | Remove-Job
-        Write-Host "TIMEOUT: pip-audit exceeded 30s (network issue), skipping" -ForegroundColor Yellow
-    } else {
-        Receive-Job -Job $pipJob
-        Remove-Job -Job $pipJob
+    $pipAudit = "$projectRoot\.venv\Scripts\pip-audit.exe"
+    $pipAuditCache = Join-Path $env:TEMP "shell-pip-audit-cache"
+    Write-Host "Running: $pipAudit (timeout ${SecurityAuditTimeout}s)" -ForegroundColor Gray
+    try {
+        $pipJob = Start-Job -ScriptBlock {
+            param($auditPath, $cacheDir)
+            & $auditPath "--timeout", "30", "--progress-spinner", "off", "--cache-dir", $cacheDir 2>&1
+        } -ArgumentList $pipAudit, $pipAuditCache
+        if ($null -eq ($pipJob | Wait-Job -Timeout $SecurityAuditTimeout)) {
+            Write-Host "TIMEOUT: pip-audit exceeded ${SecurityAuditTimeout}s (network issue), skipping" -ForegroundColor Yellow
+        } else {
+            Receive-Job -Job $pipJob
+        }
+    } catch {
+        Write-Host "WARNING: pip-audit step failed with error: $($_.Exception.Message)" -ForegroundColor Yellow
+        Write-Host "Continuing (security audit is not release-blocking)" -ForegroundColor Yellow
+    } finally {
+        $pipJob | Stop-Job -ErrorAction SilentlyContinue | Remove-Job -Force -ErrorAction SilentlyContinue
     }
 }
 

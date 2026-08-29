@@ -14,6 +14,9 @@ from shell.execution_service.domain.execution.aggregates.graph_execution.value_o
 from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_status import (
+    GraphExecutionStatus,
+)
 from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
     MaxSubgraphDepth,
 )
@@ -47,6 +50,7 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         graph_definition_id=GraphDefinitionIdRef(graph_execution_model.graph_definition_id)
         if graph_execution_model.graph_definition_id
         else None,
+        execution_status=GraphExecutionStatus(graph_execution_model.status),
         created_at=CreatedAt.from_datetime(_ensure_utc(graph_execution_model.created_at)),
         changed_at=ChangedAt.from_datetime(_ensure_utc(graph_execution_model.changed_at)),
         deleted_at=(DeletedAt.from_datetime(graph_execution_model.deleted_at)),

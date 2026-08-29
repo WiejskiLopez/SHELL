@@ -95,6 +95,7 @@ from shell.execution_service.infrastructure.execution.workflow.persistence.sql.m
 )
 from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.timestamp import Timestamp
 from shell.session_service.domain.session.aggregates.session import Session
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
@@ -108,6 +109,8 @@ from shell.session_service.infrastructure.session.session.persistence.sql.mapper
 )
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
+
+_SAMPLE_WORK_DIR = "workdir/sample"
 
 
 def _raw(dt: datetime | Timestamp | None) -> datetime | None:
@@ -184,7 +187,7 @@ class TestTaskExecutionMapper:
             id=TaskExecutionId("te-1"),
             name=TaskName("test-task"),
             workflow_id=WorkflowId("wf-1"),
-            work_dir=WorkDir("/tmp"),
+            work_dir=WorkDir(_SAMPLE_WORK_DIR),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -198,7 +201,7 @@ class TestTaskExecutionMapper:
             id=TaskExecutionId("te-2"),
             name=TaskName("nested"),
             workflow_id=WorkflowId("wf-1"),
-            work_dir=WorkDir("/tmp"),
+            work_dir=WorkDir(_SAMPLE_WORK_DIR),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -211,7 +214,7 @@ class TestTaskExecutionMapper:
             id=TaskExecutionId("te-3"),
             name=TaskName("test"),
             workflow_id=WorkflowId("wf-1"),
-            work_dir=WorkDir("/tmp"),
+            work_dir=WorkDir(_SAMPLE_WORK_DIR),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -251,12 +254,14 @@ class TestGraphExecutionMapper:
             depth=0,
             max_subgraph_depth=5,
             tags={},
+            status="EXECUTING",
             created_at=_NOW,
         )
         entity = graph_execution_model_to_entity(model)
 
         assert entity.id.value == "ge-1"
         assert entity.task_execution_id.value == "te-1"
+        assert entity.status.value == "EXECUTING"
         assert entity.parent_graph_execution_id is None
         assert entity.pull_events() == []
 
@@ -271,11 +276,13 @@ class TestGraphExecutionMapper:
             depth=2,
             max_subgraph_depth=5,
             tags={},
+            status="COMPLETED",
             created_at=_NOW,
         )
         entity = graph_execution_model_to_entity(model)
 
         assert entity.id.value == "ge-2"
+        assert entity.status.value == "COMPLETED"
         assert entity.parent_graph_execution_id is not None
         assert entity.parent_graph_execution_id.value == "ge-parent"
         assert entity.pull_events() == []
@@ -293,6 +300,24 @@ class TestGraphExecutionMapper:
 
         assert restored.id.value == original.id.value
 
+    def test_round_trip_preserves_execution_status(self) -> None:
+        from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_status import (
+            GraphExecutionStatus,
+        )
+
+        original = GraphExecution(
+            id=GraphExecutionId("ge-5"),
+            created_at=CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC)),
+            task_execution_id=TaskExecutionId("te-1"),
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
+        )
+        original.change_status(GraphExecutionStatus.COMPLETED, OccurredAt.from_datetime(_NOW))
+        model = graph_execution_entity_to_model(original)
+        restored = graph_execution_model_to_entity(model)
+
+        assert restored.status is GraphExecutionStatus.COMPLETED
+
     def test_model_to_entity_with_node_executions(self) -> None:
         model = GraphExecutionModel(
             id="ge-4",
@@ -303,6 +328,7 @@ class TestGraphExecutionMapper:
             depth=0,
             max_subgraph_depth=5,
             tags={},
+            status="PENDING",
             created_at=_NOW,
         )
 

@@ -52,4 +52,7 @@ class InMemoryRepository(Generic[TAggregate, TId]):
         if entity is None:
             return ExistsResult(False)
         deleted = getattr(entity, "_deleted_at", None)
-        return ExistsResult(deleted is None)
+        if deleted is None:
+            return ExistsResult(True)
+        deleted_value = getattr(deleted, "value", None)
+        return ExistsResult(deleted_value is None)

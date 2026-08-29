@@ -23,6 +23,8 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 
 _NOW = CreatedAt.from_datetime(datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC))
 
+_SAMPLE_WORK_DIR = "workdir/sample"
+
 
 class TestTaskExecution:
     def test_create_emits_task_created_event(self) -> None:
@@ -31,7 +33,7 @@ class TestTaskExecution:
             name=TaskName("my-task"),
             now=_NOW,
             workflow_id=WorkflowId("wf-1"),
-            work_dir=WorkDir("/tmp"),
+            work_dir=WorkDir(_SAMPLE_WORK_DIR),
         )
         events = task_execution.pull_events()
         assert len(events) == 1
@@ -43,6 +45,6 @@ class TestTaskExecution:
             id_=id_,
             now=_NOW,
             workflow_id=WorkflowId("wf-1"),
-            work_dir=WorkDir("/tmp"),
+            work_dir=WorkDir(_SAMPLE_WORK_DIR),
         )
         assert task_execution.name.value == str(id_.value)

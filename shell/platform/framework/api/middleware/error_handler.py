@@ -5,10 +5,12 @@ BC-specific exception mappings should be added via per-BC middleware.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from fastapi.responses import JSONResponse
 
+from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.application.exceptions import (  # noqa: TC001 — potrzebny w runtime dla isinstance() i handlera wyjątków
     ApplicationError,
 )
@@ -23,6 +25,8 @@ from shell.platform.framework.api.models.problem_detail import FieldError, Probl
 if TYPE_CHECKING:
     from fastapi import HTTPException, Request
     from fastapi.exceptions import RequestValidationError
+
+logger = logging.getLogger(__name__)
 
 
 async def domain_error_handler(request: Request, exc: DomainError) -> JSONResponse:
@@ -69,6 +73,11 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.error(
+        "Unhandled exception during request",
+        exc_info=exc,
+        extra={"correlation_id": get_correlation_id()},
+    )
     return JSONResponse(
         status_code=500,
         content=ProblemDetail(

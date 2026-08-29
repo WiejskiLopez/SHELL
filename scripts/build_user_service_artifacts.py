@@ -37,6 +37,36 @@ def build_artifacts(output_dir: Path, repository_root: Path = REPOSITORY_ROOT) -
     )
 
 
+def build_single_wheel(
+    *,
+    package_name: str,
+    manifest_path: Path,
+    source_path: Path,
+    output_dir: Path,
+) -> None:
+    """Build one isolated wheel for a package (platform or a bounded context).
+
+    Extracted from :func:`build_service_artifacts` so callers can build and
+    cache a single artifact without re-packaging the platform source each time.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="shell-package-build-") as temporary_dir:
+        package_stage = _stage_package(
+            package_name=package_name,
+            manifest_path=manifest_path,
+            source_path=source_path,
+            stage_root=Path(temporary_dir),
+        )
+        build_environment = os.environ.copy()
+        build_environment["SOURCE_DATE_EPOCH"] = "0"
+        subprocess.run(
+            ["uv", "build", "--wheel", "--out-dir", str(output_dir)],
+            cwd=package_stage,
+            check=True,
+            env=build_environment,
+        )
+
+
 def build_service_artifacts(
     *,
     service_name: str,
@@ -47,29 +77,18 @@ def build_service_artifacts(
     """Build a platform wheel and one bounded-context wheel in isolation."""
     output_dir.mkdir(parents=True, exist_ok=True)
     repository_root = repository_root.resolve()
-    with tempfile.TemporaryDirectory(prefix="shell-package-build-") as temporary_dir:
-        stage_root = Path(temporary_dir)
-        platform_stage = _stage_package(
-            package_name="shell-platform",
-            manifest_path=repository_root / "packaging" / "shell-platform" / "pyproject.toml",
-            source_path=repository_root / "shell" / "platform",
-            stage_root=stage_root,
-        )
-        service_stage = _stage_package(
-            package_name=service_package_name,
-            manifest_path=repository_root / "packaging" / service_package_name / "pyproject.toml",
-            source_path=repository_root / "shell" / service_name,
-            stage_root=stage_root,
-        )
-        for package_stage in (platform_stage, service_stage):
-            build_environment = os.environ.copy()
-            build_environment["SOURCE_DATE_EPOCH"] = "0"
-            subprocess.run(
-                ["uv", "build", "--wheel", "--out-dir", str(output_dir)],
-                cwd=package_stage,
-                check=True,
-                env=build_environment,
-            )
+    build_single_wheel(
+        package_name="shell-platform",
+        manifest_path=repository_root / "packaging" / "shell-platform" / "pyproject.toml",
+        source_path=repository_root / "shell" / "platform",
+        output_dir=output_dir,
+    )
+    build_single_wheel(
+        package_name=service_package_name,
+        manifest_path=repository_root / "packaging" / service_package_name / "pyproject.toml",
+        source_path=repository_root / "shell" / service_name,
+        output_dir=output_dir,
+    )
 
 
 def main() -> None:

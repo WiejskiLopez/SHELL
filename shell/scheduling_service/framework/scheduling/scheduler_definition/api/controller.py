@@ -13,6 +13,9 @@ from shell.scheduling_service.application.scheduling.scheduler_definition.comman
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
     DeleteSchedulerDefinitionCommand,
 )
+from shell.scheduling_service.application.scheduling.scheduler_definition.exceptions.scheduler_definition_not_found_error import (
+    SchedulerDefinitionNotFoundError,
+)
 from shell.scheduling_service.application.scheduling.scheduler_definition.queries.get_scheduler_definition_by_id_query import (
     GetSchedulerDefinitionByIdQuery,
 )
@@ -81,17 +84,13 @@ class SchedulerDefinitionController:
             await self._command_bus.dispatch(
                 ChangeSchedulerDefinitionCommand(scheduler_definition_id=scheduler_definition_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SchedulerDefinitionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_scheduler_definition(self, scheduler_definition_id: str) -> None:
         try:
             await self._command_bus.dispatch(
                 DeleteSchedulerDefinitionCommand(scheduler_definition_id=scheduler_definition_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SchedulerDefinitionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

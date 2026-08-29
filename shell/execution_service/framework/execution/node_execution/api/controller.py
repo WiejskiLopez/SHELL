@@ -10,6 +10,9 @@ from shell.execution_service.application.execution.node_execution.commands.creat
 from shell.execution_service.application.execution.node_execution.commands.delete_node_execution_command import (
     DeleteNodeExecutionCommand,
 )
+from shell.execution_service.application.execution.node_execution.exceptions.node_execution_not_found_error import (
+    NodeExecutionNotFoundError,
+)
 from shell.execution_service.application.execution.node_execution.queries.get_node_execution_by_id_query import (
     GetNodeExecutionByIdQuery,
 )
@@ -89,7 +92,5 @@ class NodeExecutionController:
             await self._command_bus.dispatch(
                 DeleteNodeExecutionCommand(node_execution_id=node_execution_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except NodeExecutionNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

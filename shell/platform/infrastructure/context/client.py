@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import random
 import ssl
@@ -27,6 +28,8 @@ if TYPE_CHECKING:
     from shell.platform.observability.application.ports.metrics import (
         OutboundHttpMetricsRecorder,
     )
+
+logger = logging.getLogger(__name__)
 
 
 def client_tls_kwargs_from_env(service: str = "") -> dict[str, Any]:
@@ -138,6 +141,7 @@ class ResilientAsyncClient(CorrelationIdAsyncClient):
                 **kwargs,
             )
         except Exception:
+            logger.exception("metrics backend failed to record outbound HTTP metric")
             return
 
     def _record_breaker_after_failure(self, method: str) -> None:

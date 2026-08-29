@@ -6,8 +6,9 @@ Routing convention:
   message   : JSON envelope bytes (see EnvelopeCodec), persistent delivery mode.
 
 Each consumer BC binds its own queue to the exchange with the routing keys it
-handles. Publishing is confirm-based: ``deliver()`` raises on nack/timeout so the
-caller (outbox relay) can retry and never lose the record.
+handles. Publishing is mandatory and confirm-based: ``deliver()`` raises on
+nack/timeout AND on an unroutable message (Basic.Return), so the caller (outbox
+relay) can retry and never lose the record.
 """
 
 from __future__ import annotations
@@ -48,22 +49,38 @@ class RabbitDeliveryTransport:
     async def deliver(self, envelope: DeliveryEnvelope) -> None:
         channel = await self._get_channel()
         exchange = await channel.get_exchange(self._exchange_name)
-        await exchange.publish(
-            Message(
-                body=self._codec.encode(envelope),
-                delivery_mode=DeliveryMode.PERSISTENT,
-                content_type="application/json",
-            ),
-            routing_key=f"{envelope.kind}.{envelope.contract_type}",
-            mandatory=False,
-        )
+        routing_key = f"{envelope.kind}.{envelope.contract_type}"
+        try:
+            await exchange.publish(
+                Message(
+                    body=self._codec.encode(envelope),
+                    delivery_mode=DeliveryMode.PERSISTENT,
+                    content_type="application/json",
+                ),
+                routing_key=routing_key,
+                mandatory=True,
+            )
+        except Exception:
+            logger.exception(
+                "RabbitMQ delivery failed — exchange=%s routing_key=%s kind=%s contract_type=%s "
+                "outbox_id=%s",
+                self._exchange_name,
+                routing_key,
+                envelope.kind,
+                envelope.contract_type,
+                envelope.outbox_id,
+            )
+            raise
 
     async def _get_channel(self) -> AbstractChannel:
         async with self._lock:
             if self._channel is not None and not self._channel.is_closed:
                 return self._channel
             self._connection = await connect_robust(self._url, timeout=30)
-            channel = await self._connection.channel(publisher_confirms=self._publisher_confirms)
+            channel = await self._connection.channel(
+                publisher_confirms=self._publisher_confirms,
+                on_return_raises=self._publisher_confirms,
+            )
             self._channel = channel
             await channel.declare_exchange(
                 self._exchange_name,

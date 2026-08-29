@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine
 
+from shell.tests.shared.sql_lifecycle import track_session_factory
 from shell.user_service.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
@@ -27,6 +28,7 @@ async def test_user_app_builds_with_user_core_container() -> None:
     container = UserCoreContainer()
     container.config.db_url.from_value("sqlite+aiosqlite:///:memory:")
     configure_user_container(container)
+    track_session_factory(container.session_factory())
     app = create_user_app(container, api_key="test-key")
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -48,6 +50,7 @@ async def test_user_app_auth_session_flow(tmp_path: pathlib.Path) -> None:
     container = UserCoreContainer()
     container.config.db_url.from_value(db_url)
     configure_user_container(container)
+    track_session_factory(container.session_factory())
     app = create_user_app(container, api_key="test-key")
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

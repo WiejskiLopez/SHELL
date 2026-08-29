@@ -11,6 +11,9 @@ from shell.execution_service.domain.execution.aggregates.node_execution.reposito
 from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
+from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
+    NodeExecutionStatus,
+)
 from shell.platform.infrastructure.persistence.in_memory_repository import (
     InMemoryRepository,
 )
@@ -18,6 +21,9 @@ from shell.platform.infrastructure.persistence.in_memory_repository import (
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
+    )
+    from shell.execution_service.domain.execution.aggregates.node_link_execution.node_link_execution import (
+        NodeLinkExecution,
     )
     from shell.execution_service.infrastructure.execution.node_link_execution.persistence.memory.in_memory_node_link_execution_repository import (
         InMemoryNodeLinkExecutionRepository,
@@ -40,17 +46,25 @@ class InMemoryNodeExecutionRepository(
     async def list_by_graph_execution_id(
         self, graph_execution_id: GraphExecutionId
     ) -> list[NodeExecution]:
-        if self._link_repo is None:
-            return []
-
-        link_repo: InMemoryNodeLinkExecutionRepository = self._link_repo  # type: ignore[assignment]
-        links = await link_repo.list_by_graph_execution_id(graph_execution_id)
         result: list[NodeExecution] = []
-        for link in links:
+        for link in await self._links_for(graph_execution_id):
             node = self._store.get(link.node_execution_id.value)
             if node is not None:
                 result.append(node)
         return result
 
     async def get_next_pending(self, graph_execution_id: GraphExecutionId) -> NodeExecution | None:
-        return None
+        candidates = [
+            node
+            for node in await self.list_by_graph_execution_id(graph_execution_id)
+            if node.status is NodeExecutionStatus.PENDING
+        ]
+        if not candidates:
+            return None
+        return min(candidates, key=lambda node: node.order.value)
+
+    async def _links_for(self, graph_execution_id: GraphExecutionId) -> list[NodeLinkExecution]:
+        if self._link_repo is None:
+            return []
+        link_repo: InMemoryNodeLinkExecutionRepository = self._link_repo  # type: ignore[assignment]
+        return await link_repo.list_by_graph_execution_id(graph_execution_id)

@@ -13,6 +13,9 @@ from shell.scheduling_service.application.scheduling.scheduler_job.commands.crea
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
     DeleteSchedulerJobCommand,
 )
+from shell.scheduling_service.application.scheduling.scheduler_job.exceptions.scheduler_job_not_found_error import (
+    SchedulerJobNotFoundError,
+)
 from shell.scheduling_service.application.scheduling.scheduler_job.queries.get_scheduler_job_by_id_query import (
     GetSchedulerJobByIdQuery,
 )
@@ -101,17 +104,13 @@ class SchedulerJobController:
             await self._command_bus.dispatch(
                 ChangeSchedulerJobCommand(scheduler_job_id=scheduler_job_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SchedulerJobNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_scheduler_job(self, scheduler_job_id: str) -> None:
         try:
             await self._command_bus.dispatch(
                 DeleteSchedulerJobCommand(scheduler_job_id=scheduler_job_id)
             )
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except SchedulerJobNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

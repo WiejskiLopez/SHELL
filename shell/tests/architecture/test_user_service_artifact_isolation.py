@@ -11,8 +11,12 @@ import hashlib
 import shutil
 import zipfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from scripts.build_user_service_artifacts import build_artifacts
+
+if TYPE_CHECKING:
+    from wheel_helpers import ServiceWheels
 
 _FORBIDDEN_SERVICE_PACKAGES = (
     "shell/definition_service/",
@@ -25,12 +29,12 @@ _FORBIDDEN_SERVICE_PACKAGES = (
 
 
 def test_user_service_artifacts_contain_only_platform_and_user_service(
+    artifact_services: dict[str, ServiceWheels],
     tmp_path: Path,
 ) -> None:
-    build_artifacts(tmp_path)
-
-    platform_wheel = next(tmp_path.glob("shell_platform-*.whl"))
-    user_wheel = next(tmp_path.glob("shell_user_service-*.whl"))
+    user_wheels = artifact_services["user_service"]
+    platform_wheel = user_wheels.platform_wheel
+    user_wheel = user_wheels.service_wheel
 
     with zipfile.ZipFile(platform_wheel) as archive:
         platform_files = set(archive.namelist())

@@ -49,6 +49,7 @@ from shell.platform.infrastructure.context.resilience import (
     CircuitOpenError,
     RetryPolicy,
 )
+from shell.tests.shared.sql_lifecycle import track_session_factory
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
@@ -99,6 +100,7 @@ async def _make_definition_app(tmp_path) -> FastAPI:
     container = DefinitionCoreContainer()
     container.config.db_url.from_value(db_url)
     configure_definition_container(container)
+    track_session_factory(container.session_factory())
     return create_definition_app(container, api_key=DEFINITION_API_KEY)
 
 

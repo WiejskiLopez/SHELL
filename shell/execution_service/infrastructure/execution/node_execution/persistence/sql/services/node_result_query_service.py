@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
@@ -35,11 +35,11 @@ class NodeResultQueryService:
             return NodeExecutionResultDto(
                 id=model.id,
                 node_execution_id=model.node_execution_id,
-                workflow_id=cast("str", payload.get("workflow_id", "")),
-                status=cast("str", payload.get("status", "")),
-                stdout=cast("str", payload.get("stdout", "")),
-                stderr=cast("str", payload.get("stderr", "")),
-                artifact_uri=cast("str", payload.get("artifact_uri", "")),
+                workflow_id=_required_payload_field(payload, "workflow_id"),
+                status=_required_payload_field(payload, "status"),
+                stdout=_optional_payload_field(payload, "stdout"),
+                stderr=_optional_payload_field(payload, "stderr"),
+                artifact_uri=_optional_payload_field(payload, "artifact_uri"),
                 created_at=model.created_at,
             )
 
@@ -62,12 +62,28 @@ class NodeResultQueryService:
                 id=model.id,
                 node_execution_id=model.node_execution_id,
                 workflow_id=workflow_id,
-                status=cast("str", payload.get("status", "")),
-                stdout=cast("str", payload.get("stdout", "")),
-                stderr=cast("str", payload.get("stderr", "")),
-                artifact_uri=cast("str", payload.get("artifact_uri", "")),
+                status=_required_payload_field(payload, "status"),
+                stdout=_optional_payload_field(payload, "stdout"),
+                stderr=_optional_payload_field(payload, "stderr"),
+                artifact_uri=_optional_payload_field(payload, "artifact_uri"),
                 created_at=model.created_at,
             )
+
+
+def _required_payload_field(payload: object, field: str) -> str:
+    value = payload.get(field) if isinstance(payload, dict) else None
+    if value is None:
+        from shell.platform.domain.exceptions import DomainError
+
+        raise DomainError(f"Node result payload is missing required field '{field}'")
+    return str(value)
+
+
+def _optional_payload_field(payload: object, field: str) -> str | None:
+    if not isinstance(payload, dict):
+        return None
+    value = payload.get(field)
+    return str(value) if value is not None else None
 
 
 __all__ = [

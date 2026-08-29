@@ -16,6 +16,9 @@ from shell.project_service.application.project.project.commands.create_project_c
 from shell.project_service.application.project.project.commands.delete_project_command import (
     DeleteProjectCommand,
 )
+from shell.project_service.application.project.project.exceptions.project_not_found_error import (
+    ProjectNotFoundError,
+)
 from shell.project_service.application.project.project.queries.get_project_by_id_query import (
     GetProjectByIdQuery,
 )
@@ -107,13 +110,11 @@ class ProjectController:
             )
         except HTTPException:
             raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except ProjectNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     async def delete_project(self, project_id: str) -> None:
         try:
             await self._command_bus.dispatch(DeleteProjectCommand(project_id=project_id))
-        except HTTPException:
-            raise
-        except Exception as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except ProjectNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc

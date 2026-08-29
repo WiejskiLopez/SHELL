@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import exists as sa_exists
 from sqlalchemy import select
 
 from shell.execution_service.domain.execution.aggregates.node_execution.node_execution import (
@@ -29,6 +30,7 @@ from shell.execution_service.infrastructure.execution.node_link_execution.persis
     NodeLinkExecutionModel,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from sqlalchemy import Select
@@ -83,6 +85,33 @@ class SqlNodeExecutionRepository(NodeExecutionRepository):
         )
         rows = (await self._session.execute(stmt)).scalars().all()
         return [_node_execution_model_to_entity(r) for r in rows if r is not None]
+
+    async def delete(self, id: NodeExecutionId) -> None:
+        model = await self._session.get(NodeExecutionModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: NodeExecutionId) -> ExistsResult:
+        stmt = select(sa_exists().where(NodeExecutionModel.id == id.value))
+        result = await self._session.execute(stmt)
+        return ExistsResult(result.scalar() or False)
+
+    async def get_next_pending(self, graph_execution_id: GraphExecutionId) -> NodeExecution | None:
+        stmt = (
+            select(NodeExecutionModel)
+            .join(
+                NodeLinkExecutionModel,
+                NodeLinkExecutionModel.node_execution_id == NodeExecutionModel.id,
+            )
+            .where(
+                NodeLinkExecutionModel.graph_execution_id == graph_execution_id.value,
+                NodeExecutionModel.status == NodeExecutionStatus.PENDING.value,
+            )
+            .order_by(NodeExecutionModel.position)
+            .limit(1)
+        )
+        row = (await self._session.execute(stmt)).scalar_one_or_none()
+        return _node_execution_model_to_entity(row) if row else None
 
 
 def _node_execution_model_to_entity(

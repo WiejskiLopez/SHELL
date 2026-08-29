@@ -31,6 +31,7 @@ from shell.session_service.infrastructure.session.persistence.sql.models.base im
     PERSISTENCE_DELIVERY_MODELS as SESSION_DELIVERY_MODELS,
 )
 from shell.session_service.migrations.baseline import run_session_baseline
+from shell.tests.shared.sql_lifecycle import track_session_factory
 from shell.user_service.application.user.auth_session.command_handlers.login_auth_session_handler import (
     LoginAuthSessionHandler,
 )
@@ -73,6 +74,8 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     await run_session_baseline(session_url)
     user_factory = build_session_factory(user_url)
     session_factory = build_session_factory(session_url)
+    track_session_factory(user_factory)
+    track_session_factory(session_factory)
 
     # ── 2. Purge queue for deterministic reruns ─────────────────────
     await _purge_queue(USER_QUEUE)
@@ -82,6 +85,7 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     session_container.config.db_url.from_value(session_url)
     session_container.config.broker_url.from_value(RABBIT_TEST_URL)
     configure_session_container(session_container)
+    track_session_factory(session_container.session_factory())
 
     consumer = session_container.rabbit_inbox_consumer_factory()
     await consumer.start()
@@ -91,6 +95,7 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     user_container.config.db_url.from_value(user_url)
     user_container.config.broker_url.from_value(RABBIT_TEST_URL)
     configure_user_container(user_container)
+    track_session_factory(user_container.session_factory())
     unit_of_work = user_container.unit_of_work_factory()
     login_handler = LoginAuthSessionHandler(
         unit_of_work=unit_of_work,

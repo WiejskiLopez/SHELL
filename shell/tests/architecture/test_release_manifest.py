@@ -15,6 +15,8 @@ from scripts.verify_service_release import build_release_manifest
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from wheel_helpers import ServiceWheels
+
 _SERVICES = (
     "definition_service",
     "execution_service",
@@ -26,7 +28,10 @@ _SERVICES = (
 )
 
 
-def test_release_manifest_contains_verified_metadata(tmp_path: Path) -> None:
+def test_release_manifest_contains_verified_metadata(
+    artifact_services: dict[str, ServiceWheels],
+    tmp_path: Path,
+) -> None:
     for service_name in _SERVICES:
         service_slug = service_name.removesuffix("_service")
         package_name = f"shell-{service_slug}-service"
@@ -38,6 +43,7 @@ def test_release_manifest_contains_verified_metadata(tmp_path: Path) -> None:
             output_path=output_path,
             allow_dirty=True,
             dry_run=True,
+            artifacts_dir=artifact_services[service_name].output_dir,
         )
 
         assert output_path.is_file()

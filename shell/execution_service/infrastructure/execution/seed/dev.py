@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 
 DEV_ID_PREFIX = "dev"
 DEV_ROOT = f"devroot/{DEV_ID_PREFIX}"
+DESIGN_DOC_PATH = f"{DEV_ROOT}/planner/design.md"
 
 _GRAPH_NODE_DEFINITIONS: dict[str, list[dict[str, object]]] = {
     f"{DEV_ID_PREFIX}-graph-simple-agent": [
@@ -127,7 +128,7 @@ _TASKS_DATA: list[tuple[dict[str, Any], dict[str, object], dict[str, object]]] =
             "workflow_id": f"{DEV_ID_PREFIX}-workflow-planner",
         },
         {"objective": "Design authentication module", "language": "python"},
-        {"design_doc": "/tmp/design.md", "approved": True},
+        {"design_doc": DESIGN_DOC_PATH, "approved": True},
     ),
     (
         {
@@ -137,7 +138,7 @@ _TASKS_DATA: list[tuple[dict[str, Any], dict[str, object], dict[str, object]]] =
             "work_dir": f"{DEV_ROOT}/planner/implement",
             "workflow_id": f"{DEV_ID_PREFIX}-workflow-planner",
         },
-        {"design_ref": "/tmp/design.md", "modules": ["auth", "session"]},
+        {"design_ref": DESIGN_DOC_PATH, "modules": ["auth", "session"]},
         {},
     ),
     (
