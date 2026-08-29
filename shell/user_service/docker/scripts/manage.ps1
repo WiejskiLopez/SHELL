@@ -86,7 +86,7 @@ switch ($Action) {
             exit $LASTEXITCODE
         }
     }
-    "redeploy" { Remove-StaleContainers; & docker compose @composeArgs up -d --build @targetServices 2>&1 | Out-Host; exit $LASTEXITCODE }
+    "redeploy" { Remove-StaleContainers; & (Join-Path $projectRoot "scripts\prepare_mtls_ca.ps1"); if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; $env:CERTIFICATE_BUILD_ID = "user-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmssfff'))-$PID"; & docker compose @composeArgs up -d --build @targetServices 2>&1 | Out-Host; exit $LASTEXITCODE }
     "logs"     { & docker compose @composeArgs logs -f --tail 200 @targetServices 2>&1 | Out-Host; exit $LASTEXITCODE }
     "status"   { & docker compose @composeArgs ps @targetServices 2>&1 | Out-Host; exit $LASTEXITCODE }
 }

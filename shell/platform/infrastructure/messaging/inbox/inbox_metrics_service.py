@@ -18,10 +18,10 @@ from shell.platform.domain.value_objects.inbox_status import InboxStatus
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.platform.application.ports.runtime.metrics import MetricsBackend
     from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import (
         InboxStateModel,
     )
+    from shell.platform.observability.application.ports.metrics import MetricsBackend
 
 logger = logging.getLogger(__name__)
 

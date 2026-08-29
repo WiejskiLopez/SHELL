@@ -6,10 +6,10 @@ Doprowadzić obecny podział kodu i artefaktów do stanu, w którym każdy bound
 
 Aktualny stan bazowy:
 
-- istnieją osobne pakiety, lockfile'y, Dockerfile'y, migracje i entrypointy usług;
-- istnieją per-service event registry oraz osobne modele `Base`;
-- granice importów i izolacja artefaktów są sprawdzane automatycznie;
-- podstawowe mechanizmy retry, circuit breaker, readiness, inbox/outbox i DLQ są dostępne;
+- [x] istnieją osobne pakiety, lockfile'y, Dockerfile'y, migracje i entrypointy usług;
+- [x] istnieją per-service event registry oraz osobne modele `Base`;
+- [x] granice importów i izolacja artefaktów są sprawdzane automatycznie;
+- [x] podstawowe mechanizmy retry, circuit breaker, readiness, inbox/outbox i DLQ są dostępne;
 - do domknięcia pozostają głównie operacyjność produkcyjna, testy awarii, publikacja wszystkich obrazów oraz spójność dokumentacji.
 
 ## Status wykonania
@@ -52,7 +52,7 @@ Legenda: `[x]` wykonane i potwierdzone testem lub kodem, `[~]` częściowe, `[ ]
 - dodać testy kompatybilności aktualnej i poprzedniej wersji kontraktów;
 - zdefiniować politykę semver platformy, breaking changes, deprecacji i okresu przejściowego;
 - utworzyć changelog platformy i kontraktów;
-- zapewnić, że registry każdej usługi ładuje wyłącznie własne eventy oraz jawnie wspierane kontrakty zewnętrzne.
+- [x] zapewnić, że registry każdej usługi ładuje wyłącznie własne eventy oraz jawnie wspierane kontrakty zewnętrzne.
 
 **Odbiór:** kontrakt można zmienić i wdrożyć producenta bez jednoczesnego wdrażania konsumenta, a test kompatybilności wykrywa breaking change.
 
@@ -61,8 +61,8 @@ Legenda: `[x]` wykonane i potwierdzone testem lub kodem, `[~]` częściowe, `[ ]
 - zastąpić sam klucz `X-API-Key` mechanizmem odpowiednim dla środowiska produkcyjnego: mTLS, podpisanymi tokenami albo równoważnym mechanizmem;
 - ograniczyć uprawnienia kont baz danych, brokera i sekretów per usługa;
 - rozdzielić konfigurację `dev`, `test`, `staging` i `prod`;
-- wymusić brak fallbacków sekretów w profilu produkcyjnym;
-- walidować przy starcie adres bazy, brokera, sekretów, timeoutów i identyfikatora usługi;
+- [x] wymusić brak fallbacków sekretów w profilu produkcyjnym;
+- [~] walidować przy starcie adres bazy, brokera, sekretów, timeoutów i identyfikatora usługi;
 - dodać test uruchomienia każdej usługi z minimalnym własnym zestawem zmiennych środowiskowych;
 - rozszerzyć testy negatywne o brak autoryzacji, błędny token, dostęp do obcego endpointu i niewystarczające uprawnienia.
 
@@ -153,7 +153,7 @@ Dokument wdrożeniowy powinien zawierać dla każdej usługi:
 
 ## 4. Uporządkować kryteria jakości
 
-- utrzymywać `pytest shell/tests/architecture -x` jako minimalny punkt kontrolny;
+- [x] utrzymywać `pytest shell/tests/architecture -x` jako minimalny punkt kontrolny;
 - dodać osobne zestawy `shell/tests/<service>`, `shell/tests/contracts` i `shell/tests/system`;
 - definiować przy każdym nowym wymaganiu test odbiorowy;
 - usuwać z dokumentacji checkboxy bez odpowiadającego im testu lub dowodu w pipeline;

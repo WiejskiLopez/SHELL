@@ -14,9 +14,20 @@ COPY packaging/shell-scheduling-service/pyproject.toml ./pyproject.toml
 COPY shell/scheduling_service ./shell/scheduling_service
 RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir /dist .
 
+FROM python:3.11-slim AS certificate-builder
+WORKDIR /certificates
+ARG CERTIFICATE_BUILD_ID=local
+COPY shell/certificates ./shell/certificates
+COPY shell/certs/ca.crt shell/certs/ca.key ./ca/
+RUN python -m pip install --no-cache-dir cryptography
+RUN echo "certificate-build=$CERTIFICATE_BUILD_ID" && python -m shell.certificates issue --ca-dir /certificates/ca --output-dir /generated --name scheduling --hostname shell-scheduling-api
+
 FROM python:3.11-slim
 WORKDIR /app
 COPY --from=platform-builder /dist /tmp/wheels
+COPY --from=certificate-builder /generated/ca.crt /run/secrets/shell-mtls/ca.crt
+COPY --from=certificate-builder /generated/scheduling.crt /run/secrets/shell-mtls/scheduling.crt
+COPY --from=certificate-builder /generated/scheduling.key /run/secrets/shell-mtls/scheduling.key
 COPY --from=scheduling-service-builder /dist /tmp/wheels
 RUN pip install --no-cache-dir /tmp/wheels/*.whl && rm -rf /tmp/wheels
 ENV PYTHONUNBUFFERED=1

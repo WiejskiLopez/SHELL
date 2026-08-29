@@ -65,7 +65,7 @@ def test_every_service_has_an_independent_runtime_contract() -> None:
         baseline_text = _read(baseline)
 
         assert f'name = "{package_name}"' in manifest_text
-        assert 'shell-platform>=' in manifest_text
+        assert "shell-platform>=" in manifest_text
         assert f'include = ["shell.{service_name}*"]' in manifest_text
         assert f"COPY shell/{service_name} ./shell/{service_name}" in dockerfile_text
         assert "COPY shell/ ./shell/" not in dockerfile_text

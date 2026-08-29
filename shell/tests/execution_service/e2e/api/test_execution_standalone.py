@@ -17,4 +17,4 @@ async def test_execution_app_health_with_local_container() -> None:
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
     included = [route for route in app.routes if hasattr(route, "original_router")]
-    assert len(included) == 6  # 5 aggregate routers + readiness router
+    assert len(included) == 7  # 5 aggregate routers + readiness router + metrics router

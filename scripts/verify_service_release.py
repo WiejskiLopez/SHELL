@@ -81,7 +81,12 @@ def _filesystem_digest(image: str) -> str:
         with tarfile.open(archive_path) as archive:
             for member in sorted(archive.getmembers(), key=lambda item: item.name):
                 digest.update(member.name.encode("utf-8"))
-                digest.update(f"{member.type}:{member.mode}:{member.size}".encode("ascii"))
+                member_type = (
+                    member.type.decode("ascii")
+                    if isinstance(member.type, bytes)
+                    else str(member.type)
+                )
+                digest.update(f"{member_type}:{member.mode}:{member.size}".encode("ascii"))
                 if member.isfile():
                     content = archive.extractfile(member)
                     if content is not None:

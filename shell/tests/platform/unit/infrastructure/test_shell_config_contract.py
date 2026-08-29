@@ -159,9 +159,7 @@ def test_production_service_configuration_uses_owned_values(
 ) -> None:
     _write_profile(tmp_path, "prod")
     monkeypatch.setattr(shell_config, "_config_dir", lambda: tmp_path)
-    monkeypatch.setenv(
-        "DEFINITION_SERVICE_DATABASE_URL", "postgresql+asyncpg://definition/db"
-    )
+    monkeypatch.setenv("DEFINITION_SERVICE_DATABASE_URL", "postgresql+asyncpg://definition/db")
     monkeypatch.setenv("DEFINITION_SERVICE_BROKER_URL", "amqp://definition")
     monkeypatch.setenv("DEFINITION_SERVICE_API_KEY", "definition-key")
     monkeypatch.setenv("SHELL_DATABASE_URL", "postgresql+asyncpg://shared/db")

@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Platforma dostarcza minimalny zestaw metryk operacyjnych inbox (backlog, przeterminowane dzierżawy, duplikaty) przez port `MetricsBackend` (`shell/platform/application/ports/metrics.py`) oraz serwis agregujący `InboxMetricsService` (`shell/platform/infrastructure/messaging/inbox/inbox_metrics_service.py`). Dostarczany jest też adapter bez zależności `LoggingMetricsBackend` (`shell/platform/infrastructure/metrics/logging_metrics_backend.py`), który loguje snapshoty do aplikacyjnego loga.
+Platforma dostarcza minimalny zestaw metryk operacyjnych inbox (backlog, przeterminowane dzierżawy, duplikaty) przez port `MetricsBackend` (`shell/platform/observability/application/ports/metrics.py`) oraz serwis agregujący `InboxMetricsService` (`shell/platform/infrastructure/messaging/inbox/inbox_metrics_service.py`). Dostarczany jest też adapter bez zależności `LoggingMetricsBackend` (`shell/platform/observability/infrastructure/metrics/logging_metrics_backend.py`), który loguje snapshoty do aplikacyjnego loga.
 
 ## Problem
 
@@ -12,7 +12,7 @@ Dashboardy i readiness checks potrzebują liczb operacyjnych (ile wiadomości w 
 
 ### Port `MetricsBackend`
 
-`MetricsBackend` to `Protocol` (`shell/platform/application/ports/metrics.py`) z trzema metodami, wszystkie z argumentami keyword-only:
+`MetricsBackend` to `Protocol` (`shell/platform/observability/application/ports/metrics.py`) z trzema metodami, wszystkie z argumentami keyword-only:
 
 - `record_backlog(*, pending: int, processing: int, processed: int, retry: int, dead_letter: int, oldest_pending_age_seconds: float | None) -> None` — pełny snapshot backlogu,
 - `record_lease_expired(count: int) -> None` — liczba wygasłych dzierżaw,
@@ -69,9 +69,9 @@ inbox_metrics_service = providers.Singleton(
 
 ## Kluczowe pliki
 
-- `shell/platform/application/ports/metrics.py`
+- `shell/platform/observability/application/ports/metrics.py`
 - `shell/platform/infrastructure/messaging/inbox/inbox_metrics_service.py`
-- `shell/platform/infrastructure/metrics/logging_metrics_backend.py`
+- `shell/platform/observability/infrastructure/metrics/logging_metrics_backend.py`
 - `shell/platform/domain/value_objects/inbox_status.py`
 - `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`
 

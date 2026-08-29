@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
-from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import (
     CorrelationIdMiddleware,
 )
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
+from shell.platform.observability.framework.api.health import mount_readiness
+from shell.platform.observability.framework.api.metrics import install_metrics
 from shell.user_service.application.user.auth_session.queries.get_current_auth_session_query import (
     GetCurrentAuthSessionQuery,
 )
@@ -29,6 +30,7 @@ if TYPE_CHECKING:
 USER_PUBLIC_EXACT = frozenset(
     {
         "/health",
+        "/metrics",
         "/api",
         "/api/v1/users/by-email",
         "/api/v1/auth_session/login",
@@ -71,6 +73,7 @@ def create_user_app(
     app.include_router(auth_sessions_router, prefix="/api/v1")
     configure_openapi(app, tags=USER_OPENAPI_TAGS)
     mount_readiness(app, core_container)
+    install_metrics(app, core_container, service="user")
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:

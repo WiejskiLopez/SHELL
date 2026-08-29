@@ -9,17 +9,11 @@ import pytest
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.change_scheduler_job_handler import (
     ChangeSchedulerJobHandler,
 )
-from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.change_scheduler_job_handler import (
-    SchedulerJobNotFoundError as SchedulerJobChangeNotFoundError,
-)
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
     CreateSchedulerJobHandler,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
     DeleteSchedulerJobHandler,
-)
-from shell.scheduling_service.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
-    SchedulerJobNotFoundError as SchedulerJobDeleteNotFoundError,
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
     ChangeSchedulerJobCommand,
@@ -29,6 +23,12 @@ from shell.scheduling_service.application.scheduling.scheduler_job.commands.crea
 )
 from shell.scheduling_service.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
     DeleteSchedulerJobCommand,
+)
+from shell.scheduling_service.application.scheduling.scheduler_job.exceptions.scheduler_job_not_found_error import (
+    SchedulerJobNotFoundError as SchedulerJobChangeNotFoundError,
+)
+from shell.scheduling_service.application.scheduling.scheduler_job.exceptions.scheduler_job_not_found_error import (
+    SchedulerJobNotFoundError as SchedulerJobDeleteNotFoundError,
 )
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_job_id import (
     SchedulerJobId,

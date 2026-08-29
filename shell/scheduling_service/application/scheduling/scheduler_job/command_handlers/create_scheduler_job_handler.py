@@ -39,8 +39,6 @@ if TYPE_CHECKING:
     )
 
 
-
-
 class CreateSchedulerJobHandler:
     def __init__(
         self,

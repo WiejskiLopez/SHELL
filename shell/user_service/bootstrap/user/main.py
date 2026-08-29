@@ -15,6 +15,7 @@ if TYPE_CHECKING:
         OutboxToTransportRelay,
     )
 
+from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_event_inbox_worker
 from shell.platform.infrastructure.messaging.inbox.inbox_batch_result import (
@@ -112,12 +113,12 @@ def main() -> None:
     service = config.service
     auth = config.auth
     database_url = (
-        args.db_url
-        or os.environ.get("USER_SERVICE_DATABASE_URL")
-        or deployment.database_url
+        args.db_url or os.environ.get("USER_SERVICE_DATABASE_URL") or deployment.database_url
     )
     broker_url = os.environ.get("USER_SERVICE_BROKER_URL") or runtime.events.broker_url
     api_key = os.environ.get("USER_SERVICE_API_KEY") or auth.api_key
+    if not api_key:
+        raise ValueError("USER_SERVICE_API_KEY is required")
 
     container = UserCoreContainer()
     container.config.db_url.from_value(database_url)
@@ -139,8 +140,9 @@ def main() -> None:
     )
 
     server = uvicorn.Server(
-        uvicorn.Config(
+        build_service_uvicorn_config(
             app,
+            service="user",
             host=args.host,
             port=args.port,
             reload=args.reload,

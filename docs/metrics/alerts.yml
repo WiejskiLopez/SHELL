@@ -1,0 +1,75 @@
+# Prometheus alert rules for SHELL services
+# Deploy to each service cluster (or one federated Prometheus with service label).
+groups:
+  - name: shell-sli-slo
+    rules:
+      - alert: ShellApiErrorBudgetBurn
+        expr: |
+          rate(http_requests_total{status=~"5.."}[5m])
+          / clamp_min(rate(http_requests_total[5m]), 1e-9) > 0.005
+        for: 10m
+        labels: { severity: page }
+        annotations:
+          summary: High 5xx ratio for {{ $labels.service }}
+          description: 5xx rate exceeds 0.5% over 5m on {{ $labels.service }}.
+
+      - alert: ShellLatencyP95Breach
+        expr: |
+          histogram_quantile(0.95,
+            sum by (service, method) (rate(http_request_duration_seconds_bucket[5m])))
+          > 0.8
+        for: 10m
+        labels: { severity: page }
+        annotations:
+          summary: p95 latency above 800ms on {{ $labels.service }}
+          description: p95 latency is above the 800ms SLO on {{ $labels.service }}.
+
+      - alert: ShellInboxBacklogHigh
+        expr: inbox_backlog_pending + inbox_backlog_retry > 10000
+        for: 15m
+        labels: { severity: page }
+        annotations:
+          summary: Inbox backlog above SLO on {{ $labels.service }}
+          description: PENDING+RETRY backlog exceeds 10000 on {{ $labels.service }}.
+
+      - alert: ShellInboxAgeHigh
+        expr: inbox_oldest_pending_age_seconds > 900
+        for: 5m
+        labels: { severity: page }
+        annotations:
+          summary: Oldest inbox record older than 15m
+          description: Oldest pending inbox record is older than 15 minutes on {{ $labels.service }}.
+
+      - alert: ShellOutboxBacklogHigh
+        expr: outbox_backlog_pending > 1000
+        for: 15m
+        labels: { severity: page }
+        annotations:
+          summary: Outbox backlog high
+          description: Unpublished outbox rows exceed 1000 on {{ $labels.service }}.
+
+      - alert: ShellDeadLetterGrown
+        expr: inbox_backlog_dead_letter > 50
+        for: 15m
+        labels: { severity: warning }
+        annotations:
+          summary: Dead-letter queue growing on {{ $labels.service }}
+          description: DEAD_LETTER records exceed 50 on {{ $labels.service }}.
+
+      - alert: ShellCircuitOpen
+        expr: |
+          http_outbound_circuit_state{target_service="definition"} == 1
+          or http_outbound_circuit_state{target_service="session"} == 1
+        for: 5m
+        labels: { severity: page }
+        annotations:
+          summary: HTTP circuit breaker open
+          description: Circuit breaker is open for a dependency duration > 5m.
+
+      - alert: ShellCircuitRejectsHigh
+        expr: rate(http_outbound_circuit_rejects_total[5m]) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: Requests rejected by open circuit
+          description: Requests are being rejected by an open circuit on execution.

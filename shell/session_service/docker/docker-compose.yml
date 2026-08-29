@@ -7,13 +7,17 @@ services:
       dockerfile: shell/session_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      SESSION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/session.db
+      SESSION_SERVICE_DATABASE_URL: ${SESSION_SERVICE_DATABASE_URL:-sqlite+aiosqlite:///shell_dev/session.db}
       SESSION_SERVICE_API_KEY: ${SESSION_SERVICE_API_KEY:?SESSION_SERVICE_API_KEY is required}
       SESSION_SERVICE_BROKER_URL: ${SESSION_SERVICE_BROKER_URL:?SESSION_SERVICE_BROKER_URL is required}
+      SESSION_SERVICE_TLS_CERTFILE: /run/secrets/shell-mtls/session.crt
+      SESSION_SERVICE_TLS_KEYFILE: /run/secrets/shell-mtls/session.key
+      SESSION_SERVICE_TLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      SESSION_SERVICE_TLS_REQUIRE_CLIENT_CERT: "true"
     ports:
       - "8003:8003"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health')"]
+      test: ["CMD", "python", "-c", "import ssl,urllib.request; c=ssl.create_default_context(cafile='/run/secrets/shell-mtls/ca.crt'); c.load_cert_chain('/run/secrets/shell-mtls/session.crt','/run/secrets/shell-mtls/session.key'); urllib.request.urlopen('https://127.0.0.1:8003/readiness', context=c)"]
       interval: 10s
       timeout: 5s
       retries: 5

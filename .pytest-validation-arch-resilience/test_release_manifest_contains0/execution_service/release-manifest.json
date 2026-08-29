@@ -1,0 +1,19 @@
+{
+  "service": "shell-execution-service",
+  "version": "0.1.0",
+  "commit": "ea0ed5b5d9953c2616339ecb79c7f96e13c6f0da",
+  "source_status": "dirty",
+  "image": "shell-execution-service:test-manifest",
+  "image_id": null,
+  "image_digest": null,
+  "image_digest_type": null,
+  "independence_filesystem_digest": null,
+  "platform_version": "0.1.0",
+  "migration_head": "0001_execution_baseline",
+  "artifact_sha256": {
+    "shell_execution_service-0.1.0-py3-none-any.whl": "6b83e7fa84544b5cb25b7234f10b1baffb3a2047c8b8d4022d841387f3d24273",
+    "shell_platform-0.1.0-py3-none-any.whl": "0b260a37c62ce4a8be69d19d5ad2b73ef21cf11c5e8bd5dceea2c57e16ad8d99"
+  },
+  "verified_at": "2026-08-27T20:35:20.746513+00:00",
+  "status": "candidate"
+}

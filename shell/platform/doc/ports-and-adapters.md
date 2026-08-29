@@ -80,8 +80,8 @@ Porty domenowe (dla warstwy domeny, nie aplikacji) mieszkają w
 - `shell/platform/application/ports/config.py`
 - `shell/platform/application/ports/filesystem.py`
 - `shell/platform/application/ports/messaging.py`
-- `shell/platform/application/ports/metrics.py`
-- `shell/platform/application/ports/readiness.py`
+- `shell/platform/application/ports/metrics.py` (przeniesiono: `shell/platform/observability/application/ports/metrics.py`)
+- `shell/platform/application/ports/readiness.py` (przeniesiono: `shell/platform/observability/application/ports/readiness.py`)
 - `shell/platform/application/ports/delivery_transport.py`
 - `shell/platform/application/ports/delivery_dedup_store.py`
 - `shell/platform/application/ports/unit_of_work.py`

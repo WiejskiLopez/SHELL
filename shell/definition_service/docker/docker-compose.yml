@@ -7,13 +7,17 @@ services:
       dockerfile: shell/definition_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      DEFINITION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/definition.db
+      DEFINITION_SERVICE_DATABASE_URL: ${DEFINITION_SERVICE_DATABASE_URL:-sqlite+aiosqlite:///shell_dev/definition.db}
       DEFINITION_SERVICE_API_KEY: ${DEFINITION_SERVICE_API_KEY:?DEFINITION_SERVICE_API_KEY is required}
       DEFINITION_SERVICE_BROKER_URL: ${DEFINITION_SERVICE_BROKER_URL:?DEFINITION_SERVICE_BROKER_URL is required}
+      DEFINITION_SERVICE_TLS_CERTFILE: /run/secrets/shell-mtls/definition.crt
+      DEFINITION_SERVICE_TLS_KEYFILE: /run/secrets/shell-mtls/definition.key
+      DEFINITION_SERVICE_TLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      DEFINITION_SERVICE_TLS_REQUIRE_CLIENT_CERT: "true"
     ports:
       - "8002:8002"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health')"]
+      test: ["CMD", "python", "-c", "import ssl,urllib.request; c=ssl.create_default_context(cafile='/run/secrets/shell-mtls/ca.crt'); c.load_cert_chain('/run/secrets/shell-mtls/definition.crt','/run/secrets/shell-mtls/definition.key'); urllib.request.urlopen('https://127.0.0.1:8002/readiness', context=c)"]
       interval: 10s
       timeout: 5s
       retries: 5

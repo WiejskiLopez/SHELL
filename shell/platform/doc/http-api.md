@@ -39,7 +39,7 @@ app.include_router(workflows_router, prefix="/api/v1")
   `API_PREFIX` w `shell/platform/framework/api/constants.py`).
 - Liveness `/health` definiowany jest lokalnie w aplikacji BC (zwraca
   `{"status": "ok"}`), a readiness montowany przez `mount_readiness`
-  (`shell/platform/framework/api/health.py`) — tylko gdy kontener ma provider
+  (`shell/platform/observability/framework/api/health.py`) — tylko gdy kontener ma provider
   `readiness_probe`.
 
 ### Wspólny setup — `setup_api_common`
@@ -125,8 +125,8 @@ deklarują fabryki kontrolerów, np. `get_project_controller`
 - `shell/platform/framework/api/constants.py`
 - `shell/platform/framework/api/openapi.py`
 - `shell/platform/framework/api/dependencies.py`
-- `shell/platform/framework/api/health.py`
-- `shell/platform/framework/api/readiness.py`
+- `shell/platform/observability/framework/api/health.py`
+- `shell/platform/observability/framework/api/readiness.py`
 - `shell/execution_service/framework/execution/api/app.py` (przykład fabryki BC)
 
 ## Powiązane koncepcje

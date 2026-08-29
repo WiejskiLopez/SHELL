@@ -10,7 +10,7 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
-from scripts.build_session_service_artifacts import build_service_artifacts
+from scripts.build_user_service_artifacts import build_service_artifacts
 
 
 def test_session_service_artifacts_are_isolated(tmp_path: Path) -> None:

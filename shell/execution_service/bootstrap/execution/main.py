@@ -14,6 +14,7 @@ from shell.execution_service.bootstrap.execution.container.execution_core_contai
 from shell.execution_service.framework.execution.api.app import create_execution_app
 from shell.execution_service.infrastructure.execution.seed import seed_execution_dev_data
 from shell.execution_service.migrations.baseline import run_execution_baseline
+from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
 
@@ -31,7 +32,9 @@ def main() -> None:
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service
-    database_url = args.db_url or os.environ.get("EXECUTION_SERVICE_DATABASE_URL") or deployment.database_url
+    database_url = (
+        args.db_url or os.environ.get("EXECUTION_SERVICE_DATABASE_URL") or deployment.database_url
+    )
     broker_url = os.environ.get("EXECUTION_SERVICE_BROKER_URL") or runtime.events.broker_url
     api_key = os.environ.get("EXECUTION_SERVICE_API_KEY") or config.auth.api_key
     if not api_key:
@@ -64,7 +67,9 @@ def main() -> None:
     )
     configure_execution_container(container)
     app = create_execution_app(container, include_routes=True, api_key=api_key)
-    server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port))
+    server = uvicorn.Server(
+        build_service_uvicorn_config(app, service="execution", host=args.host, port=args.port)
+    )
 
     async def run() -> None:
         await run_execution_baseline(database_url)

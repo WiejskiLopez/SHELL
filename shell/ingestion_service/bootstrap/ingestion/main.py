@@ -14,6 +14,7 @@ from shell.ingestion_service.bootstrap.ingestion.container.ingestion_core_contai
 from shell.ingestion_service.framework.ingestion.api.app import create_ingestion_app
 from shell.ingestion_service.infrastructure.ingestion.seed import seed_ingestion_dev_data
 from shell.ingestion_service.migrations.baseline import run_ingestion_baseline
+from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
 
@@ -31,7 +32,9 @@ def main() -> None:
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service
-    database_url = args.db_url or os.environ.get("INGESTION_SERVICE_DATABASE_URL") or deployment.database_url
+    database_url = (
+        args.db_url or os.environ.get("INGESTION_SERVICE_DATABASE_URL") or deployment.database_url
+    )
     broker_url = os.environ.get("INGESTION_SERVICE_BROKER_URL") or runtime.events.broker_url
     api_key = os.environ.get("INGESTION_SERVICE_API_KEY") or config.auth.api_key
     if not api_key:
@@ -49,7 +52,9 @@ def main() -> None:
     )
     configure_ingestion_container(container)
     app = create_ingestion_app(container, api_key=api_key)
-    server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port))
+    server = uvicorn.Server(
+        build_service_uvicorn_config(app, service="ingestion", host=args.host, port=args.port)
+    )
 
     async def run() -> None:
         await run_ingestion_baseline(database_url)

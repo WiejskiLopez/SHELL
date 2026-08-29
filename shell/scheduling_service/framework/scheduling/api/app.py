@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 
-from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.openapi import configure_openapi
+from shell.platform.observability.framework.api.health import mount_readiness
+from shell.platform.observability.framework.api.metrics import install_metrics
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.router import (
     router as scheduler_definition_router,
 )
@@ -31,7 +32,7 @@ def create_scheduling_app(container: object | None = None, *, api_key: str = "")
             app.add_middleware(
                 AuthMiddleware,
                 api_key=api_key,
-                public_exact={"/health", "/readiness"},
+                public_exact={"/health", "/readiness", "/metrics"},
                 public_prefix={"/docs", "/redoc", "/openapi.json"},
             )
         app.include_router(scheduler_definition_router, prefix="/api/v1")
@@ -45,5 +46,6 @@ def create_scheduling_app(container: object | None = None, *, api_key: str = "")
 
     if container is not None:
         mount_readiness(app, container)
+        install_metrics(app, container, service="scheduling")
 
     return app

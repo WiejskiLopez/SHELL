@@ -1,0 +1,82 @@
+{
+  "title": "SHELL — Service SLO",
+  "uid": "shell-slo",
+  "tags": ["shell", "slo"],
+  "timezone": "utc",
+  "description": "One dashboard per service / per scrape target. HTTP metrics carry a service label; inbox/outbox/circuit metrics are per-target and carry no service label.",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "5xx ratio",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / clamp_min(rate(http_requests_total[5m]), 1e-9)",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "p95 latency",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Inbox backlog",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "inbox_backlog_pending", "legendFormat": "pending" },
+        { "expr": "inbox_backlog_retry", "legendFormat": "retry" },
+        { "expr": "inbox_backlog_dead_letter", "legendFormat": "dead_letter" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Oldest pending age",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "targets": [
+        { "expr": "inbox_oldest_pending_age_seconds", "legendFormat": "age_s" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Outbox backlog",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "targets": [
+        { "expr": "outbox_backlog_pending", "legendFormat": "pending" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Circuit breaker (execution outbound)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        { "expr": "http_outbound_circuit_state{target_service=\"definition\"}", "legendFormat": "definition" },
+        { "expr": "http_outbound_circuit_state{target_service=\"session\"}", "legendFormat": "session" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Delivery counters",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        { "expr": "inbox_duplicate_delivery_total", "legendFormat": "dup_deliveries" },
+        { "expr": "inbox_lease_expired_total", "legendFormat": "lease_expired" }
+      ]
+    }
+  ]
+}

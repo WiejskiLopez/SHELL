@@ -132,7 +132,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("outbox_id"),
     )
-    op.create_index("ix_inbox_command_status_lease_until", "inbox_command", ["status", "lease_until"])
+    op.create_index(
+        "ix_inbox_command_status_lease_until", "inbox_command", ["status", "lease_until"]
+    )
     op.create_index(
         "ix_inbox_command_status_next_attempt_received",
         "inbox_command",

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import AsyncMock, Mock
 
+import httpx
 import pytest
 
 from shell.execution_service.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
@@ -97,3 +98,37 @@ class TestGraphDefinitionProviderHttpAdapter:
         )
         with pytest.raises(Exception, match="Server error"):
             await adapter.get_graph_definition(GraphDefinitionIdRef("def-123"))
+
+    async def test_dependency_failure_is_exposed_as_http_error(self) -> None:
+        requests: list[httpx.Request] = []
+
+        def transport(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            return httpx.Response(503, request=request, json={"detail": "definition unavailable"})
+
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(transport),
+            base_url="http://definition-service",
+        ) as client:
+            adapter = GraphDefinitionProviderHttpAdapter(client)
+
+            with pytest.raises(httpx.HTTPStatusError) as error:
+                await adapter.get_graph_definition(GraphDefinitionIdRef("def-503"))
+
+        assert error.value.response.status_code == 503
+        assert len(requests) == 1
+        assert requests[0].url.path == "/api/v1/graph-definitions/def-503"
+
+    async def test_dependency_timeout_is_not_hidden(self) -> None:
+        def transport(request: httpx.Request) -> httpx.Response:
+            raise httpx.ReadTimeout("definition service timed out", request=request)
+
+        async with httpx.AsyncClient(
+            transport=httpx.MockTransport(transport),
+            base_url="http://definition-service",
+            timeout=httpx.Timeout(1.0),
+        ) as client:
+            adapter = GraphDefinitionProviderHttpAdapter(client)
+
+            with pytest.raises(httpx.ReadTimeout):
+                await adapter.get_graph_definition(GraphDefinitionIdRef("def-timeout"))

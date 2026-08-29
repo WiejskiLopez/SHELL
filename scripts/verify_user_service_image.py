@@ -11,7 +11,7 @@ import time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-_SERVICE_SPECS = {
+_SERVICE_SPECS: dict[str, dict[str, str | int]] = {
     "definition": {
         "port": 8002,
         "prefix": "DEFINITION_SERVICE",
@@ -102,6 +102,7 @@ def verify_image(image: str, service: str) -> None:
     volume_name = f"{container_name}-volume"
     service_prefix = spec["prefix"]
     worker_module = spec["worker_module"]
+    assert isinstance(worker_module, str)
     container_port = str(spec["port"])
     database_url = f"sqlite+aiosqlite:////tmp/{service}.db"
     for resource in (container_name, worker_name, rabbit_name):
@@ -223,7 +224,11 @@ def verify_image(image: str, service: str) -> None:
             api_key="pilot-test-key",
         )
         assert api_status == 200, api_body
-        assert spec["route"] in api_body["paths"]
+        paths = api_body.get("paths")
+        assert isinstance(paths, dict)
+        route = spec["route"]
+        assert isinstance(route, str)
+        assert route in paths
     finally:
         logs = subprocess.run(
             ["docker", "logs", container_name],

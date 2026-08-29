@@ -9,17 +9,11 @@ import pytest
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.change_scheduler_execution_handler import (
     ChangeSchedulerExecutionHandler,
 )
-from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.change_scheduler_execution_handler import (
-    SchedulerExecutionNotFoundError as SchedulerExecutionChangeNotFoundError,
-)
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
     CreateSchedulerExecutionHandler,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
     DeleteSchedulerExecutionHandler,
-)
-from shell.scheduling_service.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
-    SchedulerExecutionNotFoundError as SchedulerExecutionDeleteNotFoundError,
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.change_scheduler_execution_command import (
     ChangeSchedulerExecutionCommand,
@@ -29,6 +23,12 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.command
 )
 from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
     DeleteSchedulerExecutionCommand,
+)
+from shell.scheduling_service.application.scheduling.scheduler_execution.exceptions.scheduler_execution_not_found_error import (
+    SchedulerExecutionNotFoundError as SchedulerExecutionChangeNotFoundError,
+)
+from shell.scheduling_service.application.scheduling.scheduler_execution.exceptions.scheduler_execution_not_found_error import (
+    SchedulerExecutionNotFoundError as SchedulerExecutionDeleteNotFoundError,
 )
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,

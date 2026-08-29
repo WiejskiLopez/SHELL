@@ -16,6 +16,7 @@ from shell.definition_service.bootstrap.definition.container.definition_core_con
 from shell.definition_service.framework.definition.api.app import create_definition_app
 from shell.definition_service.infrastructure.definition.seed import seed_definition_dev_data
 from shell.definition_service.migrations.baseline import run_definition_baseline
+from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.polling_worker import (
     PollingWorker,
@@ -39,7 +40,9 @@ def main() -> None:
     deployment = config.deployment
     runtime = config.platform_runtime
     service = config.service
-    database_url = args.db_url or os.environ.get("DEFINITION_SERVICE_DATABASE_URL") or deployment.database_url
+    database_url = (
+        args.db_url or os.environ.get("DEFINITION_SERVICE_DATABASE_URL") or deployment.database_url
+    )
     broker_url = os.environ.get("DEFINITION_SERVICE_BROKER_URL") or runtime.events.broker_url
     api_key = os.environ.get("DEFINITION_SERVICE_API_KEY") or config.auth.api_key
     if not api_key:
@@ -56,7 +59,15 @@ def main() -> None:
     )
     configure_definition_container(container)
     app = create_definition_app(container, api_key=api_key)
-    server = uvicorn.Server(uvicorn.Config(app, host=args.host, port=args.port, reload=args.reload))
+    server = uvicorn.Server(
+        build_service_uvicorn_config(
+            app,
+            service="definition",
+            host=args.host,
+            port=args.port,
+            reload=args.reload,
+        )
+    )
 
     async def run() -> None:
         await run_definition_baseline(database_url)

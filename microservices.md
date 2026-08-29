@@ -183,7 +183,7 @@ wszystkie potwierdzone kodem.
 - **Dowody:**
   - Grep `opentelemetry|prometheus|pybreaker|circuitbreaker|consul|istio|envoy|kubernetes`
     w `shell/**/*.py` → **0 trafień technologicznych** (tylko komentarze).
-  - `shell/platform/infrastructure/metrics/logging_metrics_backend.py:1-17` →
+  - `shell/platform/observability/infrastructure/metrics/logging_metrics_backend.py:1-17` →
     „dependency-free MetricsBackend ... used until a real backend (Prometheus,
     etc.) is wired". Każdy `*_core_container.py` rejestruje `LoggingMetricsBackend`
     (np. `execution_core_container.py:326`).
@@ -199,11 +199,11 @@ wszystkie potwierdzone kodem.
   istnieje i jest dobrze zaprojektowany, ALE (a) orchestrator nie używa `/readiness`,
   (b) readiness nie sprawdza RabbitMQ — realnej zależności.
 - **Dowody:**
-  - `/readiness` mount'owany: `shell/platform/framework/api/readiness.py:18-32`,
-    `shell/platform/framework/api/health.py:15-24`; `SQLReadinessProbe`
-    `shell/platform/infrastructure/health/sql_readiness_probe.py:56-71`.
+  - `/readiness` mount'owany: `shell/platform/observability/framework/api/readiness.py:18-32`,
+    `shell/platform/observability/framework/api/health.py:15-24`; `SQLReadinessProbe`
+    `shell/platform/observability/infrastructure/health/sql_readiness_probe.py:56-71`.
   - `SQLReadinessProbe` sprawdza tylko: `database` (`SELECT 1`),
-    `migrations`, `worker`, `backlog` — **brak sprawdzenia brokera** (`sql_readiness_probe.py:56-136`).
+    `migrations`, `worker`, `backlog` — **brak sprawdzenia brokera** (`observability/infrastructure/health/sql_readiness_probe.py:56-136`).
   - Healthchecki w każdym compose wołają tylko `/health` (np.
     `shell/execution_service/docker/docker-compose.yml:13-18`), więc orchestrator
     nie może gatingować ruchu po readiness.

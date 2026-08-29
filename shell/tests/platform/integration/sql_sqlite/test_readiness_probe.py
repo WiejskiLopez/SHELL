@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
@@ -15,9 +17,12 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.platform.observability.infrastructure.health.rabbit_readiness_probe import (
+    RabbitReadinessProbe,
+)
+from shell.platform.observability.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
     PERSISTENCE_DELIVERY_MODELS,
@@ -28,6 +33,14 @@ if TYPE_CHECKING:
 
 _INBOX_MODEL: Any = EVENT_DELIVERY_MODELS.inbox
 _WORKER_HEARTBEAT_MODEL: Any = PERSISTENCE_DELIVERY_MODELS.worker_heartbeat
+
+RABBIT_TEST_URL = os.environ.get("RABBIT_TEST_URL")
+_rabbit_available = RABBIT_TEST_URL is not None
+
+skip_no_rabbit = pytest.mark.skipif(
+    not _rabbit_available,
+    reason="RABBIT_TEST_URL not set — start shell/rabbitmq/docker/docker-compose.yml to enable",
+)
 
 
 def _event() -> TaskExecutionCreatedEvent:
@@ -219,3 +232,32 @@ class TestWorkerHeartbeatReadiness:
         report = await probe.check()
         assert report.ready is False
         assert report.checks["worker"] is False
+
+
+class TestRabbitReadinessProbeIntegration:
+    @skip_no_rabbit
+    async def test_ready_when_broker_reachable(self) -> None:
+        probe = RabbitReadinessProbe(url_provider=lambda: RABBIT_TEST_URL or "")
+        report = await probe.check()
+
+        assert report.ready is True
+        assert report.checks["broker"] is True
+
+    async def test_not_ready_when_broker_unreachable(self) -> None:
+        probe = RabbitReadinessProbe(
+            url_provider=lambda: "amqp://127.0.0.1:1",
+            timeout=0.5,
+        )
+        report = await probe.check()
+
+        assert report.ready is False
+        broker_check = report.checks["broker"]
+        assert isinstance(broker_check, str)
+        assert "error:" in broker_check
+
+    async def test_not_ready_when_broker_url_missing(self) -> None:
+        probe = RabbitReadinessProbe(url_provider=lambda: "")
+        report = await probe.check()
+
+        assert report.ready is False
+        assert report.checks["broker"] == "error: broker URL is not configured"

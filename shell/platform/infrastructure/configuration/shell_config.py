@@ -152,9 +152,7 @@ class LoadedConfiguration:
             if service_prefix is not None
             else "SHELL_EVENTS_BROKER_URL"
         )
-        api_key_env = (
-            f"{service_prefix}_API_KEY" if service_prefix is not None else "SHELL_API_KEY"
-        )
+        api_key_env = f"{service_prefix}_API_KEY" if service_prefix is not None else "SHELL_API_KEY"
 
         if database_env in os.environ:
             env_db_url = os.environ[database_env]
@@ -183,8 +181,14 @@ class LoadedConfiguration:
             merged["log_level"] = env_log_level
 
         if api_key_env in os.environ:
-            if service_name is not None and active_profile == "prod" and not os.environ[api_key_env]:
-                raise ValueError(f"Invalid production configuration: {api_key_env} must not be empty")
+            if (
+                service_name is not None
+                and active_profile == "prod"
+                and not os.environ[api_key_env]
+            ):
+                raise ValueError(
+                    f"Invalid production configuration: {api_key_env} must not be empty"
+                )
             merged["api_key"] = os.environ[api_key_env]
         elif service_name is not None and active_profile == "prod":
             raise ValueError(f"Invalid production configuration: {api_key_env} is required")

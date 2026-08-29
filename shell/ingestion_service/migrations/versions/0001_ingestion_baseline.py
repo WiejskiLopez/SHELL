@@ -14,8 +14,18 @@ depends_on = None
 
 
 def upgrade() -> None:
-    create_service_tables(op.get_bind(), service_package="shell.ingestion_service", base_module="shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base", base_class="IngestionSqlAlchemyModelBase")
+    create_service_tables(
+        op.get_bind(),
+        service_package="shell.ingestion_service",
+        base_module="shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base",
+        base_class="IngestionSqlAlchemyModelBase",
+    )
 
 
 def downgrade() -> None:
-    drop_service_tables(op.get_bind(), service_package="shell.ingestion_service", base_module="shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base", base_class="IngestionSqlAlchemyModelBase")
+    drop_service_tables(
+        op.get_bind(),
+        service_package="shell.ingestion_service",
+        base_module="shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base",
+        base_class="IngestionSqlAlchemyModelBase",
+    )

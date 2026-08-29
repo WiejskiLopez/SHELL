@@ -1,0 +1,122 @@
+name: shell-mtls-demo
+
+# Obrazy są samowystarczalne: certyfikat każdej usługi (i publiczne CA) są
+# wbudowane w obraz w /run/secrets/shell-mtls (stage certificate-builder).
+# To compose tylko ustawia env (usługi, URL-e, klucze) i włącza mTLS.
+# Wymagane: certyfikaty istnieją w shell/certs (generowane w buildzie obrazy),
+# a obrazy zbudowanie z unikalnym CERTIFICATE_BUILD_ID.
+
+services:
+  shell-definition-api:
+    build:
+      context: ../..
+      dockerfile: shell/definition_service/docker/Dockerfile
+      args:
+        CERTIFICATE_BUILD_ID: ${CERTIFICATE_BUILD_ID:-local}
+    environment:
+      DEFINITION_SERVICE_DATABASE_URL: sqlite+aiosqlite:////data/definition.db
+      DEFINITION_SERVICE_BROKER_URL: amqp://invalid:invalid@127.0.0.1:5672
+      DEFINITION_SERVICE_API_KEY: dev-definition-key
+      DEFINITION_SERVICE_TLS_CERTFILE: /run/secrets/shell-mtls/definition.crt
+      DEFINITION_SERVICE_TLS_KEYFILE: /run/secrets/shell-mtls/definition.key
+      DEFINITION_SERVICE_TLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      DEFINITION_SERVICE_TLS_REQUIRE_CLIENT_CERT: "true"
+    ports:
+      - "8442:8002"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request, ssl; c=ssl.create_default_context(cafile='/run/secrets/shell-mtls/ca.crt'); c.load_cert_chain('/run/secrets/shell-mtls/execution.crt','/run/secrets/shell-mtls/execution.key'); urllib.request.urlopen('https://127.0.0.1:8002/health', context=c)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - definition-data:/data
+    networks:
+      - shell-mtls-demo
+
+  shell-session-api:
+    build:
+      context: ../..
+      dockerfile: shell/session_service/docker/Dockerfile
+      args:
+        CERTIFICATE_BUILD_ID: ${CERTIFICATE_BUILD_ID:-local}
+    environment:
+      SESSION_SERVICE_DATABASE_URL: sqlite+aiosqlite:////data/session.db
+      SESSION_SERVICE_BROKER_URL: amqp://invalid:invalid@127.0.0.1:5672
+      SESSION_SERVICE_API_KEY: dev-session-key
+      SESSION_SERVICE_TLS_CERTFILE: /run/secrets/shell-mtls/session.crt
+      SESSION_SERVICE_TLS_KEYFILE: /run/secrets/shell-mtls/session.key
+      SESSION_SERVICE_TLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      SESSION_SERVICE_TLS_REQUIRE_CLIENT_CERT: "true"
+    ports:
+      - "8443:8003"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request, ssl; c=ssl.create_default_context(cafile='/run/secrets/shell-mtls/ca.crt'); c.load_cert_chain('/run/secrets/shell-mtls/execution.crt','/run/secrets/shell-mtls/execution.key'); urllib.request.urlopen('https://127.0.0.1:8003/health', context=c)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - session-data:/data
+    networks:
+      - shell-mtls-demo
+
+  shell-execution-api:
+    build:
+      context: ../..
+      dockerfile: shell/execution_service/docker/Dockerfile
+      args:
+        CERTIFICATE_BUILD_ID: ${CERTIFICATE_BUILD_ID:-local}
+    environment:
+      EXECUTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:////data/execution.db
+      EXECUTION_SERVICE_BROKER_URL: amqp://invalid:invalid@127.0.0.1:5672
+      EXECUTION_SERVICE_API_KEY: dev-execution-key
+      EXECUTION_SERVICE_TLS_CERTFILE: /run/secrets/shell-mtls/execution.crt
+      EXECUTION_SERVICE_TLS_KEYFILE: /run/secrets/shell-mtls/execution.key
+      EXECUTION_SERVICE_TLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      EXECUTION_SERVICE_TLS_REQUIRE_CLIENT_CERT: "true"
+      DEFINITION_SERVICE_URL: https://shell-definition-api:8002
+      DEFINITION_SERVICE_API_KEY: dev-definition-key
+      SESSION_SERVICE_URL: https://shell-session-api:8003
+      SESSION_SERVICE_API_KEY: dev-session-key
+      EXECUTION_SERVICE_MTLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      EXECUTION_SERVICE_MTLS_CERTFILE: /run/secrets/shell-mtls/execution.crt
+      EXECUTION_SERVICE_MTLS_KEYFILE: /run/secrets/shell-mtls/execution.key
+    ports:
+      - "8444:8007"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request, ssl; c=ssl.create_default_context(cafile='/run/secrets/shell-mtls/ca.crt'); c.load_cert_chain('/run/secrets/shell-mtls/execution.crt','/run/secrets/shell-mtls/execution.key'); urllib.request.urlopen('https://127.0.0.1:8007/health', context=c)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - execution-data:/data
+    depends_on:
+      shell-definition-api:
+        condition: service_healthy
+      shell-session-api:
+        condition: service_healthy
+    networks:
+      - shell-mtls-demo
+
+volumes:
+  definition-data:
+  session-data:
+  execution-data:
+
+networks:
+  shell-mtls-demo:
+    name: shell-mtls-demo

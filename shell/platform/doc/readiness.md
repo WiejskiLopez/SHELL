@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Port `ReadinessProbe` (`shell/platform/application/ports/readiness.py`) oraz jego implementacja `SqlReadinessProbe` (`shell/platform/infrastructure/health/sql_readiness_probe.py`) odpowiadają na pytanie "czy ten proces może teraz wykonać użyteczną pracę". Endpoint `GET /readiness` (`shell/platform/framework/api/readiness.py`) zwraca `503` z diagnostycznym ciałem, dopóki serwis nie jest gotowy. `mount_readiness` (`shell/platform/framework/api/health.py`) montuje ten endpoint w aplikacji BC tylko wtedy, gdy kontener rejestruje probe.
+Port `ReadinessProbe` (`shell/platform/observability/application/ports/readiness.py`) oraz jego implementacja `SqlReadinessProbe` (`shell/platform/observability/infrastructure/health/sql_readiness_probe.py`) odpowiadają na pytanie "czy ten proces może teraz wykonać użyteczną pracę". Endpoint `GET /readiness` (`shell/platform/observability/framework/api/readiness.py`) zwraca `503` z diagnostycznym ciałem, dopóki serwis nie jest gotowy. `mount_readiness` (`shell/platform/observability/framework/api/health.py`) montuje ten endpoint w aplikacji BC tylko wtedy, gdy kontener rejestruje probe.
 
 ## Problem
 
@@ -48,7 +48,7 @@ Jeśli żaden tryb nie potwierdzi żywego workera, sprawdzenie przechodzi tylko 
 
 ### Endpoint `/readiness`
 
-`create_readiness_router(probe: ReadinessProbe) -> APIRouter` (`shell/platform/framework/api/readiness.py`) definiuje `GET /readiness`:
+`create_readiness_router(probe: ReadinessProbe) -> APIRouter` (`shell/platform/observability/framework/api/readiness.py`) definiuje `GET /readiness`:
 
 ```python
 report = await probe.check()
@@ -62,7 +62,7 @@ Router ma `tags=["Health"]`. Liveness pozostaje w `GET /health` definiowanym prz
 
 ### Montowanie w BC
 
-`mount_readiness(app: FastAPI, core_container: ContainerProtocol | Any)` (`shell/platform/framework/api/health.py`) odpytuje kontener o atrybut `readiness_probe` przez `getattr` i montuje router tylko, gdy jest zarejestrowany — BC bez workerów delivery zostają liveness-only.
+`mount_readiness(app: FastAPI, core_container: ContainerProtocol | Any)` (`shell/platform/observability/framework/api/health.py`) odpytuje kontener o atrybut `readiness_probe` przez `getattr` i montuje router tylko, gdy jest zarejestrowany — BC bez workerów delivery zostają liveness-only.
 
 Rejestracja w kontenerze (np. `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`):
 
@@ -80,10 +80,10 @@ Analogiczne rejestracje istnieją w kontenerach BC: `definition`, `project`, `se
 
 ## Kluczowe pliki
 
-- `shell/platform/application/ports/readiness.py`
-- `shell/platform/infrastructure/health/sql_readiness_probe.py`
-- `shell/platform/framework/api/readiness.py`
-- `shell/platform/framework/api/health.py`
+- `shell/platform/observability/application/ports/readiness.py`
+- `shell/platform/observability/infrastructure/health/sql_readiness_probe.py`
+- `shell/platform/observability/framework/api/readiness.py`
+- `shell/platform/observability/framework/api/health.py`
 - `shell/platform/domain/value_objects/inbox_status.py`
 - `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`
 - `shell/tests/platform/integration/sql_sqlite/test_readiness_probe.py`

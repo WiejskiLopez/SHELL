@@ -7,13 +7,14 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
-from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import (
     CorrelationIdMiddleware,
 )
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
+from shell.platform.observability.framework.api.health import mount_readiness
+from shell.platform.observability.framework.api.metrics import install_metrics
 from shell.session_service.framework.session.session.api.router import router as sessions_router
 
 if TYPE_CHECKING:
@@ -24,7 +25,7 @@ SESSION_OPENAPI_TAGS = (
     {"name": "Sessions", "description": "Session lifecycle operations."},
     {"name": "Health", "description": "Service health and readiness."},
 )
-SESSION_PUBLIC_EXACT = frozenset({"/health", "/readiness"})
+SESSION_PUBLIC_EXACT = frozenset({"/health", "/readiness", "/metrics"})
 SESSION_PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
@@ -52,6 +53,7 @@ def create_session_app(
     configure_openapi(app, tags=SESSION_OPENAPI_TAGS)
 
     mount_readiness(app, core_container)
+    install_metrics(app, core_container, service="session")
 
     @app.get("/health", tags=["Health"])
     async def health() -> dict[str, object]:

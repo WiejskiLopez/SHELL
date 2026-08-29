@@ -14,8 +14,18 @@ depends_on = None
 
 
 def upgrade() -> None:
-    create_service_tables(op.get_bind(), service_package="shell.project_service", base_module="shell.project_service.infrastructure.project.persistence.sql.models.base", base_class="ProjectSqlAlchemyModelBase")
+    create_service_tables(
+        op.get_bind(),
+        service_package="shell.project_service",
+        base_module="shell.project_service.infrastructure.project.persistence.sql.models.base",
+        base_class="ProjectSqlAlchemyModelBase",
+    )
 
 
 def downgrade() -> None:
-    drop_service_tables(op.get_bind(), service_package="shell.project_service", base_module="shell.project_service.infrastructure.project.persistence.sql.models.base", base_class="ProjectSqlAlchemyModelBase")
+    drop_service_tables(
+        op.get_bind(),
+        service_package="shell.project_service",
+        base_module="shell.project_service.infrastructure.project.persistence.sql.models.base",
+        base_class="ProjectSqlAlchemyModelBase",
+    )

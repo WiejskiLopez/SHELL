@@ -9,17 +9,11 @@ import pytest
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.change_scheduler_definition_handler import (
     ChangeSchedulerDefinitionHandler,
 )
-from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.change_scheduler_definition_handler import (
-    SchedulerDefinitionNotFoundError as SchedulerDefinitionChangeNotFoundError,
-)
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
     CreateSchedulerDefinitionHandler,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
     DeleteSchedulerDefinitionHandler,
-)
-from shell.scheduling_service.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
-    SchedulerDefinitionNotFoundError as SchedulerDefinitionDeleteNotFoundError,
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.change_scheduler_definition_command import (
     ChangeSchedulerDefinitionCommand,
@@ -29,6 +23,12 @@ from shell.scheduling_service.application.scheduling.scheduler_definition.comman
 )
 from shell.scheduling_service.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
     DeleteSchedulerDefinitionCommand,
+)
+from shell.scheduling_service.application.scheduling.scheduler_definition.exceptions.scheduler_definition_not_found_error import (
+    SchedulerDefinitionNotFoundError as SchedulerDefinitionChangeNotFoundError,
+)
+from shell.scheduling_service.application.scheduling.scheduler_definition.exceptions.scheduler_definition_not_found_error import (
+    SchedulerDefinitionNotFoundError as SchedulerDefinitionDeleteNotFoundError,
 )
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,

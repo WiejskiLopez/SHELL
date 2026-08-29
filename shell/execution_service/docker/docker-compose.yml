@@ -7,18 +7,21 @@ services:
       dockerfile: shell/execution_service/docker/Dockerfile
     restart: unless-stopped
     environment:
-      EXECUTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/execution.db
+      EXECUTION_SERVICE_DATABASE_URL: ${EXECUTION_SERVICE_DATABASE_URL:-sqlite+aiosqlite:///shell_dev/execution.db}
       EXECUTION_SERVICE_API_KEY: ${EXECUTION_SERVICE_API_KEY:?EXECUTION_SERVICE_API_KEY is required}
       EXECUTION_SERVICE_BROKER_URL: ${EXECUTION_SERVICE_BROKER_URL:?EXECUTION_SERVICE_BROKER_URL is required}
-      DEFINITION_SERVICE_URL: ${DEFINITION_SERVICE_URL:-http://shell-definition-api:8002}
+      DEFINITION_SERVICE_URL: ${DEFINITION_SERVICE_URL:-https://shell-definition-api:8002}
       DEFINITION_SERVICE_API_KEY: ${DEFINITION_SERVICE_API_KEY:?DEFINITION_SERVICE_API_KEY is required}
-      SESSION_SERVICE_URL: ${SESSION_SERVICE_URL:-http://shell-session-api:8003}
+      SESSION_SERVICE_URL: ${SESSION_SERVICE_URL:-https://shell-session-api:8003}
       SESSION_SERVICE_API_KEY: ${SESSION_SERVICE_API_KEY:?SESSION_SERVICE_API_KEY is required}
       SERVICE_HTTP_TIMEOUT: ${SERVICE_HTTP_TIMEOUT:-5}
+      SHELL_MTLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      SHELL_MTLS_CERTFILE: /run/secrets/shell-mtls/execution.crt
+      SHELL_MTLS_KEYFILE: /run/secrets/shell-mtls/execution.key
     ports:
       - "8007:8007"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8007/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8007/readiness')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,11 +41,14 @@ services:
       EXECUTION_SERVICE_DATABASE_URL: sqlite+aiosqlite:///shell_dev/execution.db
       EXECUTION_SERVICE_API_KEY: ${EXECUTION_SERVICE_API_KEY:?EXECUTION_SERVICE_API_KEY is required}
       EXECUTION_SERVICE_BROKER_URL: ${EXECUTION_SERVICE_BROKER_URL:?EXECUTION_SERVICE_BROKER_URL is required}
-      DEFINITION_SERVICE_URL: ${DEFINITION_SERVICE_URL:-http://shell-definition-api:8002}
+      DEFINITION_SERVICE_URL: ${DEFINITION_SERVICE_URL:-https://shell-definition-api:8002}
       DEFINITION_SERVICE_API_KEY: ${DEFINITION_SERVICE_API_KEY:?DEFINITION_SERVICE_API_KEY is required}
-      SESSION_SERVICE_URL: ${SESSION_SERVICE_URL:-http://shell-session-api:8003}
+      SESSION_SERVICE_URL: ${SESSION_SERVICE_URL:-https://shell-session-api:8003}
       SESSION_SERVICE_API_KEY: ${SESSION_SERVICE_API_KEY:?SESSION_SERVICE_API_KEY is required}
       SERVICE_HTTP_TIMEOUT: ${SERVICE_HTTP_TIMEOUT:-5}
+      SHELL_MTLS_CA_CERTS: /run/secrets/shell-mtls/ca.crt
+      SHELL_MTLS_CERTFILE: /run/secrets/shell-mtls/execution.crt
+      SHELL_MTLS_KEYFILE: /run/secrets/shell-mtls/execution.key
     command:
       - python
       - -m
@@ -51,6 +57,7 @@ services:
     volumes:
       - ./dev_db:/app/shell_dev
       - ./logs:/app/logs
+      - ../../certs:/run/secrets/shell-mtls:ro
     depends_on:
       shell-execution-api:
         condition: service_healthy

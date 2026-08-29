@@ -6,9 +6,10 @@ from fastapi import FastAPI
 
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.dependencies import ContainerProtocol
-from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.observability.framework.api.health import mount_readiness
+from shell.platform.observability.framework.api.metrics import install_metrics
 from shell.user_service.framework.user.user.api.router import router
 
 
@@ -30,4 +31,5 @@ def create_user_app(container: ContainerProtocol) -> FastAPI:
         return {"status": "ok"}
 
     mount_readiness(app, container)
+    install_metrics(app, container, service="user")
     return app

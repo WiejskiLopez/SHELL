@@ -15,11 +15,22 @@ COPY packaging/shell-definition-service/pyproject.toml ./pyproject.toml
 COPY shell/definition_service ./shell/definition_service
 RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir /dist .
 
+FROM python:3.11-slim AS certificate-builder
+WORKDIR /certificates
+ARG CERTIFICATE_BUILD_ID=local
+COPY shell/certificates ./shell/certificates
+COPY shell/certs/ca.crt shell/certs/ca.key ./ca/
+RUN python -m pip install --no-cache-dir cryptography
+RUN echo "certificate-build=$CERTIFICATE_BUILD_ID" && python -m shell.certificates issue --ca-dir /certificates/ca --output-dir /generated --name definition --hostname shell-definition-api
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
 COPY --from=platform-builder /dist /tmp/wheels
+COPY --from=certificate-builder /generated/ca.crt /run/secrets/shell-mtls/ca.crt
+COPY --from=certificate-builder /generated/definition.crt /run/secrets/shell-mtls/definition.crt
+COPY --from=certificate-builder /generated/definition.key /run/secrets/shell-mtls/definition.key
 COPY --from=definition-service-builder /dist /tmp/wheels
 RUN pip install --no-cache-dir /tmp/wheels/*.whl && rm -rf /tmp/wheels
 

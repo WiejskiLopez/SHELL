@@ -20,11 +20,22 @@ COPY shell/user_service ./shell/user_service
 
 RUN python -m pip wheel --no-cache-dir --no-deps --wheel-dir /dist .
 
+FROM python:3.11-slim AS certificate-builder
+WORKDIR /certificates
+ARG CERTIFICATE_BUILD_ID=local
+COPY shell/certificates ./shell/certificates
+COPY shell/certs/ca.crt shell/certs/ca.key ./ca/
+RUN python -m pip install --no-cache-dir cryptography
+RUN echo "certificate-build=$CERTIFICATE_BUILD_ID" && python -m shell.certificates issue --ca-dir /certificates/ca --output-dir /generated --name user --hostname shell-user-api
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
 COPY --from=platform-builder /dist /tmp/wheels
+COPY --from=certificate-builder /generated/ca.crt /run/secrets/shell-mtls/ca.crt
+COPY --from=certificate-builder /generated/user.crt /run/secrets/shell-mtls/user.crt
+COPY --from=certificate-builder /generated/user.key /run/secrets/shell-mtls/user.key
 COPY --from=user-service-builder /dist /tmp/wheels
 
 RUN pip install --no-cache-dir /tmp/wheels/*.whl \

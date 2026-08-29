@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime
 from http.cookies import SimpleCookie
 from typing import TYPE_CHECKING, Protocol, cast
@@ -7,6 +8,11 @@ from typing import TYPE_CHECKING, Protocol, cast
 import jwt
 from starlette.responses import JSONResponse
 
+from shell.platform.application.authentication.request_signing import (
+    SIGNATURE_HEADER,
+    TIMESTAMP_HEADER,
+    verify_signature,
+)
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.framework.api.models.problem_detail import ProblemDetail
 from shell.platform.framework.api.principal import (
@@ -34,6 +40,7 @@ class AuthMiddleware:
         session_query_factory: Callable[[str], object] | None = None,
         public_exact: Collection[str] | None = None,
         public_prefix: Collection[str] | None = None,
+        signature_max_age_seconds: int = 300,
     ) -> None:
         self.app = app
         self._api_key = api_key
@@ -41,6 +48,7 @@ class AuthMiddleware:
         self._session_query_factory = session_query_factory
         self._public_exact = frozenset(public_exact or ())
         self._public_prefix = frozenset(public_prefix or ())
+        self._signature_max_age_seconds = signature_max_age_seconds
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -97,7 +105,38 @@ class AuthMiddleware:
         if api_key and api_key == self._api_key:
             return Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)
 
+        method = str(scope.get("method", "GET")).upper()
+        path = str(scope.get("path", ""))
+        if self._is_valid_signature(headers, method=method, path=path):
+            return Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)
+
         return None
+
+    def _is_valid_signature(
+        self,
+        headers: dict[bytes, bytes],
+        *,
+        method: str,
+        path: str,
+    ) -> bool:
+        if not self._api_key:
+            return False
+        signature = headers.get(SIGNATURE_HEADER.lower().encode("ascii"), b"").decode()
+        if not signature:
+            return False
+        timestamp_raw = headers.get(TIMESTAMP_HEADER.lower().encode("ascii"), b"").decode()
+        if not timestamp_raw.isdigit():
+            return False
+        timestamp = int(timestamp_raw)
+        return verify_signature(
+            secret=self._api_key,
+            method=method,
+            path=path,
+            timestamp=timestamp,
+            signature=signature,
+            now=int(time.time()),
+            max_age_seconds=self._signature_max_age_seconds,
+        )
 
     async def _resolve_user(self, scope: Scope, headers: dict[bytes, bytes]) -> str | None:
         principal = await self._resolve_principal(scope, headers)

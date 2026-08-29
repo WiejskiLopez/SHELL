@@ -22,11 +22,12 @@ from shell.execution_service.framework.execution.workflow.api.router import (
     router as workflows_router,
 )
 from shell.platform.domain.exceptions import DomainError
-from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
+from shell.platform.observability.framework.api.health import mount_readiness
+from shell.platform.observability.framework.api.metrics import install_metrics
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
@@ -57,7 +58,7 @@ def create_execution_app(
         app.add_middleware(
             AuthMiddleware,
             api_key=api_key,
-            public_exact={"/health", "/readiness"},
+            public_exact={"/health", "/readiness", "/metrics"},
             public_prefix={"/docs", "/redoc", "/openapi.json"},
         )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
@@ -79,4 +80,5 @@ def create_execution_app(
         return {"status": "ok"}
 
     mount_readiness(app, core_container)
+    install_metrics(app, core_container, service="execution")
     return app

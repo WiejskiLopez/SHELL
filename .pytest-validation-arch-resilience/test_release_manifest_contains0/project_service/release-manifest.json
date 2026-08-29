@@ -1,0 +1,19 @@
+{
+  "service": "shell-project-service",
+  "version": "0.1.0",
+  "commit": "ea0ed5b5d9953c2616339ecb79c7f96e13c6f0da",
+  "source_status": "dirty",
+  "image": "shell-project-service:test-manifest",
+  "image_id": null,
+  "image_digest": null,
+  "image_digest_type": null,
+  "independence_filesystem_digest": null,
+  "platform_version": "0.1.0",
+  "migration_head": "0001_project_baseline",
+  "artifact_sha256": {
+    "shell_platform-0.1.0-py3-none-any.whl": "0b260a37c62ce4a8be69d19d5ad2b73ef21cf11c5e8bd5dceea2c57e16ad8d99",
+    "shell_project_service-0.1.0-py3-none-any.whl": "d07a20b33fbd2475a87598ec332eb5b54ec707c8bead707beb607e3b8775519f"
+  },
+  "verified_at": "2026-08-27T20:35:33.213106+00:00",
+  "status": "candidate"
+}

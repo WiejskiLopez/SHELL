@@ -14,8 +14,18 @@ depends_on = None
 
 
 def upgrade() -> None:
-    create_service_tables(op.get_bind(), service_package="shell.scheduling_service", base_module="shell.scheduling_service.infrastructure.scheduling.persistence.sql.models.base", base_class="SchedulingSqlAlchemyModelBase")
+    create_service_tables(
+        op.get_bind(),
+        service_package="shell.scheduling_service",
+        base_module="shell.scheduling_service.infrastructure.scheduling.persistence.sql.models.base",
+        base_class="SchedulingSqlAlchemyModelBase",
+    )
 
 
 def downgrade() -> None:
-    drop_service_tables(op.get_bind(), service_package="shell.scheduling_service", base_module="shell.scheduling_service.infrastructure.scheduling.persistence.sql.models.base", base_class="SchedulingSqlAlchemyModelBase")
+    drop_service_tables(
+        op.get_bind(),
+        service_package="shell.scheduling_service",
+        base_module="shell.scheduling_service.infrastructure.scheduling.persistence.sql.models.base",
+        base_class="SchedulingSqlAlchemyModelBase",
+    )

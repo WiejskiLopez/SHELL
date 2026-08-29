@@ -10,11 +10,12 @@ from shell.definition_service.framework.definition.graph_definition.api.router i
     router as graph_definitions_router,
 )
 from shell.platform.domain.exceptions import DomainError
-from shell.platform.framework.api.health import mount_readiness
 from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 from shell.platform.framework.api.openapi import configure_openapi
+from shell.platform.observability.framework.api.health import mount_readiness
+from shell.platform.observability.framework.api.metrics import install_metrics
 
 if TYPE_CHECKING:
     from shell.platform.framework.api.dependencies import ContainerProtocol
@@ -36,7 +37,7 @@ def create_definition_app(core_container: ContainerProtocol, *, api_key: str = "
         app.add_middleware(
             AuthMiddleware,
             api_key=api_key,
-            public_exact={"/health", "/readiness"},
+            public_exact={"/health", "/readiness", "/metrics"},
             public_prefix={"/docs", "/redoc", "/openapi.json"},
         )
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
@@ -49,4 +50,5 @@ def create_definition_app(core_container: ContainerProtocol, *, api_key: str = "
         return {"status": "ok"}
 
     mount_readiness(app, core_container)
+    install_metrics(app, core_container, service="definition")
     return app

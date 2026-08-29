@@ -8,7 +8,6 @@ from dependency_injector import containers, providers
 
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
-from shell.platform.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
@@ -20,13 +19,13 @@ from shell.platform.infrastructure.messaging.command.processor.command_inbox_pro
 from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import (
     InboxMetricsService,
 )
+from shell.platform.infrastructure.messaging.outbox.outbox_metrics_service import (
+    OutboxMetricsService,
+)
 from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
 from shell.platform.infrastructure.messaging.transport.rabbit import (
     RabbitDeliveryTransport,
     RabbitInboxConsumer,
-)
-from shell.platform.infrastructure.metrics.logging_metrics_backend import (
-    LoggingMetricsBackend,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization.registries.command_registry import (
@@ -34,6 +33,17 @@ from shell.platform.infrastructure.serialization.registries.command_registry imp
     discover_command_types,
 )
 from shell.platform.infrastructure.time.system_clock import SystemClock
+from shell.platform.observability.infrastructure.health.composite_readiness_probe import (
+    CompositeReadinessProbe,
+)
+from shell.platform.observability.infrastructure.health.rabbit_readiness_probe import (
+    RabbitReadinessProbe,
+)
+from shell.platform.observability.infrastructure.health.sql_readiness_probe import SqlReadinessProbe
+from shell.platform.observability.infrastructure.metrics.prometheus_metrics_backend import (
+    PrometheusMetricsBackend,
+)
+from shell.platform.observability.infrastructure.metrics.registry import MetricsRegistry
 from shell.user_service.application.user.auth_session.command_handlers.login_auth_session_handler import (
     LoginAuthSessionHandler,
 )
@@ -126,18 +136,35 @@ class UserCoreContainer(containers.DeclarativeContainer):
 
     # Per-BC Unit of Work — zna TYLKO repozytoria BC User
     persistence_delivery_models = providers.Object(PERSISTENCE_DELIVERY_MODELS)
+    metrics_exporter = providers.Singleton(MetricsRegistry)
+    metrics_backend = providers.Singleton(PrometheusMetricsBackend, registry=metrics_exporter)
     inbox_metrics_service = providers.Singleton(
         InboxMetricsService,
         session_factory=session_factory,
         inbox_model=persistence_delivery_models.provided.events.inbox,
-        backend=LoggingMetricsBackend(),
+        backend=metrics_backend,
+    )
+    outbox_metrics_service = providers.Singleton(
+        OutboxMetricsService,
+        session_factory=session_factory,
+        outbox_model=persistence_delivery_models.provided.events.outbox,
+        backend=metrics_backend,
     )
     readiness_probe = providers.Singleton(
-        SqlReadinessProbe,
-        session_factory=session_factory,
-        inbox_model=persistence_delivery_models.provided.events.inbox,
-        max_backlog=1000,
-        worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
+        CompositeReadinessProbe,
+        probes=providers.List(
+            providers.Singleton(
+                SqlReadinessProbe,
+                session_factory=session_factory,
+                inbox_model=persistence_delivery_models.provided.events.inbox,
+                max_backlog=1000,
+                worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
+            ),
+            providers.Singleton(
+                RabbitReadinessProbe,
+                url_provider=providers.Object(config.broker_url),
+            ),
+        ),
     )
     integration_mapper = providers.Singleton(ReflectiveIntegrationMapper)
     unit_of_work_factory = providers.Factory(
