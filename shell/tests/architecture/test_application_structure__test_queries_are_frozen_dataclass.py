@@ -12,6 +12,7 @@ from _arch_helpers import (
     architecture_assertion_message,
     find_classes,
     is_frozen_dataclass,
+    iter_named_dirs,
     iter_py_files,
     parse_file,
 )
@@ -22,9 +23,7 @@ _KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
 def test_queries_are_frozen_dataclass() -> None:
     violations: list[str] = []
-    for query_dir in (BASE / "application").rglob("queries"):
-        if not query_dir.is_dir():
-            continue
+    for query_dir in iter_named_dirs("application", "queries"):
         parent = query_dir.parent
         if parent.name == "ports":
             continue

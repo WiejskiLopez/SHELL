@@ -49,7 +49,32 @@ Patrz `test-topology`.
 
 Patrz `repository-contract-symmetry`.
 
-## 5. CI i narzędzia
+## 5. Próżne testy i bramki, które nie mogą spaść
+
+> Najgroźniejszy test to ten, który przechodzi zawsze, bo **nie skanuje niczego**.
+> Daje zielone CI i fałszywe poczucie ochrony — regresje przechodzą niezauważone.
+
+| Weryfikacja | Złamanie | Severity |
+|-------------|----------|----------|
+| Iterator testu faktycznie rozwiązuje istniejące katalogi | test iteruje `(BASE / "application")`, `(BASE / "domain")` itd., gdy kod leży w `shell/<bc>/<warstwa>` (po migracji monolit → per-BC) — pusty skan | **CRITICAL** |
+| Helper `BASE`/ścieżki zgodne z rzeczywistą topologią | `BASE = ...parent.parent.parent.parent` (repo root) zamiast katalogu źródłowego; skan repo root, gdzie warstw nie ma | **CRITICAL** |
+| Strażnik faktycznie jest uruchamiany w CI | test w katalogu poza `testpaths` / niewołany przez żaden workflow | **CRITICAL** |
+| Zanim "naprawisz" próżny test, zweryfikuj, że reguła jest spełniona na realnym kodzie | przestawienie iteracji na realne ścieżki, gdy kod od dawna łamie regułę → strażnik pada od pierwszego dnia | HIGH |
+| Zakres reguły doprecyzowany do intencji, nie rozmyty | zasada round-trip stosowana do jednokierunkowych map (ACL/adaptery) zamiast do persistence mapperów | MEDIUM |
+
+**Weryfikacja próżności:** dla każdego testu sprawdź, czy jego iteratory istnieją i czy zwracają niepuste zbiory:
+- `BASE / "<warstwa>"` istnieje? Po rozbiciu na BC warstwy żyją per-BC — `shell/<bc>/application`, `shell/<bc>/domain`.
+- Test, który przechodzi natychmiast i "bezpiecznie", wymaga obejrzenia — ile plików faktycznie przejrzał?
+- Prefiksy w regułach (np. `shell.application`, `shell.infrastructure`) muszą odpowiadać realnej formie per-BC (`shell.<bc>.application`).
+
+**Metodyka naprawy:**
+1. Zidentyfikuj puste iteracje (skan, który niczego nie zwraca = 0 naruszeń = 0 wartości).
+2. Potwierdź w CI, że test jest naprawdę wykonywany.
+3. Przed przestawieniem na realne ścieżki prześledź/zasymuluj regułę na obecnym kodzie — **jeśli reguła nie jest spełniona, napraw kod, nie test**.
+4. Zachowaj intencję reguły: skalowanie zakresu (np. "infrastructure mappers" = persistence mappers, nie jednokierunkowe adaptery ACL) jest dozwolone; usuwanie asercji lub dodawanie allow-list bez uzasadnienia — nie.
+5. Po zmianie uruchom narzędzia (ruff/mypy/import-linter) i całość suite architektury.
+
+## 6. CI i narzędzia
 
 | Weryfikacja | Złamanie | Severity |
 |-------------|----------|----------|
@@ -59,10 +84,11 @@ Patrz `repository-contract-symmetry`.
 | Wersje zależności lockowane | niedeterministyczne buildy | MEDIUM |
 | Audyt podatności w CI | brak pip-audit/security check | MEDIUM |
 
-## 6. Checklista finalna
+## 7. Checklista finalna
 
 - [ ] Reguły domenowe, mappery i kontrakty pokryte sensownymi testami.
 - [ ] Zero tautologicznych asercji; testy niezależne.
 - [ ] InMemory symetryczne z SQL.
+- [ ] Strażniki architektury skanują realne, istniejące katalogi (nie `BASE/<warstwa>` po migracji per-BC).
 - [ ] `run_tests.ps1` przechodzi w całości.
 - [ ] CI bramkuje ruff, mypy, import-linter, pytest — bez wykluczeń.

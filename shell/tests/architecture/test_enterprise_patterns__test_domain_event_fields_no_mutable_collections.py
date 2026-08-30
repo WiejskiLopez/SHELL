@@ -8,16 +8,14 @@ Poprawnie: kod spełnia ten kontrakt i nie zgłasza naruszeń.
 from __future__ import annotations
 
 import ast
-import pathlib
 import re
 from typing import TYPE_CHECKING
 
-from _arch_helpers import architecture_assertion_message
+from _arch_helpers import BASE, architecture_assertion_message, iter_named_dirs
 
 if TYPE_CHECKING:
+    import pathlib
     from collections.abc import Iterator
-SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent.parent
-BASE = SHELL_SRC
 
 
 def _iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
@@ -123,7 +121,7 @@ _KNOWN_MISSING_RESTORE: frozenset[str] = frozenset({})
 def _find_repository_ports() -> list[tuple[pathlib.Path, str]]:
     """Return (file_path, class_name) for every Protocol ending in Repository within domain/."""
     results: list[tuple[pathlib.Path, str]] = []
-    for repos_dir in (BASE / "domain").rglob("repositories"):
+    for repos_dir in iter_named_dirs("domain", "repositories"):
         if not repos_dir.is_dir():
             continue
         for py_file in repos_dir.rglob("*.py"):

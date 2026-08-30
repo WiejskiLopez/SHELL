@@ -12,6 +12,7 @@ from _arch_helpers import (
     architecture_assertion_message,
     find_classes,
     is_frozen_dataclass,
+    iter_named_dirs,
     iter_py_files,
     parse_file,
 )
@@ -22,9 +23,7 @@ _KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
 def test_commands_are_frozen_dataclass() -> None:
     violations: list[str] = []
-    for cmd_dir in (BASE / "application").rglob("commands"):
-        if not cmd_dir.is_dir():
-            continue
+    for cmd_dir in iter_named_dirs("application", "commands"):
         for path in iter_py_files(cmd_dir):
             tree = parse_file(path)
             if tree is None:

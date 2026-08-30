@@ -15,6 +15,7 @@ from _arch_helpers import (
     find_classes,
     is_frozen_dataclass,
     is_magic,
+    iter_named_dirs,
     iter_py_files,
     parse_file,
 )
@@ -25,9 +26,7 @@ _KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
 def test_dtos_have_no_business_logic() -> None:
     violations: list[str] = []
-    for dto_dir in (BASE / "application").rglob("dto"):
-        if not dto_dir.is_dir():
-            continue
+    for dto_dir in iter_named_dirs("application", "dto"):
         for path in iter_py_files(dto_dir):
             tree = parse_file(path)
             if tree is None:

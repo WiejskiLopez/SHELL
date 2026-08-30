@@ -12,8 +12,10 @@ from typing import TYPE_CHECKING
 
 from _arch_helpers import (
     BASE,
+    SERVICE_ROOTS,
     architecture_assertion_message,
     find_classes,
+    iter_named_dirs,
     iter_py_files,
     parse_file,
 )
@@ -22,48 +24,43 @@ if TYPE_CHECKING:
     import pathlib
 _REPO_TO_BC: dict[str, str] = {}
 
+_BC_NAMES = frozenset(service_root.name for service_root in SERVICE_ROOTS)
+
 
 def _build_repo_to_bc_map() -> dict[str, str]:
-    """Scan shell/domain/* for repository Protocols and return {name → bc}."""
+    """Scan every per-BC domain repositories dir and return {name → bc}.
+
+    The owning BC is the first path segment after shell/ (parts[0]); for
+    platform repositories that segment is 'platform'.
+    """
     if _REPO_TO_BC:
         return _REPO_TO_BC
-    domain = BASE / "domain"
-    if not domain.is_dir():
-        return _REPO_TO_BC
-    for bc_dir in sorted(domain.iterdir()):
-        if not bc_dir.is_dir() or bc_dir.name.startswith("_"):
-            continue
-        bc_name = bc_dir.name
-        for repos_dir in bc_dir.rglob("repositories"):
-            if not repos_dir.is_dir():
+    for repos_dir in iter_named_dirs("domain", "repositories"):
+        bc_name = repos_dir.relative_to(BASE).parts[0]
+        for py_file in iter_py_files(repos_dir):
+            tree = parse_file(py_file)
+            if tree is None:
                 continue
-            for py_file in repos_dir.rglob("*.py"):
-                if py_file.name == "__init__.py":
-                    continue
-                tree = parse_file(py_file)
-                if tree is None:
-                    continue
-                for node in ast.walk(tree):
-                    if (
-                        isinstance(node, ast.ClassDef)
-                        and node.name.endswith("Repository")
-                        and (node.name not in _REPO_TO_BC)
-                    ):
-                        _REPO_TO_BC[node.name] = bc_name
+            for node in ast.walk(tree):
+                if (
+                    isinstance(node, ast.ClassDef)
+                    and node.name.endswith("Repository")
+                    and (node.name not in _REPO_TO_BC)
+                ):
+                    _REPO_TO_BC[node.name] = bc_name
     return _REPO_TO_BC
 
 
 def _handler_bc(path: pathlib.Path) -> str | None:
     """Derive the BC for a handler from its filesystem path.
 
-    Rules:
-      application/<bc>/...          → <bc>
-      process/<bc>/...              → <bc>
+    Real per-BC handler paths look like <bc>/application/<...>/<kind>/<file>.py,
+    so the first path segment is the bounded-context name or 'platform'.
     """
     rel = path.relative_to(BASE).as_posix()
-    parts = rel.split("/")
-    if len(parts) >= 2 and parts[0] in ("application", "process"):
-        return parts[1]
+    first = rel.split("/", 1)[0]
+    if first in _BC_NAMES:
+        return first
     return None
 
 
@@ -134,38 +131,37 @@ def _violation_key(path: pathlib.Path, repo: str) -> str:
     return f"{rel}:{repo}"
 
 
-def _test_handlers_in_dir(handler_dir: pathlib.Path, *, check_repo_injection: bool = False) -> None:
-    """Shared logic: walk all .py files in *handler_dir*, find handlers
-    that use unit_of_work.repository() or have repos injected, and
-    assert they never access repos from another BC.
+def _test_handlers_in_dir(*, handler_kind: str, check_repo_injection: bool = False) -> None:
+    """Shared logic: iterate every <bc>/application/<handler_kind> directory,
+    find handlers that use unit_of_work.repository() or have repos injected,
+    and assert they never access repos from another BC.
 
     If *check_repo_injection* is True, also inspect __init__ parameters
     for direct repository injections (process/saga handlers).
     """
     repo_bc = _build_repo_to_bc_map()
     violations: list[str] = []
-    if not handler_dir.exists():
-        return
-    for path in iter_py_files(handler_dir):
-        tree = parse_file(path)
-        if tree is None:
-            continue
-        bc = _handler_bc(path)
-        if bc is None:
-            continue
-        used_repos = _find_repo_calls_in_tree(tree)
-        if check_repo_injection:
-            used_repos.extend(_find_repo_injected_in_init(tree))
-        for repo_name in set(used_repos):
-            owning_bc = repo_bc.get(repo_name)
-            if owning_bc is None:
+    for handler_dir in iter_named_dirs("application", handler_kind):
+        for path in iter_py_files(handler_dir):
+            tree = parse_file(path)
+            if tree is None:
                 continue
-            if owning_bc == bc:
+            bc = _handler_bc(path)
+            if bc is None:
                 continue
-            if owning_bc == "platform":
-                continue
-            key = _violation_key(path, repo_name)
-            violations.append(f"{key}  (handler BC={bc!r}, repo BC={owning_bc!r})")
+            used_repos = _find_repo_calls_in_tree(tree)
+            if check_repo_injection:
+                used_repos.extend(_find_repo_injected_in_init(tree))
+            for repo_name in set(used_repos):
+                owning_bc = repo_bc.get(repo_name)
+                if owning_bc is None:
+                    continue
+                if owning_bc == bc:
+                    continue
+                if owning_bc == "platform":
+                    continue
+                key = _violation_key(path, repo_name)
+                violations.append(f"{key}  (handler BC={bc!r}, repo BC={owning_bc!r})")
     assert not violations, architecture_assertion_message(
         "reguła testowana przez test_architecture_rule",
         "warunek zapisany w asercji musi być spełniony",
@@ -175,4 +171,4 @@ def _test_handlers_in_dir(handler_dir: pathlib.Path, *, check_repo_injection: bo
 
 
 def test_event_handlers_dont_use_cross_bc_repos() -> None:
-    _test_handlers_in_dir(BASE / "application" / "event_handlers")
+    _test_handlers_in_dir(handler_kind="event_handlers")

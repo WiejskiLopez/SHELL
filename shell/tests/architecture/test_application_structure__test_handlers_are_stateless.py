@@ -13,6 +13,7 @@ from _arch_helpers import (
     BASE,
     architecture_assertion_message,
     find_classes,
+    iter_named_dirs,
     iter_py_files,
     parse_file,
 )
@@ -23,34 +24,29 @@ _KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
 def test_handlers_are_stateless() -> None:
     violations: list[str] = []
-    for handler_dir in [
-        BASE / "application" / "command_handlers",
-        BASE / "application" / "query_handlers",
-        BASE / "application" / "event_handlers",
-    ]:
-        if not handler_dir.exists():
-            continue
-        for path in iter_py_files(handler_dir):
-            tree = parse_file(path)
-            if tree is None:
-                continue
-            for node in find_classes(tree):
-                if not node.name.endswith("Handler"):
+    for handler_kind in ("command_handlers", "query_handlers", "event_handlers"):
+        for handler_dir in iter_named_dirs("application", handler_kind):
+            for path in iter_py_files(handler_dir):
+                tree = parse_file(path)
+                if tree is None:
                     continue
-                handler_attrs: set[str] = set()
-                for stmt in node.body:
-                    if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
-                        for line in ast.walk(stmt):
-                            if (
-                                isinstance(line, ast.Attribute)
-                                and isinstance(line.value, ast.Name)
-                                and (line.value.id == "self")
-                            ):
-                                handler_attrs.add(line.attr)
-                if not handler_attrs:
-                    violations.append(
-                        f"{path.relative_to(BASE)}: class {node.name} has no constructor"
-                    )
+                for node in find_classes(tree):
+                    if not node.name.endswith("Handler"):
+                        continue
+                    handler_attrs: set[str] = set()
+                    for stmt in node.body:
+                        if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
+                            for line in ast.walk(stmt):
+                                if (
+                                    isinstance(line, ast.Attribute)
+                                    and isinstance(line.value, ast.Name)
+                                    and (line.value.id == "self")
+                                ):
+                                    handler_attrs.add(line.attr)
+                    if not handler_attrs:
+                        violations.append(
+                            f"{path.relative_to(BASE)}: class {node.name} has no constructor"
+                        )
     assert not violations, architecture_assertion_message(
         "reguła testowana przez test_handlers_are_stateless",
         "warunek zapisany w asercji musi być spełniony",

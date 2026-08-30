@@ -28,13 +28,13 @@ dependencies = [
 dev = ["cryptography>=46.0.0", "pytest>=7"]
 
 [project.scripts]
-shell-retention-definition = "shell.definition_service.framework.definition.cli.retention:main"
-shell-retention-execution = "shell.execution_service.framework.execution.cli.retention:main"
-shell-retention-ingestion = "shell.ingestion_service.framework.ingestion.cli.retention:main"
-shell-retention-project = "shell.project_service.framework.project.cli.retention:main"
-shell-retention-scheduling = "shell.scheduling_service.framework.scheduling.cli.retention:main"
-shell-retention-session = "shell.session_service.framework.session.cli.retention:main"
-shell-retention-user = "shell.user_service.framework.user.cli.retention:main"
+shell-retention-definition = "shell.definition_service.infrastructure.definition.cli.retention:main"
+shell-retention-execution = "shell.execution_service.infrastructure.execution.cli.retention:main"
+shell-retention-ingestion = "shell.ingestion_service.infrastructure.ingestion.cli.retention:main"
+shell-retention-project = "shell.project_service.infrastructure.project.cli.retention:main"
+shell-retention-scheduling = "shell.scheduling_service.infrastructure.scheduling.cli.retention:main"
+shell-retention-session = "shell.session_service.infrastructure.session.cli.retention:main"
+shell-retention-user = "shell.user_service.infrastructure.user.cli.retention:main"
 
 
 [tool.setuptools.packages.find]

@@ -16,7 +16,7 @@ from _arch_helpers import (
     extends_base,
     find_classes,
     iter_domain_files,
-    iter_py_files,
+    iter_layer_files,
     parse_file,
 )
 
@@ -74,7 +74,7 @@ def _is_slots_dataclass(node: ast.ClassDef) -> bool:
 
 def _get_all_integration_event_classes() -> list[tuple[pathlib.Path, ast.ClassDef]]:
     results: list[tuple[pathlib.Path, ast.ClassDef]] = []
-    for path in iter_py_files(BASE / "application"):
+    for path in iter_layer_files("application"):
         tree = parse_file(path)
         if tree is None:
             continue
@@ -91,7 +91,7 @@ def test_no_domain_integration_events() -> None:
         if tree is None:
             continue
         for node in find_classes(tree):
-            if node.name.endswith("IntegrationEvent"):
+            if node.name.endswith("IntegrationEvent") and node.name != "IntegrationEvent":
                 violations.append(f"{path.relative_to(BASE)}: class {node.name}")
     assert not violations, architecture_assertion_message(
         "reguła testowana przez test_no_domain_integration_events",

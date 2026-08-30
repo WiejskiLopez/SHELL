@@ -18,8 +18,9 @@ Weryfikuj, czy zależności importowe nie przebijają warstw:
 | `infrastructure` implementuje porty z `domain`/`application` | adapter importuje port wyłącznie przez `TYPE_CHECKING` jeśli reguła wymaga | MEDIUM |
 | Porty (typy zależności) należą do *potrzebującego*, nie do dostawcy | port zdefiniowany w BC dostawcy | CRITICAL |
 | Brak importów infrastruktury w domenie nawet w `TYPE_CHECKING` | `if TYPE_CHECKING: from infrastructure...` w domain | **CRITICAL** |
+| CLI/entry point, który dotyka ORM/retencji znajduje się w `infrastructure/<bc>/cli/`, nie w `framework/<bc>/cli/` | retention CLI w `framework` z importem modeli ORM | HIGH |
 
-Reguła: domena to liść zależności. Wszystko przez porty/ręce domeny.
+Reguła: domena to liść zależności. Wszystko przez porty/ręce domeny. Framework to warstwa dostarczania (API/CLI bez stanu); sterowniki, które tworzą sesje ORM, należą do infrastruktury (wzorzec: `platform/infrastructure/cli/retention.py`).
 
 ## 2. Granice Bounded Context
 
@@ -71,6 +72,10 @@ Patrz `port-adapter`, `port-adapter-structure`.
 | `import-linter` pokrywa granice warstw i BC | brak reguły dla nowego modułu | HIGH |
 | Testy AST/pytest egzekwują konwencje (entity to nie dataclass, brak ORM w domain) | reguła wyłączona/ignorowana | **CRITICAL** (patrz architectural-discipline) |
 | Config zawiera reguły jednocześnie w `select` i `ignore` | sprzeczna konfiguracja | **CRITICAL** |
+| Strażnik skanuje **realne** ścieżki (per-BC po migracji) | test iteruje `(BASE / "domain")`, `(BASE / "framework")` — katalogi nie istnieją, test nigdy nie może spaść | **CRITICAL** |
+| `import-linter` sprawdza `domain→infra`, `application→infra`, BC→BC, a nie tylko platform→BC | tylko jeden kontrakt (np. "platform nie importuje BC") | HIGH |
+
+Reguła: test architektury, który nie może się nie powieść, to nie test. Strażniki muszą rozwiązywać ścieżki do prawdziwego kodu; brakująca reguła import-lintera dla warstwy/BC jest równie groźna, jak wyłączona reguła. Szczegóły wykrywania próżnych strażników: `review-testing-and-ci` (rozdział o próżnych testach).
 
 Patrz `arch-test-import-linter`, `arch-test-mypy`, `arch-test-pytest`, `architectural-discipline`.
 
