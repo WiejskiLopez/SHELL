@@ -10,7 +10,7 @@ from shell.execution_service.framework.execution.edge_link_execution.api.control
     EdgeLinkExecutionController,
 )
 from shell.execution_service.framework.execution.edge_link_execution.api.create_edge_link_execution_request import (
-    CreateEdgeLinkExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    CreateEdgeLinkExecutionRequest,
 )
 from shell.execution_service.framework.execution.edge_link_execution.api.edge_link_execution_response import (
     EdgeLinkExecutionResponse,

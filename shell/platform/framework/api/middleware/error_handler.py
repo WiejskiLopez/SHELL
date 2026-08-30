@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING
 from fastapi.responses import JSONResponse
 
 from shell.platform.application.context.correlation_id import get_correlation_id
-from shell.platform.application.exceptions import (  # noqa: TC001 — potrzebny w runtime dla isinstance() i handlera wyjątków
+from shell.platform.application.exceptions import (
     ApplicationError,
 )
 from shell.platform.domain.exceptions import (
-    DomainError,  # noqa: TC001 — potrzebny w runtime dla isinstance() i handlera wyjątków
+    DomainError,
 )
 from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,

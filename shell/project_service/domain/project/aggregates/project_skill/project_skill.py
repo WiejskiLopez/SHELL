@@ -7,7 +7,6 @@ from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, Chan
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 from shell.project_service.domain.project.aggregates.project_skill.events.project_skill_changed_event import (
     ProjectSkillChangedEvent,
 )
@@ -25,6 +24,7 @@ from shell.project_service.domain.project.aggregates.project_skill.value_objects
 )
 
 if TYPE_CHECKING:
+    from shell.platform.types import JsonStr
     from shell.project_service.domain.project.aggregates.project.value_objects.project_id import (
         ProjectId,
     )

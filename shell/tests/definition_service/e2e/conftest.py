@@ -18,4 +18,4 @@ async def make_definition_app(tmp_path):
     container.config.db_url.from_value(db_url)
     configure_definition_container(container)
     track_session_factory(container.session_factory())
-    return create_definition_app(container)
+    return create_definition_app(container, api_key=TEST_API_KEY)

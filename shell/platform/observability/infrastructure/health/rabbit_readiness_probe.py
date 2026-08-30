@@ -36,7 +36,7 @@ class RabbitReadinessProbe(ReadinessProbe):
     async def check(self) -> ReadinessReport:
         try:
             url = self._url_provider()
-        except Exception as exc:  # noqa: BLE001 — readiness must never raise
+        except Exception as exc:
             return ReadinessReport(
                 ready=False,
                 checks={"broker": f"error: {type(exc).__name__}: {exc}"},
@@ -48,14 +48,14 @@ class RabbitReadinessProbe(ReadinessProbe):
             )
         try:
             connection = await self._connector(url, timeout=self._timeout)
-        except Exception as exc:  # noqa: BLE001 — readiness must never raise
+        except Exception as exc:
             return ReadinessReport(
                 ready=False,
                 checks={"broker": f"error: {type(exc).__name__}: {exc}"},
             )
         try:
             await connection.close()
-        except Exception as exc:  # noqa: BLE001 — readiness must never raise
+        except Exception as exc:
             return ReadinessReport(
                 ready=False,
                 checks={"broker": f"error: {type(exc).__name__}: {exc}"},

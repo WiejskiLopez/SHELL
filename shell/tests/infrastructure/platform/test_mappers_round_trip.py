@@ -312,7 +312,10 @@ class TestGraphExecutionMapper:
             depth=GraphDepth(0),
             max_subgraph_depth=MaxSubgraphDepth(5),
         )
-        original.change_status(GraphExecutionStatus.COMPLETED, OccurredAt.from_datetime(_NOW))
+        original.plan(OccurredAt.from_datetime(_NOW))
+        original.execute(OccurredAt.from_datetime(_NOW))
+        original.verify(OccurredAt.from_datetime(_NOW))
+        original.complete(OccurredAt.from_datetime(_NOW))
         model = graph_execution_entity_to_model(original)
         restored = graph_execution_model_to_entity(model)
 

@@ -8,8 +8,10 @@ zgodnie z RFC 8594 (Sunset header) i RFC 7234 (Deprecation header).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date  # noqa: TC003 — used in @dataclass field annotations
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from datetime import date
 
 VersionStatus = Literal["active", "deprecated", "sunset"]
 

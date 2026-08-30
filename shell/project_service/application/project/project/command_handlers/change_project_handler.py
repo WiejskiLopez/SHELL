@@ -39,10 +39,8 @@ class ChangeProjectHandler:
                 raise ProjectNotFoundError(command.project_id)
             now = ChangedAt.from_datetime(self._clock.now())
             project.change(
-                name=ProjectName(command.name) if command.name else project.name,
-                repo_url=RepoUrl(command.repo_url)
-                if command.repo_url is not None
-                else project.repository_url,
+                name=ProjectName(command.name) if command.name is not None else None,
+                repo_url=RepoUrl(command.repo_url) if command.repo_url is not None else None,
                 now=now,
             )
             await unit_of_work.save(ProjectRepository, project)

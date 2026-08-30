@@ -6,6 +6,9 @@ from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.reason import Reason
+from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.action_type import (
+    ActionType,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
@@ -57,7 +60,7 @@ class SchedulerOrchestrator:
             execution.skip(reason=Reason("execution_checker rejected"), now=now)
             return execution
 
-        if definition.action_config.action_type != "spawn_graph":
+        if definition.action_config.action_type != ActionType.SPAWN_GRAPH:
             execution.skip(
                 reason=Reason(f"unsupported action_type: {definition.action_config.action_type}"),
                 now=now,

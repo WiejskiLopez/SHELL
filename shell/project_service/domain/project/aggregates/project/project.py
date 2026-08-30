@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
@@ -16,6 +15,9 @@ from shell.project_service.domain.project.aggregates.project.events.project_crea
 )
 from shell.project_service.domain.project.aggregates.project.events.project_deleted_event import (
     ProjectDeletedEvent,
+)
+from shell.project_service.domain.project.aggregates.project.exceptions.project_already_deleted_error import (
+    ProjectAlreadyDeletedError,
 )
 from shell.project_service.domain.project.aggregates.project.value_objects.project_id import (
     ProjectId,
@@ -165,18 +167,30 @@ class Project(AggregateRoot[ProjectId]):
     def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
-    def change(self, *, name: ProjectName, repo_url: RepoUrl, now: OccurredAt) -> None:
-        """Change project fields and bump changed_at."""
+    def change(
+        self,
+        *,
+        name: ProjectName | None = None,
+        repo_url: RepoUrl | None = None,
+        now: OccurredAt,
+    ) -> None:
+        """Change project fields and bump changed_at.
+
+        ``None`` keeps the current value — the merge policy lives in the
+        aggregate, not in the application layer.
+        """
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot change a deleted project")
-        self._name = name
-        self._repo_url = repo_url
+            raise ProjectAlreadyDeletedError("Cannot change a deleted project")
+        if name is not None:
+            self._name = name
+        if repo_url is not None:
+            self._repo_url = repo_url
         self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         """Soft-delete this project."""
         if self._deleted_at.value is not None:
-            raise DomainError("Project already deleted")
+            raise ProjectAlreadyDeletedError("Project already deleted")
         self._deleted_at = now
         self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(

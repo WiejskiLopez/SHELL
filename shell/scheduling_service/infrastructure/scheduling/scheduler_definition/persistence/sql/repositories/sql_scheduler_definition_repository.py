@@ -24,7 +24,7 @@ if TYPE_CHECKING:
         SchedulerDefinition,
     )
     from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
-        SchedulerDefinitionId,  # noqa: TC002 — SchedulerDefinitionId używany w konstruktorach w repozytorium
+        SchedulerDefinitionId,
     )
     from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.source_context import (
         SourceContext,

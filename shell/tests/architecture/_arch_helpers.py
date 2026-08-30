@@ -1,4 +1,4 @@
-from __future__ import annotations  # noqa: E402 -- required for all files
+from __future__ import annotations
 
 import ast
 import pathlib

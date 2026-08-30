@@ -18,7 +18,7 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+from shell.platform.types import JsonStr
 from shell.project_service.domain.project.aggregates.project_state.events.project_state_changed_event import (
     ProjectStateChangedEvent,
 )

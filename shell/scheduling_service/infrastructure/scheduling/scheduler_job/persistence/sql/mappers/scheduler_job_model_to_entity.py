@@ -7,7 +7,7 @@ from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime dla konstrukcji VO
+from shell.platform.types import JsonStr
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )

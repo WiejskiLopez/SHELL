@@ -7,7 +7,6 @@ from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, Chan
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 from shell.user_service.domain.user.aggregates.user_skill.events.user_skill_changed_event import (
     UserSkillChangedEvent,
 )
@@ -23,6 +22,7 @@ from shell.user_service.domain.user.aggregates.user_skill.value_objects.user_ski
 from shell.user_service.domain.user.value_objects.skill_data import SkillData
 
 if TYPE_CHECKING:
+    from shell.platform.types import JsonStr
     from shell.user_service.domain.user.value_objects.user_id import UserId
 
 

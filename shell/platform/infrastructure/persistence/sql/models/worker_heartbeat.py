@@ -8,7 +8,7 @@ so one row exists per worker process/configuration.
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Mapped[datetime] requires runtime type
+from datetime import datetime  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 
 from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column

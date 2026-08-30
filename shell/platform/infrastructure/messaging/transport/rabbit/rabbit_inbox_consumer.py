@@ -89,11 +89,18 @@ class RabbitInboxConsumer:
             await message.reject(requeue=False)
             return
 
-        persisted = await self._persist(envelope)
+        try:
+            persisted = await self._persist(envelope)
+        except Exception:
+            # Błąd przejściowy (DB w dół, reset połączenia) — nie odrzucaj na stałe.
+            logger.exception("Failed to persist inbox delivery; requeueing")
+            await message.reject(requeue=True)
+            return
         if persisted:
             await message.ack()
         else:
-            await message.reject(requeue=False)
+            # Duplikat/konflikt — wiadomość legalna, ale już przetworzona: ack.
+            await message.ack()
 
     async def _persist(self, envelope: DeliveryEnvelope) -> bool:
         type_column = f"{envelope.kind}_type"
@@ -126,7 +133,7 @@ class RabbitInboxConsumer:
                 await session.commit()
             except Exception:
                 logger.exception("Failed to persist inbox delivery")
-                return False
+                raise
         return True
 
     async def close(self) -> None:

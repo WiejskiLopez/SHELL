@@ -13,7 +13,7 @@ from shell.execution_service.application.execution.task_execution.query_handlers
 
 if TYPE_CHECKING:
     from shell.execution_service.infrastructure.execution.persistence.memory.query_services import (
-        InMemoryExecutionQueryService,  # noqa: TC002 -- used in TYPE_CHECKING block only, needed for pytest fixture type annotation
+        InMemoryExecutionQueryService,
     )
 
 

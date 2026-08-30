@@ -6,7 +6,7 @@ columns live in one platform mixin instead of being duplicated across models.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime  # noqa: TC003 — Mapped[datetime] requires runtime type
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import DateTime, Index

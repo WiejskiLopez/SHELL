@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
-        TaskExecutionName,  # noqa: TC002 — TaskExecutionName używany w konstruktorach w repozytorium
+        TaskExecutionName,
     )
     from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_id import (
         WorkflowId,

@@ -58,6 +58,9 @@ class NodeResultQueryService:
             if not model:
                 return None
             payload = model.state_data
+            actual_workflow_id = _optional_payload_field(payload, "workflow_id")
+            if actual_workflow_id is not None and actual_workflow_id != workflow_id:
+                return None
             return NodeExecutionResultDto(
                 id=model.id,
                 node_execution_id=model.node_execution_id,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Mapped[datetime] requires datetime at runtime
+from datetime import datetime  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey

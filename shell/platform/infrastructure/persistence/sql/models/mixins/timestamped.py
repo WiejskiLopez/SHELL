@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — SQLAlchemy Mapped[datetime] needs runtime access
+from datetime import datetime  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 
 from sqlalchemy.orm import Mapped, mapped_column
 

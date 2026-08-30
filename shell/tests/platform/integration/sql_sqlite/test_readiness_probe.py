@@ -118,7 +118,7 @@ class TestSqlReadinessProbe:
         report = await probe.check()
 
         assert report.ready is False
-        assert report.checks["database"] != True  # noqa: E712 — failure reported as a string
+        assert report.checks["database"] is not True
 
 
 class TestWorkerHeartbeatReadiness:

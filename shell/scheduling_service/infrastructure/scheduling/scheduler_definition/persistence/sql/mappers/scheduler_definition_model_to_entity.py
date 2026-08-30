@@ -13,6 +13,9 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
     ActionConfig,
 )
+from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.action_type import (
+    ActionType,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.execution_policy import (
     ExecutionPolicy,
 )
@@ -47,7 +50,7 @@ def scheduler_definition_model_to_entity(
     )
     action_config_raw = model.action_config
     action_config = ActionConfig(
-        action_type=model.action_type,
+        action_type=ActionType(model.action_type),
         graph_definition_id=cast("str | None", action_config_raw.get("graph_definition_id")),
         input_mapping=JsonStr(json.dumps(action_config_raw.get("input_mapping")))
         if action_config_raw.get("input_mapping")

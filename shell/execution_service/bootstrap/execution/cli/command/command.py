@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
-)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from argparse import Namespace
 
 
 class RunnableCommand(ABC):

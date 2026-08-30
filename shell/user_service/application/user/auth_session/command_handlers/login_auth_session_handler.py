@@ -8,7 +8,10 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.user_service.application.user.auth_session.dto.login_auth_session_result import (
     LoginAuthSessionResult,
 )
-from shell.user_service.domain.user.aggregates.auth_session.auth_session import AuthSession
+from shell.user_service.domain.user.aggregates.auth_session.auth_session import (
+    AuthSession,
+    assert_user_can_login,
+)
 from shell.user_service.domain.user.aggregates.auth_session.exceptions.auth_session_login_denied_error import (
     AuthSessionLoginDeniedError,
 )
@@ -18,11 +21,7 @@ from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_se
 from shell.user_service.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
     AuthSessionId,
 )
-from shell.user_service.domain.user.aggregates.auth_session.value_objects.expires_at import (
-    ExpiresAt,
-)
 from shell.user_service.domain.user.value_objects.user_email import UserEmail
-from shell.user_service.domain.user.value_objects.user_status import UserStatus
 
 if TYPE_CHECKING:
     from datetime import timedelta
@@ -65,8 +64,9 @@ class LoginAuthSessionHandler:
 
         async with self._unit_of_work as unit_of_work:
             user_reference = await self._user_query_provider.get_by_email(user_email)
-            if user_reference is None or user_reference.status != UserStatus.ACTIVE:
+            if user_reference is None:
                 raise AuthSessionLoginDeniedError()
+            assert_user_can_login(user_reference)
 
             active_auth_session = await unit_of_work.repository(
                 AuthSessionRepository
@@ -82,7 +82,7 @@ class LoginAuthSessionHandler:
                     now=now,
                     user_id=user_reference.id,
                     token_hash=Hash.of(raw_token),
-                    expires_at=ExpiresAt.from_datetime(now.value + self._session_ttl),
+                    session_ttl=self._session_ttl,
                 )
 
             # UoW.save() maps the aggregate's domain events to integration events

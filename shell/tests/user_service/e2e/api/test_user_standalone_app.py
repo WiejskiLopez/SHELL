@@ -12,12 +12,6 @@ from shell.user_service.bootstrap.user.container.user_core_container import (
     configure_user_container,
 )
 from shell.user_service.framework.user.api.app import create_user_app
-from shell.user_service.infrastructure.user.auth_session.persistence.sql.models.auth_session import (
-    AuthSessionModel,  # noqa: F401 -- register SQLAlchemy model metadata
-)
-from shell.user_service.infrastructure.user.user.persistence.sql.models.user import (  # noqa: F401 -- register SQLAlchemy model metadata
-    UserModel,
-)
 from shell.user_service.migrations.baseline import run_user_baseline
 
 if TYPE_CHECKING:

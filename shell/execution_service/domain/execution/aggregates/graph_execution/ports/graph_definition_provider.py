@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
-        GraphDefinitionSemanticQuery,  # noqa: TC002 — używany w sygnaturze Protocol
+        GraphDefinitionSemanticQuery,
     )
     from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_definition_id_ref import (
-        GraphDefinitionIdRef,  # noqa: TC002 — używany w sygnaturach Protocol
+        GraphDefinitionIdRef,
     )
     from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_definition_reference import (
-        GraphDefinitionReference,  # noqa: TC002 — używany w sygnaturach Protocol
+        GraphDefinitionReference,
     )
 
 

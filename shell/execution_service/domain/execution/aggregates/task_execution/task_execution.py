@@ -119,7 +119,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             raise InvalidTaskStateError(f"Cannot start task in status {self._status}")
         self._status = TaskExecutionStatus.IN_PROGRESS
 
-    def complete(self, output: str = "") -> None:
+    def complete(self) -> None:
         if self._deleted_at.value is not None:
             raise InvalidTaskStateError(f"Cannot complete deleted task in status {self._status}")
         if self._status != TaskExecutionStatus.IN_PROGRESS:

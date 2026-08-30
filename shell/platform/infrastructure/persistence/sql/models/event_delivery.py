@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
+from datetime import datetime  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 from typing import Any, NamedTuple
 
 from sqlalchemy import DateTime, Index, UniqueConstraint

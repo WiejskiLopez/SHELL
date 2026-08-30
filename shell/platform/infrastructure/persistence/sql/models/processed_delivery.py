@@ -11,7 +11,7 @@ the same consumer is always a no-op.
 
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
+from datetime import datetime  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 
 from sqlalchemy import DateTime, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column

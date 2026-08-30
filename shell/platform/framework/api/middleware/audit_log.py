@@ -38,7 +38,6 @@ class AuditLogMiddleware:
             extra={
                 "method": scope.get("method", ""),
                 "path": scope.get("path", ""),
-                "query_string": scope.get("query_string", b"").decode(),
                 "status": status_code,
                 "elapsed_ms": round(elapsed * 1000, 2),
                 "correlation_id": get_correlation_id(),

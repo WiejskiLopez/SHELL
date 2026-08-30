@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
@@ -16,6 +15,12 @@ from shell.user_service.domain.user.aggregates.user.events.user_created_event im
 )
 from shell.user_service.domain.user.aggregates.user.events.user_deleted_event import (
     UserDeletedEvent,
+)
+from shell.user_service.domain.user.aggregates.user.exceptions.user_already_deleted_error import (
+    UserAlreadyDeletedError,
+)
+from shell.user_service.domain.user.aggregates.user.exceptions.user_state_transition_error import (
+    UserStateTransitionError,
 )
 from shell.user_service.domain.user.value_objects.user_id import UserId
 from shell.user_service.domain.user.value_objects.user_status import UserStatus
@@ -148,13 +153,13 @@ class User(AggregateRoot[UserId]):
 
     def change(self, email: UserEmail, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot change a deleted user")
+            raise UserAlreadyDeletedError("Cannot change a deleted user")
         self._email = email
         self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("User already deleted")
+            raise UserAlreadyDeletedError("User already deleted")
         self._deleted_at = now
         self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(
@@ -163,14 +168,14 @@ class User(AggregateRoot[UserId]):
 
     def enable(self) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot enable a deleted user")
+            raise UserAlreadyDeletedError("Cannot enable a deleted user")
         if self._status != UserStatus.DISABLED:
-            raise DomainError(f"Cannot enable user in status {self._status!r}")
+            raise UserStateTransitionError(f"Cannot enable user in status {self._status!r}")
         self._status = UserStatus.ACTIVE
 
     def disable(self) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Cannot disable a deleted user")
+            raise UserAlreadyDeletedError("Cannot disable a deleted user")
         if self._status != UserStatus.ACTIVE:
-            raise DomainError(f"Cannot disable user in status {self._status!r}")
+            raise UserStateTransitionError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED

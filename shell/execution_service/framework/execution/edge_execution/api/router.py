@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends
 
 from shell.execution_service.framework.execution.edge_execution.api.change_edge_execution_request import (
-    ChangeEdgeExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    ChangeEdgeExecutionRequest,
 )
 from shell.execution_service.framework.execution.edge_execution.api.controller import (
     EdgeExecutionController,
 )
 from shell.execution_service.framework.execution.edge_execution.api.create_edge_execution_request import (
-    CreateEdgeExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    CreateEdgeExecutionRequest,
 )
 from shell.execution_service.framework.execution.edge_execution.api.edge_execution_response import (
     EdgeExecutionResponse,
@@ -54,7 +54,7 @@ async def create_edge_execution(
     return await controller.create_edge_execution(body)
 
 
-@router.put("/{edge_execution_id}", status_code=200)
+@router.put("/{edge_execution_id}", status_code=204)
 async def change_edge_execution(
     edge_execution_id: str,
     body: ChangeEdgeExecutionRequest,

@@ -73,7 +73,6 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
         "TaskExecution.fail",
         "TaskExecution.timeout",
         "TaskExecution.exhaust",
-        "Workflow.start_at",
         "Workflow.finish",
         "Workflow.fail",
         "Workflow.abort",

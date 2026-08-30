@@ -10,6 +10,8 @@ from shell.definition_service.bootstrap.definition.container.definition_core_con
 from shell.definition_service.framework.definition.api.app import create_definition_app
 from shell.definition_service.migrations.baseline import run_definition_baseline
 
+TEST_API_KEY = "test-api-key"
+
 
 async def test_definition_baseline_creates_required_tables(tmp_path) -> None:
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'definition.db'}"
@@ -37,7 +39,7 @@ async def test_definition_baseline_creates_required_tables(tmp_path) -> None:
 async def test_definition_app_health_with_local_container() -> None:
     container = DefinitionCoreContainer()
     container.config.db_url.from_value("sqlite+aiosqlite:///:memory:")
-    app = create_definition_app(container)
+    app = create_definition_app(container, api_key=TEST_API_KEY)
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health")

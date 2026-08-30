@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.platform.application.context import (  # noqa: TC002 -- re-export z application
+from shell.platform.application.context import (
     DeliverySessionScope,
     causation_id_var,
     correlation_id_var,

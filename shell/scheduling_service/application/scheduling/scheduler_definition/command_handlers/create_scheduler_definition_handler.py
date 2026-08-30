@@ -13,6 +13,9 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
     ActionConfig,
 )
+from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.action_type import (
+    ActionType,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.execution_policy import (
     ExecutionPolicy,
 )
@@ -57,6 +60,9 @@ class CreateSchedulerDefinitionHandler:
         ac = command.action_config
         ep = command.execution_policy
         trigger_filter = tc.get("trigger_filter")
+        raw_action_type = ac.get("action_type")
+        if not isinstance(raw_action_type, str):
+            raise ValueError("action_config.action_type is required and must be a string")
         definition = SchedulerDefinition.create(
             id_=definition_id,
             now=now,
@@ -67,7 +73,7 @@ class CreateSchedulerDefinitionHandler:
                 trigger_filter=JsonStr(trigger_filter) if trigger_filter else None,
             ),
             action_config=ActionConfig(
-                action_type=ac.get("action_type", ""),
+                action_type=ActionType(raw_action_type),
                 graph_definition_id=ac.get("graph_definition_id"),
                 input_mapping=ac.get("input_mapping"),
                 emit_event_type=ac.get("emit_event_type"),

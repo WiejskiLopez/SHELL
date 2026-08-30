@@ -26,20 +26,35 @@ from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_
 from shell.user_service.domain.user.aggregates.auth_session.events.auth_session_revoked_event import (
     AuthSessionRevokedEvent,
 )
+from shell.user_service.domain.user.aggregates.auth_session.exceptions.auth_session_login_denied_error import (
+    AuthSessionLoginDeniedError,
+)
 from shell.user_service.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
     AuthSessionId,
+)
+from shell.user_service.domain.user.aggregates.auth_session.value_objects.expires_at import (
+    ExpiresAt,
 )
 from shell.user_service.domain.user.aggregates.auth_session.value_objects.revoked_at import (
     NONE_REVOKED_AT,
     RevokedAt,
 )
+from shell.user_service.domain.user.value_objects.user_status import UserStatus
 
 if TYPE_CHECKING:
+    from datetime import timedelta
+
     from shell.platform.domain.value_objects.hash import Hash
-    from shell.user_service.domain.user.aggregates.auth_session.value_objects.expires_at import (
-        ExpiresAt,
+    from shell.user_service.domain.user.aggregates.auth_session.value_objects.user_reference import (
+        UserReference,
     )
     from shell.user_service.domain.user.value_objects.user_id import UserId
+
+
+def assert_user_can_login(user_reference: UserReference) -> None:
+    """Domain rule: only ACTIVE users may obtain an authentication session."""
+    if user_reference.status != UserStatus.ACTIVE:
+        raise AuthSessionLoginDeniedError()
 
 
 class AuthSession(AggregateRoot[AuthSessionId]):
@@ -116,8 +131,9 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         now: CreatedAt,
         user_id: UserId,
         token_hash: Hash,
-        expires_at: ExpiresAt,
+        session_ttl: timedelta,
     ) -> AuthSession:
+        expires_at = ExpiresAt.from_datetime(now.value + session_ttl)
         return cls._new(
             id_=id_,
             now=OccurredAt.from_datetime(now.value),

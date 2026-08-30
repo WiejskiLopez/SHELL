@@ -1,9 +1,6 @@
 from __future__ import annotations
 
 import logging
-from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
-)
 from typing import TYPE_CHECKING
 
 from shell.execution_service.bootstrap.execution.cli.command.command import RunnableCommand
@@ -17,6 +14,8 @@ from shell.platform.infrastructure.messaging.transport.rabbit import RabbitDeliv
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:
+    from argparse import Namespace
+
     from shell.platform.infrastructure.configuration.config_slices import DeploymentConfig
 
 logger = logging.getLogger(__name__)

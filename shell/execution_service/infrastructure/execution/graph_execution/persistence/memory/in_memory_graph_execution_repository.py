@@ -7,7 +7,7 @@ from shell.execution_service.domain.execution.aggregates.graph_execution.reposit
     GraphExecutionRepository,
 )
 from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
+    GraphExecutionId,
 )
 from shell.platform.infrastructure.persistence.in_memory_repository import (
     InMemoryRepository,

@@ -64,7 +64,7 @@ class SqlReadinessProbe(ReadinessProbe):
                 checks["migrations"] = await self._check_migrations(session)
                 checks["worker"] = await self._check_worker(session)
                 checks["backlog"] = await self._check_backlog(session)
-        except Exception as exc:  # noqa: BLE001 — readiness must never raise
+        except Exception as exc:
             checks["database"] = f"error: {type(exc).__name__}: {exc}"
             checks["migrations"] = "not checked"
             checks["worker"] = "not checked"

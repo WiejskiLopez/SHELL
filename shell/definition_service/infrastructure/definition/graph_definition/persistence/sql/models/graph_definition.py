@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import (
-    datetime,  # noqa: TC003 — needed by SQLAlchemy ORM at runtime for Mapped[datetime]
+    datetime,  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 )
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column

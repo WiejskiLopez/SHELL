@@ -3,22 +3,22 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from shell.ingestion_service.framework.ingestion.ingestion.api.change_ingestion_request import (
-    ChangeIngestionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    ChangeIngestionRequest,
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.controller import (
     IngestionController,
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.create_ingestion_request import (
-    CreateIngestionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    CreateIngestionRequest,
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.create_ingestion_response import (
-    CreateIngestionResponse,  # noqa: TC001 -- used at runtime for FastAPI
+    CreateIngestionResponse,
 )
 from shell.ingestion_service.framework.ingestion.ingestion.api.ingestion_response import (
-    IngestionResponse,  # noqa: TC001 -- used at runtime for FastAPI
+    IngestionResponse,
 )
 from shell.platform.application.bus.command_bus import (
-    CommandBus,  # noqa: TC001 -- used at runtime for FastAPI
+    CommandBus,
 )
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.dependencies import get_command_bus, get_query_bus

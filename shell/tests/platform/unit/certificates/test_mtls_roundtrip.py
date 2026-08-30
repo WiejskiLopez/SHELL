@@ -112,7 +112,7 @@ class TestMtlsRoundTrip:
         with _tls_server(ca, server_crt, server_key) as port:
             try:
                 data = _exchange(ca, port)
-            except Exception:  # noqa: BLE001 — rejected client may raise on write/read
+            except Exception:
                 data = b""
 
         assert data != HTTP_OK

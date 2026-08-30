@@ -40,9 +40,6 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_type import (
         NodeType,
     )
-    from shell.platform.domain.value_objects.error_description import ErrorDescription
-    from shell.platform.domain.value_objects.state_data import StateData
-    from shell.platform.types import JsonStr
 
 
 class NodeExecution(AggregateRoot[NodeExecutionId]):
@@ -106,14 +103,14 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
         self._status = NodeExecutionStatus.RUNNING
 
-    def complete(self, result: StateData | JsonStr | None) -> None:
+    def complete(self) -> None:
         if self._deleted_at is not None and self._deleted_at.value is not None:
             raise InvalidNodeStateError(f"Cannot complete deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = NodeExecutionStatus.COMPLETED
 
-    def fail(self, error: ErrorDescription | str) -> None:
+    def fail(self) -> None:
         if self._deleted_at is not None and self._deleted_at.value is not None:
             raise InvalidNodeStateError(f"Cannot fail deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.RUNNING:

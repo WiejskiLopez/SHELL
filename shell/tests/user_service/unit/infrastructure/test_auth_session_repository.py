@@ -25,16 +25,16 @@ async def test_get_active_by_user_id_excludes_expired_sessions() -> None:
     repository = InMemoryAuthSessionRepository()
     user_id = UserId("user-1")
 
-    active_session = AuthSession.create(
-        id_=AuthSessionId("active-session"),
-        now=CreatedAt.from_datetime(now),
+    active_session = AuthSession.restore(
+        id=AuthSessionId("active-session"),
+        created_at=CreatedAt.from_datetime(now),
         user_id=user_id,
         token_hash=Hash.of("active-token"),
         expires_at=ExpiresAt.from_datetime(now + timedelta(minutes=1)),
     )
-    expired_session = AuthSession.create(
-        id_=AuthSessionId("expired-session"),
-        now=CreatedAt.from_datetime(now),
+    expired_session = AuthSession.restore(
+        id=AuthSessionId("expired-session"),
+        created_at=CreatedAt.from_datetime(now),
         user_id=user_id,
         token_hash=Hash.of("expired-token"),
         expires_at=ExpiresAt.from_datetime(now - timedelta(seconds=1)),
@@ -51,9 +51,9 @@ async def test_get_active_by_user_id_excludes_expired_sessions() -> None:
 async def test_get_active_by_user_id_returns_none_when_only_session_is_expired() -> None:
     now = datetime(2026, 8, 10, 12, 0, tzinfo=UTC)
     repository = InMemoryAuthSessionRepository()
-    session = AuthSession.create(
-        id_=AuthSessionId("expired-session"),
-        now=CreatedAt.from_datetime(now - timedelta(hours=1)),
+    session = AuthSession.restore(
+        id=AuthSessionId("expired-session"),
+        created_at=CreatedAt.from_datetime(now - timedelta(hours=1)),
         user_id=UserId("user-1"),
         token_hash=Hash.of("expired-token"),
         expires_at=ExpiresAt.from_datetime(now - timedelta(seconds=1)),

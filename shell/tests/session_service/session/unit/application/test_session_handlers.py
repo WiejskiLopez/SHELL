@@ -28,14 +28,14 @@ from shell.session_service.application.session.session.query_handlers.get_sessio
 
 if TYPE_CHECKING:
     from shell.platform.infrastructure.persistence.memory import (
-        FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
-        FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
+        FakeClock,
+        FakeIdGenerator,
     )
     from shell.session_service.infrastructure.session.persistence.memory.query_services import (
-        InMemorySessionQueryService,  # noqa: TC002 — używany w sygnaturach fixture'ów pytest
+        InMemorySessionQueryService,
     )
     from shell.session_service.infrastructure.session.persistence.memory.unit_of_work import (
-        InMemorySessionUnitOfWork,  # noqa: TC002 — używany w sygnaturach fixture'ów pytest
+        InMemorySessionUnitOfWork,
     )
 
 

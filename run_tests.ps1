@@ -136,32 +136,36 @@ if (-not $SkipSecurity) {
     $pipAudit = "$projectRoot\.venv\Scripts\pip-audit.exe"
     $pipAuditCache = Join-Path $env:TEMP "shell-pip-audit-cache"
     Write-Host "Running: $pipAudit (timeout ${SecurityAuditTimeout}s)" -ForegroundColor Gray
+    $pipJob = Start-Job -ScriptBlock {
+        param($auditPath, $cacheDir)
+        & $auditPath "--timeout", "30", "--progress-spinner", "off", "--cache-dir", $cacheDir 2>&1
+        exit $LASTEXITCODE
+    } -ArgumentList $pipAudit, $pipAuditCache
     try {
-        $pipJob = Start-Job -ScriptBlock {
-            param($auditPath, $cacheDir)
-            & $auditPath "--timeout", "30", "--progress-spinner", "off", "--cache-dir", $cacheDir 2>&1
-        } -ArgumentList $pipAudit, $pipAuditCache
         if ($null -eq ($pipJob | Wait-Job -Timeout $SecurityAuditTimeout)) {
-            Write-Host "TIMEOUT: pip-audit exceeded ${SecurityAuditTimeout}s (network issue), skipping" -ForegroundColor Yellow
-        } else {
-            Receive-Job -Job $pipJob
+            Write-Host "FAILED: Dependency Vulnerability Audit (timeout)" -ForegroundColor Red
+            exit 1
         }
-    } catch {
-        Write-Host "WARNING: pip-audit step failed with error: $($_.Exception.Message)" -ForegroundColor Yellow
-        Write-Host "Continuing (security audit is not release-blocking)" -ForegroundColor Yellow
+        $output = Receive-Job -Job $pipJob
+        if ($null -ne $output) { $output | ForEach-Object { Write-Host $_ } }
+        if ($pipJob.State -eq 'Failed') {
+            Write-Host "FAILED: Dependency Vulnerability Audit" -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "OK: Dependency Vulnerability Audit" -ForegroundColor Green
     } finally {
         $pipJob | Stop-Job -ErrorAction SilentlyContinue | Remove-Job -Force -ErrorAction SilentlyContinue
     }
 }
 
 if (-not $SkipSecurity) {
-    Run-Command "$projectRoot\.venv\Scripts\bandit.exe -r shell --exclude shell/.venv -ll" "Security Code Scanning (Bandit)" -AllowFailure
+    Run-Command "$projectRoot\.venv\Scripts\bandit.exe -r shell --exclude shell/.venv -ll" "Security Code Scanning (Bandit)"
 }
 
 # Coverage — run unit tests with coverage
 if (-not $UnitOnly -and -not $IntegrationOnly) {
     $coveragePaths = ($bcs | ForEach-Object { $p = "$testRoot/$_/unit"; if (Test-Path $p) { $p } }) -join " "
-    Run-Command "$python -m pytest $coveragePaths --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
+    Run-Command "$python -m pytest $coveragePaths --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
 }
 
 Write-Host "`n=== All requested checks completed ===" -ForegroundColor Green

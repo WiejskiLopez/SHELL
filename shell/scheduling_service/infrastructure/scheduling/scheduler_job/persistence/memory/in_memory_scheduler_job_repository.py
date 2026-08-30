@@ -10,4 +10,8 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.value_o
 
 
 class InMemorySchedulerJobRepository(InMemoryRepository[SchedulerJob, SchedulerJobId]):
-    pass
+    async def list_enabled(self) -> list[SchedulerJob]:
+        return [job for job in self._store.values() if job.enabled.value]
+
+    async def list_all(self) -> list[SchedulerJob]:
+        return list(self._store.values())

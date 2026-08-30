@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
@@ -21,6 +20,12 @@ from shell.session_service.domain.session.aggregates.session.events.session_dele
 )
 from shell.session_service.domain.session.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
+)
+from shell.session_service.domain.session.aggregates.session.exceptions.session_already_deleted_error import (
+    SessionAlreadyDeletedError,
+)
+from shell.session_service.domain.session.aggregates.session.exceptions.session_state_transition_error import (
+    SessionStateTransitionError,
 )
 from shell.session_service.domain.session.aggregates.session.value_objects.session_id import (
     SessionId,
@@ -94,9 +99,11 @@ class Session(AggregateRoot[SessionId]):
 
     def close(self, now: ChangedAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Session already deleted")
+            raise SessionAlreadyDeletedError("Session already deleted")
         if self._status != SessionStatus.OPEN:
-            raise DomainError(f"Cannot close session in status {self._status!r}")
+            raise SessionStateTransitionError(
+                f"Cannot close session in status {self._status!r}"
+            )
         self._status = SessionStatus.CLOSED
         self._closed_at = now
         self._changed_at = ChangedAt.from_datetime(now.value)
@@ -104,14 +111,16 @@ class Session(AggregateRoot[SessionId]):
 
     def change(self, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Session already deleted")
+            raise SessionAlreadyDeletedError("Session already deleted")
         if self._status != SessionStatus.OPEN:
-            raise DomainError(f"Cannot change session in status {self._status!r}")
+            raise SessionStateTransitionError(
+                f"Cannot change session in status {self._status!r}"
+            )
         self._change(now=now)
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:
-            raise DomainError("Session already deleted")
+            raise SessionAlreadyDeletedError("Session already deleted")
         self._deleted_at = now
         self._changed_at = ChangedAt.from_datetime(now.value)
         self.append_event(

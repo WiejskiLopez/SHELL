@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
+from datetime import datetime  # noqa: TC003 - SQLAlchemy resolves Mapped[...] at class definition
 
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column

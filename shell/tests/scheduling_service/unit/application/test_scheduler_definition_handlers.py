@@ -54,7 +54,7 @@ class TestSchedulerDefinitionHandlers:
 
     @pytest.fixture()
     def action_config(self) -> dict:
-        return {"action_type": "run_graph", "graph_definition_id": "graph-1"}
+        return {"action_type": "spawn_graph", "graph_definition_id": "graph-1"}
 
     @pytest.fixture()
     def execution_policy(self) -> dict:

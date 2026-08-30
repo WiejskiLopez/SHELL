@@ -144,7 +144,7 @@ class TestHeartbeatLease:
         assert len(await worker_b.claim_batch()) == 0
 
         # Renewal extends the lease; a second worker still cannot reclaim.
-        renewed = await processor._renew_lease("evt-heartbeat")  # noqa: SLF001
+        renewed = await processor._renew_lease("evt-heartbeat")
         assert renewed is True
         assert len(await worker_b.claim_batch()) == 0
 
@@ -166,7 +166,7 @@ class TestHeartbeatLease:
             lease_duration_seconds=5,
         )
         # No one owns the record (PENDING) → renewal touches nothing.
-        assert await processor._renew_lease("evt-not-owned") is False  # noqa: SLF001
+        assert await processor._renew_lease("evt-not-owned") is False
 
     async def test_heartbeat_keeps_lease_fresh_during_long_handler(
         self,

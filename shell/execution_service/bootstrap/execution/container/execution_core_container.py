@@ -186,6 +186,9 @@ from shell.execution_service.infrastructure.execution.graph_execution.adapters.g
 from shell.execution_service.infrastructure.execution.graph_execution.persistence.sql.services.graph_execution_query_service import (
     GraphExecutionQueryService,
 )
+from shell.execution_service.infrastructure.execution.node_execution.persistence.sql.services.node_execution_query_service import (
+    NodeExecutionQueryService,
+)
 from shell.execution_service.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
@@ -511,8 +514,11 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     get_graph_execution_handler_factory = providers.Factory(
         GetGraphExecutionByIdHandler, queries=graph_execution_query_service
     )
+    node_execution_query_service = providers.Singleton(
+        NodeExecutionQueryService, session_factory=session_factory
+    )
     get_node_execution_by_id_handler_factory = providers.Factory(
-        GetNodeExecutionByIdHandler, queries=node_result_query_service
+        GetNodeExecutionByIdHandler, queries=node_execution_query_service
     )
     session_execution_query_service = providers.Singleton(
         SessionExecutionQueryService, session_factory=session_factory

@@ -9,7 +9,7 @@ from shell.definition_service.framework.definition.graph_definition.api.graph_de
     GraphDefinitionResponse,
 )
 from shell.definition_service.framework.definition.graph_definition.api.semantic_query_request import (
-    SemanticQueryRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
+    SemanticQueryRequest,
 )
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.dependencies import get_query_bus

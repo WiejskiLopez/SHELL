@@ -6,16 +6,16 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.dependencies import get_command_bus, get_query_bus
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.change_scheduler_definition_request import (
-    ChangeSchedulerDefinitionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    ChangeSchedulerDefinitionRequest,
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.controller import (
     SchedulerDefinitionController,
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.create_scheduler_definition_request import (
-    CreateSchedulerDefinitionRequest,  # noqa: TC001 -- used at runtime for FastAPI
+    CreateSchedulerDefinitionRequest,
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.create_scheduler_definition_response import (
-    CreateSchedulerDefinitionResponse,  # noqa: TC001 -- used at runtime for FastAPI
+    CreateSchedulerDefinitionResponse,
 )
 from shell.scheduling_service.framework.scheduling.scheduler_definition.api.scheduler_definition_response import (
     SchedulerDefinitionResponse,

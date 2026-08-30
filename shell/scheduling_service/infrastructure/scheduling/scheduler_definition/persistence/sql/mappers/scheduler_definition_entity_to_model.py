@@ -25,7 +25,7 @@ def scheduler_definition_entity_to_model(
         trigger_filter=json.loads(entity.trigger_config.trigger_filter.value)
         if entity.trigger_config.trigger_filter
         else None,
-        action_type=entity.action_config.action_type,
+        action_type=entity.action_config.action_type.value,
         action_config={
             "graph_definition_id": entity.action_config.graph_definition_id,
             "input_mapping": json.loads(entity.action_config.input_mapping.value)

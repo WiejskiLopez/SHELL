@@ -372,7 +372,7 @@ class TestProcessedDeliveryAtomicWrite:
 
 
 class _NoopHandler:
-    async def handle(self, item: object) -> None:  # noqa: ARG002
+    async def handle(self, item: object) -> None:
         return None
 
 

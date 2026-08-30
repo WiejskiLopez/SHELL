@@ -26,16 +26,17 @@ SCHEDULING_OPENAPI_TAGS = (
 
 
 def create_scheduling_app(container: object | None = None, *, api_key: str = "") -> FastAPI:
+    if not api_key:
+        raise ValueError("create_scheduling_app requires a non-empty api_key (fail-closed)")
     app = FastAPI(title="shell - scheduling", version="0.1.0")
     if container is not None:
         app.state.core_container = container
-        if api_key:
-            app.add_middleware(
-                AuthMiddleware,
-                api_key=api_key,
-                public_exact={"/health", "/readiness", "/metrics"},
-                public_prefix={"/docs", "/redoc", "/openapi.json"},
-            )
+        app.add_middleware(
+            AuthMiddleware,
+            api_key=api_key,
+            public_exact={"/health", "/readiness", "/metrics"},
+            public_prefix={"/docs", "/redoc", "/openapi.json"},
+        )
         app.include_router(scheduler_definition_router, prefix="/api/v1")
         app.include_router(scheduler_execution_router, prefix="/api/v1")
         app.include_router(scheduler_job_router, prefix="/api/v1")

@@ -25,6 +25,12 @@ jobs:
         run: uv run pytest shell/tests/platform/unit shell/tests/session_service shell/tests/definition_service shell/tests/execution_service shell/tests/scheduling_service shell/tests/user_service shell/tests/project_service shell/tests/ingestion_service -v
       - name: Platform delivery SQLite integration + contracts
         run: uv run pytest shell/tests/platform/integration/sql_sqlite shell/tests/contracts -ra
+      - name: Type check (mypy)
+        run: uv run mypy --no-incremental shell
+      - name: Architecture boundary check
+        run: uv run import-linter lint
+      - name: Unit tests with coverage
+        run: uv run pytest shell/tests/platform/unit shell/tests/session_service shell/tests/definition_service shell/tests/execution_service shell/tests/scheduling_service shell/tests/user_service shell/tests/project_service shell/tests/ingestion_service --cov=shell --cov-fail-under=80 -v
 
   production-gate:
     name: Production Gate (PostgreSQL + RabbitMQ)

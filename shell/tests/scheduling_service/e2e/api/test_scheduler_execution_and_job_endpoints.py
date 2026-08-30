@@ -21,6 +21,8 @@ from shell.scheduling_service.migrations.baseline import run_scheduling_baseline
 if TYPE_CHECKING:
     import pathlib
 
+TEST_API_KEY = "test-api-key"
+
 
 async def _make_app(tmp_path: pathlib.Path):
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'scheduling-e2e.db'}"
@@ -28,12 +30,17 @@ async def _make_app(tmp_path: pathlib.Path):
     container = SchedulingCoreContainer()
     container.config.db_url.from_value(db_url)
     configure_scheduling_container(container)
-    return create_scheduling_app(container)
+    return create_scheduling_app(container, api_key=TEST_API_KEY)
+
+
+def _auth_headers() -> dict[str, str]:
+    return {"x-api-key": TEST_API_KEY}
 
 
 async def _create_definition(client: AsyncClient) -> str:
     response = await client.post(
         "/api/v1/scheduler-definitions/",
+        headers=_auth_headers(),
         json={
             "name": "e2e-definition",
             "trigger_config": {
@@ -57,12 +64,16 @@ class TestSchedulerExecutionEndpoints:
 
             create_resp = await client.post(
                 "/api/v1/scheduler-executions/",
+                headers=_auth_headers(),
                 json={"scheduler_definition_id": definition_id},
             )
             assert create_resp.status_code == 201, create_resp.text
             execution_id = create_resp.json()["id"]
 
-            get_resp = await client.get(f"/api/v1/scheduler-executions/{execution_id}")
+            get_resp = await client.get(
+                f"/api/v1/scheduler-executions/{execution_id}",
+                headers=_auth_headers(),
+            )
             assert get_resp.status_code == 200, get_resp.text
             body = get_resp.json()
             assert body["id"] == execution_id
@@ -75,11 +86,15 @@ class TestSchedulerExecutionEndpoints:
             definition_id = await _create_definition(client)
             create_resp = await client.post(
                 "/api/v1/scheduler-executions/",
+                headers=_auth_headers(),
                 json={"scheduler_definition_id": definition_id},
             )
             execution_id = create_resp.json()["id"]
 
-            list_resp = await client.get("/api/v1/scheduler-executions/")
+            list_resp = await client.get(
+                "/api/v1/scheduler-executions/",
+                headers=_auth_headers(),
+            )
             assert list_resp.status_code == 200, list_resp.text
             ids = [item["id"] for item in list_resp.json()]
             assert execution_id in ids
@@ -87,7 +102,10 @@ class TestSchedulerExecutionEndpoints:
     async def test_get_missing_returns_404(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/scheduler-executions/nonexistent")
+            response = await client.get(
+                "/api/v1/scheduler-executions/nonexistent",
+                headers=_auth_headers(),
+            )
             assert response.status_code == 404
 
 
@@ -99,6 +117,7 @@ class TestSchedulerJobEndpoints:
 
             create_resp = await client.post(
                 "/api/v1/scheduler-jobs/",
+                headers=_auth_headers(),
                 json={
                     "scheduler_definition_id": definition_id,
                     "name": "e2e-job",
@@ -111,7 +130,10 @@ class TestSchedulerJobEndpoints:
             assert create_resp.status_code == 201, create_resp.text
             job_id = create_resp.json()["id"]
 
-            get_resp = await client.get(f"/api/v1/scheduler-jobs/{job_id}")
+            get_resp = await client.get(
+                f"/api/v1/scheduler-jobs/{job_id}",
+                headers=_auth_headers(),
+            )
             assert get_resp.status_code == 200, get_resp.text
             body = get_resp.json()
             assert body["id"] == job_id
@@ -126,6 +148,7 @@ class TestSchedulerJobEndpoints:
             definition_id = await _create_definition(client)
             create_resp = await client.post(
                 "/api/v1/scheduler-jobs/",
+                headers=_auth_headers(),
                 json={
                     "scheduler_definition_id": definition_id,
                     "name": "e2e-job",
@@ -133,7 +156,10 @@ class TestSchedulerJobEndpoints:
             )
             job_id = create_resp.json()["id"]
 
-            list_resp = await client.get("/api/v1/scheduler-jobs/")
+            list_resp = await client.get(
+                "/api/v1/scheduler-jobs/",
+                headers=_auth_headers(),
+            )
             assert list_resp.status_code == 200, list_resp.text
             ids = [item["id"] for item in list_resp.json()]
             assert job_id in ids
@@ -141,5 +167,8 @@ class TestSchedulerJobEndpoints:
     async def test_get_missing_returns_404(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/scheduler-jobs/nonexistent")
+            response = await client.get(
+                "/api/v1/scheduler-jobs/nonexistent",
+                headers=_auth_headers(),
+            )
             assert response.status_code == 404

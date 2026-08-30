@@ -15,11 +15,11 @@ from shell.session_service.infrastructure.session.session.persistence.sql.servic
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from shell.platform.infrastructure.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
+    from shell.platform.infrastructure.persistence.memory import (
         FakeClock,
         FakeIdGenerator,
     )
-    from shell.session_service.infrastructure.session.session.persistence.sql.unit_of_work import (  # noqa: TC002 — używany w sygnaturach fixture'ów pytest
+    from shell.session_service.infrastructure.session.session.persistence.sql.unit_of_work import (
         SqlAlchemySessionUnitOfWork,
     )
 

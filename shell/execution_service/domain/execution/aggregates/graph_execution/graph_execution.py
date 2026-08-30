@@ -150,11 +150,64 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
         return instance
 
-    def change_status(self, new_status: GraphExecutionStatus, now: OccurredAt) -> None:
+    def plan(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status not in (GraphExecutionStatus.PENDING, GraphExecutionStatus.PLANNING):
+            raise DomainError(
+                f"Cannot plan graph in status {self._execution_status!r}"
+            )
+        self._execution_status = GraphExecutionStatus.PLANNING
+        self._change(now=now)
+
+    def execute(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status != GraphExecutionStatus.PLANNING:
+            raise DomainError(f"Cannot execute graph in status {self._execution_status!r}")
+        self._execution_status = GraphExecutionStatus.EXECUTING
+        self._change(now=now)
+
+    def verify(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status != GraphExecutionStatus.EXECUTING:
+            raise DomainError(f"Cannot verify graph in status {self._execution_status!r}")
+        self._execution_status = GraphExecutionStatus.VERIFYING
+        self._change(now=now)
+
+    def complete(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status != GraphExecutionStatus.VERIFYING:
+            raise DomainError(f"Cannot complete graph in status {self._execution_status!r}")
+        self._execution_status = GraphExecutionStatus.COMPLETED
+        self._change(now=now)
+
+    def fail(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status in (
+            GraphExecutionStatus.COMPLETED,
+            GraphExecutionStatus.FAILED,
+            GraphExecutionStatus.PENDING,
+        ):
+            raise DomainError(f"Cannot fail graph in status {self._execution_status!r}")
+        self._execution_status = GraphExecutionStatus.FAILED
+        self._change(now=now)
+
+    def suspend(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status not in (GraphExecutionStatus.PENDING, GraphExecutionStatus.EXECUTING):
+            raise DomainError(f"Cannot suspend graph in status {self._execution_status!r}")
+        self._execution_status = GraphExecutionStatus.SUSPENDED
+        self._change(now=now)
+
+    def resume(self, now: OccurredAt) -> None:
+        self._assert_not_deleted()
+        if self._execution_status != GraphExecutionStatus.SUSPENDED:
+            raise DomainError(f"Cannot resume graph in status {self._execution_status!r}")
+        self._execution_status = GraphExecutionStatus.PLANNING
+        self._change(now=now)
+
+    def _assert_not_deleted(self) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Cannot change status of a deleted graph execution")
-        self._execution_status = new_status
-        self._change(now=now)
 
     def soft_delete(self, now: DeletedAt) -> None:
         if self._deleted_at.value is not None:

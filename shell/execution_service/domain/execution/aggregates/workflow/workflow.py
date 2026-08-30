@@ -113,17 +113,6 @@ class Workflow(AggregateRoot[WorkflowId]):
 
     # --- Methods ---
 
-    def start_at(
-        self,
-        *,
-        task_execution_id: TaskExecutionId | None = None,
-        work_dir: str | None = None,
-    ) -> None:
-        if self._deleted_at.value is not None:
-            raise DomainError("Workflow already deleted")
-        if self._status != WorkflowStatus.ACTIVE:
-            raise DomainError(f"start_at requires status=ACTIVE, got {self._status.value!r}")
-
     def finish(
         self,
         task_execution_id: TaskExecutionId | None = None,

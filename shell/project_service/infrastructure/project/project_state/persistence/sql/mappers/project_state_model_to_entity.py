@@ -13,7 +13,7 @@ from shell.platform.domain.value_objects.state_direction import StateDirection
 from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
     ensure_utc as _ensure_utc,
 )
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+from shell.platform.types import JsonStr
 from shell.project_service.domain.project.aggregates.project.value_objects.project_id import (
     ProjectId,
 )
