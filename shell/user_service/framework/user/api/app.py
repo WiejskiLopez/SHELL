@@ -31,12 +31,10 @@ if TYPE_CHECKING:
 USER_PUBLIC_EXACT = frozenset(
     {
         "/health",
+        "/readiness",
         "/metrics",
         "/api",
-        "/api/v1/users/by-email",
         "/api/v1/auth_session/login",
-        "/api/v1/auth_session/me",
-        "/api/v1/auth_session/logout",
     }
 )
 USER_PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})

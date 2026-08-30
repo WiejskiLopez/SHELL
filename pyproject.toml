@@ -6,6 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "shell"
 version = "0.1.0"
 description = "File-system-driven agent runtime shared library"
+license = "MIT"
+authors = [{ name = "WiejskiLopez" }]
 requires-python = ">=3.11"
 dependencies = [
     "aio-pika>=10.0.1",

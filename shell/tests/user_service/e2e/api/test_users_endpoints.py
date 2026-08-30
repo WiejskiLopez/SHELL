@@ -132,12 +132,23 @@ class TestUserEndpoints:
 
     async def test_login_by_email_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await make_user_app(tmp_path)
+        headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get(
                 "/api/v1/users/by-email",
                 params={"email": "ghost@example.com"},
+                headers=headers,
             )
         assert resp.status_code == 404
+
+    async def test_by_email_requires_authentication(self, tmp_path: pathlib.Path) -> None:
+        app = await make_user_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.get(
+                "/api/v1/users/by-email",
+                params={"email": "query@example.com"},
+            )
+        assert resp.status_code == 401
 
     async def test_change_user(self, tmp_path: pathlib.Path) -> None:
         app = await make_user_app(tmp_path)
