@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.hash import Hash
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_session_repository import (
@@ -29,10 +30,12 @@ class LogoutAuthSessionHandler:
             auth_session = await unit_of_work.repository(AuthSessionRepository).get_by_token_hash(
                 Hash.of(command.token)
             )
-            if auth_session is None or auth_session.is_deleted:
-                return
-            if auth_session.revoked_at.value is not None:
+            if auth_session is None:
                 return
 
-            auth_session.revoke(OccurredAt.from_datetime(self._clock.now()))
+            try:
+                auth_session.revoke(OccurredAt.from_datetime(self._clock.now()))
+            except DomainError:
+                # Logout jest idempotentny: już unieważniona/usunięta sesja = 204.
+                return
             await unit_of_work.save(AuthSessionRepository, auth_session)

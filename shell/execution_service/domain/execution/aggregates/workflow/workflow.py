@@ -13,6 +13,9 @@ from shell.execution_service.domain.execution.aggregates.workflow.events.workflo
 from shell.execution_service.domain.execution.aggregates.workflow.events.workflow_deleted_event import (
     WorkflowDeletedEvent,
 )
+from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_id import (
+    WorkflowId,
+)
 from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_status import (
     WorkflowStatus,
 )
@@ -33,13 +36,10 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_id import (
-        WorkflowId,
-    )
     from shell.platform.domain.value_objects.reason import Reason
 
 
-class Workflow(AggregateRoot["WorkflowId"]):
+class Workflow(AggregateRoot[WorkflowId]):
     __slots__ = (
         "_created_at",
         "_changed_at",
@@ -119,6 +119,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         task_execution_id: TaskExecutionId | None = None,
         work_dir: str | None = None,
     ) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
         if self._status != WorkflowStatus.ACTIVE:
             raise DomainError(f"start_at requires status=ACTIVE, got {self._status.value!r}")
 
@@ -126,6 +128,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
         if self._status != WorkflowStatus.ACTIVE:
             raise DomainError(f"finish requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.COMPLETED
@@ -135,6 +139,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
         if self._status != WorkflowStatus.ACTIVE:
             raise DomainError(f"fail requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.FAILED
@@ -145,16 +151,22 @@ class Workflow(AggregateRoot["WorkflowId"]):
         reason: str | Reason | None = None,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
         if self._status != WorkflowStatus.ACTIVE:
             raise DomainError(f"abort requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.ABORTED
 
     def pause(self) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
         if self._status != WorkflowStatus.ACTIVE:
             raise DomainError(f"pause requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.PAUSED
 
     def resume(self) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
         if self._status != WorkflowStatus.PAUSED:
             raise DomainError(f"resume requires status=PAUSED, got {self._status.value!r}")
         self._status = WorkflowStatus.ACTIVE

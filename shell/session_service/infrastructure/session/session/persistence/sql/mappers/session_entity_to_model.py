@@ -15,11 +15,11 @@ if TYPE_CHECKING:
 def session_entity_to_model(session: Session) -> SessionModel:
     return SessionModel(
         id=session.id.value,
-        status=session._status.value,
+        status=session.session_status.value,
         user_id=session.user_id.value,
         created_at=session.created_at.value,
         opened_at=session.opened_at.value,
         closed_at=session.closed_at.value if session.closed_at is not None else None,
         changed_at=session.changed_at.value,
-        deleted_at=session.deleted_at.value if session._deleted_at is not None else None,
+        deleted_at=session.deleted_at.value,
     )

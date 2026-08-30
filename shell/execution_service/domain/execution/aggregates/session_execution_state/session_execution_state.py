@@ -11,6 +11,9 @@ from shell.execution_service.domain.execution.aggregates.session_execution_state
 from shell.execution_service.domain.execution.aggregates.session_execution_state.events.session_execution_state_deleted_event import (
     SessionExecutionStateDeletedEvent,
 )
+from shell.execution_service.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
+    SessionExecutionStateId,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
@@ -21,14 +24,11 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
     )
-    from shell.execution_service.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
-        SessionExecutionStateId,
-    )
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
-class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
+class SessionExecutionState(AggregateRoot[SessionExecutionStateId]):
     __slots__ = (
         "_created_at",
         "_changed_at",

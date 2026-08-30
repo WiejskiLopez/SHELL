@@ -53,9 +53,7 @@ def test_per_bc_uow_accepts_mapper() -> None:
             if not has_mapper_param:
                 violations.append(f"{key}: __init__ missing mapper parameter")
             elif not passes_mapper:
-                violations.append(
-                    f"{key}: __init__ does not forward mapper to super().__init__"
-                )
+                violations.append(f"{key}: __init__ does not forward mapper to super().__init__")
     assert not violations, architecture_assertion_message(
         "reguła testowana przez test_per_bc_uow_accepts_mapper",
         "warunek zapisany w asercji musi być spełniony",

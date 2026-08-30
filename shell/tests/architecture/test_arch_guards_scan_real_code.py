@@ -12,7 +12,6 @@ istnieją jako nadrzędny katalog; iteratory `_arch_helpers` zwracają realne pl
 
 from __future__ import annotations
 
-import pathlib
 import re
 
 from _arch_helpers import (
@@ -39,9 +38,11 @@ def _assert_iterators_non_empty() -> list[str]:
     if not list(iter_domain_files()):
         problems.append("iter_domain_files() zwróciło 0 plików")
     for name in ("command_handlers", "query_handlers", "repositories", "mappers"):
-        if not list(iter_named_dirs("application", name)) and not list(
-            iter_named_dirs("domain", name)
-        ) and not list(iter_named_dirs("infrastructure", name)):
+        if (
+            not list(iter_named_dirs("application", name))
+            and not list(iter_named_dirs("domain", name))
+            and not list(iter_named_dirs("infrastructure", name))
+        ):
             problems.append(f"iter_named_dirs(..., {name!r}) zwróciło 0 katalogów")
     return problems
 

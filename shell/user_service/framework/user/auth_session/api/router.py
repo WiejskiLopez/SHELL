@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
 router = APIRouter(prefix="/auth_session", tags=["AuthSessions"])
 SESSION_COOKIE_NAME = "shell_session"
 SESSION_COOKIE_MAX_AGE = 24 * 60 * 60
+SESSION_COOKIE_SECURE = os.environ.get("SHELL_COOKIE_SECURE", "1") != "0"
 
 
 @router.post("/login", response_model=AuthSessionIdResponse)
@@ -55,8 +57,8 @@ async def login_auth_session(
         value=result.token,
         httponly=True,
         max_age=SESSION_COOKIE_MAX_AGE,
-        samesite="lax",
-        secure=False,
+        samesite="strict",
+        secure=SESSION_COOKIE_SECURE,
     )
     return AuthSessionIdResponse(id=result.auth_session_id)
 

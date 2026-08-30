@@ -14,7 +14,7 @@ from _arch_helpers import (
     BASE,
     architecture_assertion_message,
     find_classes,
-    iter_py_files,
+    iter_layer_dirs,
     parse_file,
 )
 
@@ -23,12 +23,11 @@ if TYPE_CHECKING:
 _PROCESS_HANDLER_EXCEPTIONS: frozenset[str] = frozenset({})
 
 
-def _iter_process_handler_files() -> list[Path]:
+def _iter_saga_state_files() -> list[Path]:
     files = []
-    for handler_dir in (BASE / "process").rglob("handlers"):
-        if handler_dir.is_dir():
-            for path in iter_py_files(handler_dir):
-                files.append(path)
+    for process_dir in iter_layer_dirs("process"):
+        for state_file in process_dir.rglob("state.py"):
+            files.append(state_file)
     return files
 
 
@@ -37,7 +36,7 @@ _PROCESS_HANDLER_MUTATION_KNOWN: frozenset[str] = frozenset({})
 
 def test_saga_state_is_dataclass() -> None:
     violations: list[str] = []
-    for state_file in (BASE / "process").rglob("state.py"):
+    for state_file in _iter_saga_state_files():
         tree = parse_file(state_file)
         if tree is None:
             continue

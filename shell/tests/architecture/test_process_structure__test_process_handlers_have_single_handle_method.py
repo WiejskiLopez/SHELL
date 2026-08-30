@@ -13,6 +13,7 @@ from _arch_helpers import (
     BASE,
     architecture_assertion_message,
     find_classes,
+    iter_layer_dirs,
     iter_py_files,
     parse_file,
     public_method_names,
@@ -25,10 +26,9 @@ _PROCESS_HANDLER_EXCEPTIONS: frozenset[str] = frozenset({})
 
 def _iter_process_handler_files() -> list[Path]:
     files = []
-    for handler_dir in (BASE / "process").rglob("handlers"):
-        if handler_dir.is_dir():
-            for path in iter_py_files(handler_dir):
-                files.append(path)
+    for handler_dir in iter_layer_dirs("process", "handlers"):
+        for path in iter_py_files(handler_dir):
+            files.append(path)
     return files
 
 

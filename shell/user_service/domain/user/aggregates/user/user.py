@@ -162,11 +162,15 @@ class User(AggregateRoot[UserId]):
         )
 
     def enable(self) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Cannot enable a deleted user")
         if self._status != UserStatus.DISABLED:
             raise DomainError(f"Cannot enable user in status {self._status!r}")
         self._status = UserStatus.ACTIVE
 
     def disable(self) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Cannot disable a deleted user")
         if self._status != UserStatus.ACTIVE:
             raise DomainError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED

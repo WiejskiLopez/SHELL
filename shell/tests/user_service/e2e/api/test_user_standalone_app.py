@@ -53,7 +53,7 @@ async def test_user_app_auth_session_flow(tmp_path: pathlib.Path) -> None:
     track_session_factory(container.session_factory())
     app = create_user_app(container, api_key="test-key")
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="https://test") as client:
         headers = {"X-API-Key": "test-key"}
         create_response = await client.post(
             "/api/v1/users/",

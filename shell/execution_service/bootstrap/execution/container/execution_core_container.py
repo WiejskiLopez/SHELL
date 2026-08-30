@@ -61,6 +61,9 @@ from shell.execution_service.application.execution.graph_execution.query_handler
 from shell.execution_service.application.execution.node_execution.command_handlers.create_node_execution_handler import (
     CreateNodeExecutionHandler,
 )
+from shell.execution_service.application.execution.node_execution.command_handlers.delete_node_execution_handler import (
+    DeleteNodeExecutionHandler,
+)
 from shell.execution_service.application.execution.node_execution.queries.get_node_execution_by_id_query import (
     GetNodeExecutionByIdQuery,
 )
@@ -555,6 +558,11 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         identity=id_generator_factory,
         time=clock_factory,
     )
+    delete_node_execution_handler_factory = providers.Factory(
+        DeleteNodeExecutionHandler,
+        unit_of_work=node_execution_uow_factory,
+        clock=clock_factory,
+    )
     create_edge_execution_handler_factory = providers.Factory(
         CreateEdgeExecutionHandler,
         unit_of_work=edge_execution_uow_factory,
@@ -615,6 +623,9 @@ def configure_execution_container(container: ExecutionCoreContainer) -> None:
     from shell.execution_service.application.execution.node_execution.commands.create_node_execution_command import (
         CreateNodeExecutionCommand,
     )
+    from shell.execution_service.application.execution.node_execution.commands.delete_node_execution_command import (
+        DeleteNodeExecutionCommand,
+    )
 
     command_bus = container.command_bus()
     query_bus = container.query_bus()
@@ -626,6 +637,7 @@ def configure_execution_container(container: ExecutionCoreContainer) -> None:
         (DeleteEdgeLinkExecutionCommand, container.delete_edge_link_execution_handler_factory),
         (ChangeEdgeLinkExecutionCommand, container.change_edge_link_execution_handler_factory),
         (CreateNodeExecutionCommand, container.create_node_execution_handler_factory),
+        (DeleteNodeExecutionCommand, container.delete_node_execution_handler_factory),
         (CreateWorkflowCommand, container.create_workflow_handler_factory),
         (ChangeWorkflowCommand, container.change_workflow_handler_factory),
         (DeleteWorkflowCommand, container.delete_workflow_handler_factory),

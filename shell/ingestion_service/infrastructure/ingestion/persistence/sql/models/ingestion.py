@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 -- Mapped[datetime] requires datetime at runtime
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
     IngestionSqlAlchemyModelBase,
 )
 from shell.platform.infrastructure.persistence.sql.models.json_str_type import JsonStrType
+from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 from shell.platform.types import JsonStr
 
 
-class IngestionModel(IngestionSqlAlchemyModelBase):
+class IngestionModel(IngestionSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "ingestion"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -24,3 +25,7 @@ class IngestionModel(IngestionSqlAlchemyModelBase):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+
+    @declared_attr  # type: ignore[arg-type]
+    def __mapper_args__(cls) -> dict[str, object]:
+        return {"version_id_col": cls.version}

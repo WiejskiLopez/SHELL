@@ -93,6 +93,8 @@ class Session(AggregateRoot[SessionId]):
     # --- Methods ---
 
     def close(self, now: ChangedAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Session already deleted")
         if self._status != SessionStatus.OPEN:
             raise DomainError(f"Cannot close session in status {self._status!r}")
         self._status = SessionStatus.CLOSED
@@ -101,6 +103,8 @@ class Session(AggregateRoot[SessionId]):
         self.append_event(SessionClosedEvent.now(self._id, now=OccurredAt.from_datetime(now.value)))
 
     def change(self, now: OccurredAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Session already deleted")
         if self._status != SessionStatus.OPEN:
             raise DomainError(f"Cannot change session in status {self._status!r}")
         self._change(now=now)

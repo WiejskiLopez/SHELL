@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import exists as sa_exists
@@ -7,6 +8,9 @@ from sqlalchemy import select
 
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.repositories.ingestion_repository import (
     IngestionRepository,
+)
+from shell.ingestion_service.infrastructure.ingestion.persistence.sql.mappers.ingestion_change_model import (
+    ingestion_change_model,
 )
 from shell.ingestion_service.infrastructure.ingestion.persistence.sql.mappers.ingestion_entity_to_model import (
     ingestion_entity_to_model,
@@ -39,8 +43,7 @@ class SqlIngestionRepository(IngestionRepository):
             model = ingestion_entity_to_model(ingestion)
             self._session.add(model)
         else:
-            model.ingestion_data = ingestion.ingestion_data.value
-            model.ingestion_context = ingestion.ingestion_context.value
+            ingestion_change_model(model, ingestion)
 
     async def get_by_id(self, ingestion_id: IngestionId) -> Ingestion | None:
         query = select(IngestionModel).where(IngestionModel.id == ingestion_id.value)
@@ -50,9 +53,11 @@ class SqlIngestionRepository(IngestionRepository):
     async def delete(self, id: IngestionId) -> None:
         model = await self._session.get(IngestionModel, id.value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = datetime.now(tz=UTC)
 
     async def exists(self, id: IngestionId) -> ExistsResult:
-        stmt = select(sa_exists().where(IngestionModel.id == id.value))
+        stmt = select(
+            sa_exists().where(IngestionModel.id == id.value, IngestionModel.deleted_at.is_(None))
+        )
         result = await self._session.execute(stmt)
         return ExistsResult(result.scalar() or False)

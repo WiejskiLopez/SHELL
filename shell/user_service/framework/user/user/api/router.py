@@ -15,7 +15,7 @@ from shell.user_service.framework.user.user.api.change_user_request import Chang
 from shell.user_service.framework.user.user.api.controller import UserController
 from shell.user_service.framework.user.user.api.create_user_request import CreateUserRequest
 from shell.user_service.framework.user.user.api.create_user_response import CreateUserResponse
-from shell.user_service.framework.user.user.api.login_response import LoginResponse
+from shell.user_service.framework.user.user.api.user_by_email_response import UserByEmailResponse
 from shell.user_service.framework.user.user.api.user_response import UserResponse
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -38,11 +38,11 @@ async def list_users(
     return await controller.list_users(page=page, page_size=page_size, principal=principal)
 
 
-@router.get("/by-email", response_model=LoginResponse)
+@router.get("/by-email", response_model=UserByEmailResponse)
 async def get_user_by_email(
     email: str = Query(...),
     controller: UserController = Depends(get_user_controller),
-) -> LoginResponse:
+) -> UserByEmailResponse:
     return await controller.get_user_by_email(email)
 
 

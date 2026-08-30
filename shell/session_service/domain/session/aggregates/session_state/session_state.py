@@ -81,11 +81,11 @@ class SessionState(AggregateRoot[SessionStateId]):
             now=OccurredAt.from_datetime(now.value),
         )
 
-    def change_state(self, state_data: StateData) -> None:
+    def change_state(self, state_data: StateData, now: OccurredAt) -> None:
         if self._deleted_at.value is not None:
             raise DomainError("Cannot change state of a deleted session state")
         self._state_data = state_data
-        self._change(now=OccurredAt.from_datetime(self._created_at.value))
+        self._change(now=now)
 
     def snapshot(self) -> StateData:
         return self._state_data

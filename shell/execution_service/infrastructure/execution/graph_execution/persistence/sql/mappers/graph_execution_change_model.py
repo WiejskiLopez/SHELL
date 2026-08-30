@@ -19,6 +19,8 @@ def graph_execution_change_model(model: GraphExecutionModel, entity: GraphExecut
         entity.parent_graph_execution_id.value if entity.parent_graph_execution_id else None
     )
     model.depth = entity.depth.value
-    model.graph_definition_id = entity.graph_definition_id.value
+    model.graph_definition_id = (
+        entity.graph_definition_id.value if entity.graph_definition_id else ""
+    )
     model.changed_at = entity.changed_at.value
     model.deleted_at = _created_at_value(entity.deleted_at)

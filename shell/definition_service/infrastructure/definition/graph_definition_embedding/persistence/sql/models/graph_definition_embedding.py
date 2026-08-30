@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime  # noqa: TC003 — SQLAlchemy Mapped[datetime] needs runtime type
 
 from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     DefinitionSqlAlchemyModelBase,
@@ -24,3 +24,7 @@ class GraphDefinitionEmbeddingModel(DefinitionSqlAlchemyModelBase, VersionedMixi
     embedding: Mapped[bytes] = mapped_column(nullable=False)
     embedding_model: Mapped[str] = mapped_column(String(255), nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+
+    @declared_attr  # type: ignore[arg-type]
+    def __mapper_args__(cls) -> dict[str, object]:
+        return {"version_id_col": cls.version}

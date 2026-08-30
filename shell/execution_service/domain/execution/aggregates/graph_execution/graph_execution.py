@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_definition_id_ref import (
-    GraphDefinitionIdRef,
-)
 from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_depth import (
     GraphDepth,
 )
@@ -24,6 +21,9 @@ from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, Dele
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
+    from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_definition_id_ref import (
+        GraphDefinitionIdRef,
+    )
     from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
@@ -74,11 +74,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._depth = depth
         self._max_subgraph_depth = max_subgraph_depth
         self._execution_status = execution_status
-        self._graph_definition_id = (
-            graph_definition_id
-            if graph_definition_id is not None
-            else GraphDefinitionIdRef.generate()
-        )
+        self._graph_definition_id = graph_definition_id
         self._created_at = created_at
         self._changed_at = changed_at
         self._deleted_at = deleted_at
@@ -257,7 +253,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return self._execution_status
 
     @property
-    def graph_definition_id(self) -> GraphDefinitionIdRef:
+    def graph_definition_id(self) -> GraphDefinitionIdRef | None:
         return self._graph_definition_id
 
     @property

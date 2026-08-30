@@ -30,16 +30,16 @@ if TYPE_CHECKING:
         CreateNodeExecutionCommand,
     )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
-    from shell.platform.domain.ports.identity import Identity  # type: ignore[attr-defined]
-    from shell.platform.domain.ports.time import Time  # type: ignore[attr-defined]
+    from shell.platform.domain.ports.identity import IdGenerator
+    from shell.platform.domain.ports.time import Clock
 
 
 class CreateNodeExecutionHandler:
     def __init__(
         self,
         unit_of_work: UnitOfWork,
-        identity: Identity,
-        time: Time,
+        identity: IdGenerator,
+        time: Clock,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._identity = identity
@@ -49,7 +49,7 @@ class CreateNodeExecutionHandler:
         now = CreatedAt.from_datetime(self._time.now())
         graph_execution_id = GraphExecutionId(command.graph_execution_id)
         node_execution = NodeExecution.new(
-            id=NodeExecutionId.generate(),
+            id=self._identity.new_id(NodeExecutionId),
             graph_execution_id=graph_execution_id,
             node_definition_id=NodeDefinitionIdRef(command.node_definition_id),
             order=NodeOrder(0),

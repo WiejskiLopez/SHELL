@@ -8,10 +8,10 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 TAggregate = TypeVar("TAggregate")
-TId = TypeVar("TId")
+TId = TypeVar("TId", contravariant=True)
 
 
-class RepositoryPort(Protocol[TAggregate, TId]):  # type: ignore[misc]
+class RepositoryPort(Protocol[TAggregate, TId]):
     """Minimal generic repository protocol.
 
     Every aggregate repository should extend this protocol so that

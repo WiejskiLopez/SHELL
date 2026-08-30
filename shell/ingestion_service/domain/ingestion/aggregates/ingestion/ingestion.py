@@ -133,6 +133,10 @@ class Ingestion(AggregateRoot[IngestionId]):
     def changed_at(self) -> ChangedAt:
         return self._changed_at
 
+    @property
+    def deleted_at(self) -> DeletedAt:
+        return self._deleted_at
+
     @classmethod
     def _new(
         cls,

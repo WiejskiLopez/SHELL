@@ -3,14 +3,15 @@ from __future__ import annotations
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] requires datetime at runtime
 
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
+from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 from shell.user_service.infrastructure.user.persistence.sql.models.base import (
     UserSqlAlchemyModelBase,
 )
 
 
-class AuthSessionModel(UserSqlAlchemyModelBase):
+class AuthSessionModel(UserSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "auth_sessions"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -21,3 +22,7 @@ class AuthSessionModel(UserSqlAlchemyModelBase):
     revoked_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     changed_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+
+    @declared_attr  # type: ignore[arg-type]
+    def __mapper_args__(cls) -> dict[str, object]:
+        return {"version_id_col": cls.version}

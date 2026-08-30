@@ -59,7 +59,7 @@ class SqlEdgeLinkExecutionRepository(EdgeLinkExecutionRepository):
 
     async def exists(self, id_: EdgeLinkExecutionId) -> ExistsResult:
         model = await self._session.get(EdgeLinkExecutionModel, id_.value)
-        return ExistsResult(model is not None)
+        return ExistsResult(model is not None and model.deleted_at is None)
 
     async def list_by_node_execution_id(
         self, node_execution_id: NodeExecutionId

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.execution_service.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+    WorkflowStateId,
+)
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
@@ -14,9 +17,6 @@ from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_id import (
         WorkflowId,
-    )
-    from shell.execution_service.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
-        WorkflowStateId,
     )
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
@@ -32,7 +32,7 @@ from shell.execution_service.domain.execution.aggregates.workflow_state.events.w
 )
 
 
-class WorkflowState(AggregateRoot["WorkflowStateId"]):
+class WorkflowState(AggregateRoot[WorkflowStateId]):
     __slots__ = (
         "_created_at",
         "_changed_at",
@@ -82,11 +82,11 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
             now=OccurredAt.from_datetime(now.value),
         )
 
-    def change_state(self, state_data: StateData) -> None:
-        if self._deleted_at is not None and self._deleted_at.value is not None:
+    def change_state(self, state_data: StateData, now: OccurredAt) -> None:
+        if self._deleted_at.value is not None:
             raise DomainError("Cannot change state of a deleted workflow state")
         self._state_data = state_data
-        self._change(now=OccurredAt.from_datetime(self._created_at.value))
+        self._change(now=now)
 
     def snapshot(self) -> StateData:
         return self._state_data

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 def session_change_model(model: SessionModel, entity: Session) -> None:
-    model.status = entity._status
+    model.status = entity.session_status.value
     model.user_id = entity.user_id.value
     model.opened_at = entity.opened_at.value
     model.closed_at = entity.closed_at.value if entity.closed_at is not None else None

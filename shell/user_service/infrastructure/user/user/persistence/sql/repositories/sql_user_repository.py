@@ -49,6 +49,6 @@ class SqlUserRepository(UserRepository):
             model.deleted_at = now
 
     async def exists(self, id: UserId) -> ExistsResult:
-        query = select(UserModel).where(UserModel.id == id.value)
+        query = select(UserModel).where(UserModel.id == id.value, UserModel.deleted_at.is_(None))
         row = (await self._session.execute(query)).scalar_one_or_none()
         return ExistsResult(row is not None)

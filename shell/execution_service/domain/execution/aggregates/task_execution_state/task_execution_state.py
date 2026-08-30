@@ -17,6 +17,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution_state.ev
 from shell.execution_service.domain.execution.aggregates.task_execution_state.events.task_execution_state_deleted_event import (
     TaskExecutionStateDeletedEvent,
 )
+from shell.execution_service.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
+    TaskExecutionStateId,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
@@ -27,14 +30,11 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.execution_service.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
-        TaskExecutionStateId,
-    )
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
-class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
+class TaskExecutionState(AggregateRoot[TaskExecutionStateId]):
     """Input or output payload for a TaskExecution, discriminated by kind."""
 
     __slots__ = (

@@ -113,26 +113,36 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     # --- V3 FSM ---
 
     def start(self) -> None:
+        if self._deleted_at.value is not None:
+            raise InvalidTaskStateError(f"Cannot start deleted task in status {self._status}")
         if self._status != TaskExecutionStatus.CREATED:
             raise InvalidTaskStateError(f"Cannot start task in status {self._status}")
         self._status = TaskExecutionStatus.IN_PROGRESS
 
     def complete(self, output: str = "") -> None:
+        if self._deleted_at.value is not None:
+            raise InvalidTaskStateError(f"Cannot complete deleted task in status {self._status}")
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot complete task in status {self._status}")
         self._status = TaskExecutionStatus.COMPLETED
 
     def fail(self, reason: Reason) -> None:
+        if self._deleted_at.value is not None:
+            raise InvalidTaskStateError(f"Cannot fail deleted task in status {self._status}")
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot fail task in status {self._status}")
         self._status = TaskExecutionStatus.FAILED
 
     def timeout(self) -> None:
+        if self._deleted_at.value is not None:
+            raise InvalidTaskStateError(f"Cannot timeout deleted task in status {self._status}")
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot timeout task in status {self._status}")
         self._status = TaskExecutionStatus.TIMED_OUT
 
     def exhaust(self) -> None:
+        if self._deleted_at.value is not None:
+            raise InvalidTaskStateError(f"Cannot exhaust deleted task in status {self._status}")
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot exhaust task in status {self._status}")
         self._status = TaskExecutionStatus.EXHAUSTED

@@ -11,6 +11,9 @@ from shell.execution_service.domain.execution.aggregates.user_execution_state.ev
 from shell.execution_service.domain.execution.aggregates.user_execution_state.events.user_execution_state_deleted_event import (
     UserExecutionStateDeletedEvent,
 )
+from shell.execution_service.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import (
+    UserExecutionStateId,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
@@ -21,14 +24,11 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
     )
-    from shell.execution_service.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import (
-        UserExecutionStateId,
-    )
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
-class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
+class UserExecutionState(AggregateRoot[UserExecutionStateId]):
     __slots__ = (
         "_created_at",
         "_changed_at",

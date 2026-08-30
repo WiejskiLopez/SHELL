@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.platform.domain.value_objects.changed_at import ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.reason import Reason
-from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.types import JsonStr
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
@@ -26,6 +24,7 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.v
 
 if TYPE_CHECKING:
     from shell.platform.domain.events import DomainEvent
+    from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.timestamp import Timestamp
     from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
         SchedulerDefinition,
@@ -39,7 +38,7 @@ class SchedulerOrchestrator:
         definition: SchedulerDefinition,
         trigger_event_id: str | None = None,
         trigger_event_type: str | None = None,
-        input_state: dict[str, Any] | None = None,
+        input_state: StateData | None = None,
         can_execute: bool,
         now: Timestamp,
     ) -> SchedulerExecution:
@@ -49,7 +48,7 @@ class SchedulerOrchestrator:
             status=ExecutionStatus.PENDING,
             trigger_event_id=TriggerEventId(trigger_event_id) if trigger_event_id else None,
             trigger_event_type=TriggerEventType(trigger_event_type) if trigger_event_type else None,
-            input_state=StateData(JsonStr.from_object(input_state)) if input_state else None,
+            input_state=input_state,
             created_at=CreatedAt.from_datetime(now.value),
             changed_at=ChangedAt.from_datetime(now.value),
         )
@@ -90,7 +89,7 @@ class SchedulerOrchestrator:
         self,
         execution: SchedulerExecution,
         *,
-        output_state: dict[str, Any] | None = None,
+        output_state: StateData | None = None,
         error: str | None = None,
         now: Timestamp,
     ) -> list[DomainEvent]:
@@ -98,7 +97,7 @@ class SchedulerOrchestrator:
             execution.fail(error=ErrorDescription(error), now=now)
         else:
             execution.complete(
-                output_state=StateData(JsonStr.from_object(output_state)) if output_state else None,
+                output_state=output_state,
                 now=now,
             )
         return execution.pull_events()

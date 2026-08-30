@@ -24,7 +24,7 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.changed_at import NONE_CHANGED_AT, ChangedAt
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
@@ -40,7 +40,6 @@ if TYPE_CHECKING:
     from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_type import (
         NodeType,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.error_description import ErrorDescription
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.types import JsonStr
@@ -63,6 +62,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         *,
         created_at: CreatedAt,
         changed_at: ChangedAt = NONE_CHANGED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         node_type: NodeType,
         order: NodeOrder,
         status: NodeExecutionStatus,
@@ -75,6 +75,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         self._status = status
         self._created_at = created_at
         self._changed_at = changed_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def new(
@@ -99,26 +100,36 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     # --- V3 FSM ---
 
     def start(self) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise InvalidNodeStateError(f"Cannot start deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.PENDING:
             raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
         self._status = NodeExecutionStatus.RUNNING
 
     def complete(self, result: StateData | JsonStr | None) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise InvalidNodeStateError(f"Cannot complete deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = NodeExecutionStatus.COMPLETED
 
     def fail(self, error: ErrorDescription | str) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise InvalidNodeStateError(f"Cannot fail deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
         self._status = NodeExecutionStatus.FAILED
 
     def retry(self) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise InvalidNodeStateError(f"Cannot retry deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.FAILED:
             raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
         self._status = NodeExecutionStatus.PENDING
 
     def timeout(self) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise InvalidNodeStateError(f"Cannot timeout deleted node in status {self._status}")
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
         self._status = NodeExecutionStatus.TIMED_OUT
@@ -180,6 +191,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         *,
         created_at: CreatedAt,
         changed_at: ChangedAt = NONE_CHANGED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         node_type: NodeType,
         order: NodeOrder,
         status: NodeExecutionStatus,
@@ -192,6 +204,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             status=status,
             created_at=created_at,
             changed_at=changed_at,
+            deleted_at=deleted_at,
             node_definition_id=node_definition_id,
         )
 

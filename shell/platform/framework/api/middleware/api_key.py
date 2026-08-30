@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 import time
 from datetime import UTC, datetime
 from http.cookies import SimpleCookie
@@ -102,7 +103,7 @@ class AuthMiddleware:
                 return Principal(subject_id, PrincipalKind.USER)
 
         api_key = headers.get(b"x-api-key", b"").decode()
-        if api_key and api_key == self._api_key:
+        if api_key and secrets.compare_digest(api_key, self._api_key):
             return Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)
 
         method = str(scope.get("method", "GET")).upper()

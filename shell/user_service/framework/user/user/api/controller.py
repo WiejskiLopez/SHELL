@@ -31,8 +31,8 @@ from shell.user_service.framework.user.user.api.create_user_request import (
 from shell.user_service.framework.user.user.api.create_user_response import (
     CreateUserResponse as ApiCreateUserResponse,
 )
-from shell.user_service.framework.user.user.api.login_response import (
-    LoginResponse as ApiLoginResponse,
+from shell.user_service.framework.user.user.api.user_by_email_response import (
+    UserByEmailResponse as ApiUserByEmailResponse,
 )
 from shell.user_service.framework.user.user.api.user_response import UserResponse as ApiUserResponse
 
@@ -89,11 +89,11 @@ class UserController:
         user_id = await self._command_bus.dispatch(CreateUserCommand(email=body.email))
         return ApiCreateUserResponse(id=user_id)
 
-    async def get_user_by_email(self, email: str) -> ApiLoginResponse:
+    async def get_user_by_email(self, email: str) -> ApiUserByEmailResponse:
         result = await self._query_bus.dispatch(GetUserByEmailQuery(email=email))
         if result is None:
             raise HTTPException(status_code=404, detail=f"User with email '{email}' not found")
-        return ApiLoginResponse(id=result.id)
+        return ApiUserByEmailResponse(id=result.id)
 
     async def change_user(
         self, user_id: str, body: ApiChangeUserRequest, principal: Principal

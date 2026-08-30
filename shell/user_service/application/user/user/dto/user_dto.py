@@ -10,5 +10,5 @@ class UserDto:
     email: str
     status: str
     created_at: datetime
-    changed_at: datetime
+    changed_at: datetime | None = None
     deleted_at: datetime | None = None

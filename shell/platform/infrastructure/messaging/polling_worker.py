@@ -80,8 +80,10 @@ class PollingWorker:
 
         while not self._stop_event.is_set():
             if self._heartbeat is not None:
-                with suppress(Exception):
+                try:
                     await self._heartbeat()
+                except Exception:
+                    logger.exception("polling worker heartbeat failed; liveness degraded")
 
             try:
                 result = await self._task.run_once()

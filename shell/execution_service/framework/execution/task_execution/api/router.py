@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 
 from shell.execution_service.framework.execution.task_execution.api.controller import (
     TaskExecutionController,
@@ -12,27 +12,18 @@ from shell.execution_service.framework.execution.task_execution.api.controller i
 from shell.execution_service.framework.execution.task_execution.api.task_execution_response import (
     TaskExecutionResponse,
 )
-from shell.platform.framework.api.dependencies import get_core_container
+from shell.platform.framework.api.dependencies import get_query_bus
 from shell.platform.framework.api.models.page import Page
 
 if TYPE_CHECKING:
     from shell.platform.application.bus.query_bus import QueryBus
-    from shell.platform.framework.api.dependencies import ContainerProtocol
 
 router = APIRouter(prefix="/task-executions", tags=["Task Executions"])
 
 
 def get_task_execution_controller(
-    container: ContainerProtocol = Depends(get_core_container),
+    query_bus: QueryBus = Depends(get_query_bus),
 ) -> TaskExecutionController:
-    try:
-        query_bus: QueryBus = (
-            container.app.buses.query_bus if hasattr(container, "app") else container.query_bus()
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=501, detail="Task execution query service not implemented"
-        ) from None
     return TaskExecutionController(query_bus)
 
 
