@@ -45,9 +45,9 @@ class MoneyDto:
     currency: Currency
 ```
 
-## Zero logiki
+## Zakres: dane + serializacja
 
-- DTO nie zawiera metod biznesowych.
+- DTO zawiera dane oraz metody serializacji i walidacji strukturalnej; metody biznesowe pozostają w domenie.
 - Dozwolone: serializacja (`to_json()`, `from_json()`), walidacja strukturalna.
 
 ## Schema version
@@ -69,7 +69,7 @@ class WorkflowDto:
 
 ## Lokalizacja
 
-- Między BC: `shell/domain/<bc>/contracts/`
-- Command: `shell/application/<bc>/commands/`
-- Query: `shell/application/<bc>/queries/`
-- Output: `shell/application/<bc>/dto/`
+- Między BC (kontrakty): `shell/<service>/application/<bc>/<aggregate>/integration_events/` lub `.../dto/` (własność źródłowego BC)
+- Command: `shell/<service>/application/<bc>/<aggregate>/commands/`
+- Query: `shell/<service>/application/<bc>/<aggregate>/queries/`
+- Output: `shell/<service>/application/<bc>/<aggregate>/dto/`

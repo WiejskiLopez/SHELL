@@ -82,8 +82,8 @@ class NodeExecutionStrategyRegistry:
 
 ## Bezstanowość
 
-- Strategie są singletonami — nie dodawaj stanu mutowalnego do strategii.
+- Strategie są singletonami bez mutowalnego stanu; stan kontekstu przekazywany jest w parametrach.
 
 ## Lokalizacja
 
-- `shell/application/<bc>/strategies/<nazwa_strategii>/`
+- `shell/<service>/application/<bc>/<aggregate>/strategies/<nazwa_strategii>/` (wzorzec docelowy — w repo strategie wynikają z kontekstu BC) albo `shell/<service>/domain/<bc>/aggregates/<agregat>/services/` dla domenowych strategii

@@ -48,7 +48,7 @@ Każde ustalenie raportuj zwięźle i jednoznacznie:
 Przykład:
 
 ```
-[CRITICAL] (shell/application/project/project/command_handlers/create_project_handler.py:41)
+[CRITICAL] (shell/project_service/application/project/project/command_handlers/create_project_handler.py:41)
 - Reguła: review-application-layer / handler bez logiki biznesowej
 - Dlaczego: handler wykonuje kalkulację ceny (logika domenowa) zamiast delegować do agregatu
 - Proponowana poprawka: przenieść kalkulację do metody agregatu i wywołać ją z handlera

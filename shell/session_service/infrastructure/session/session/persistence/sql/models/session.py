@@ -16,7 +16,7 @@ class SessionModel(SessionSqlAlchemyModelBase, VersionedMixin):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     status: Mapped[str] = mapped_column(String(50), nullable=False)
-    user_id: Mapped[str] = mapped_column(nullable=False, server_default="")
+    user_id: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     opened_at: Mapped[datetime] = mapped_column(nullable=False)
     closed_at: Mapped[datetime | None] = mapped_column(nullable=True)

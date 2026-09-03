@@ -42,11 +42,10 @@ async def _seed_outboxes(session_factory: async_sessionmaker, pending: int, publ
                 _OUTBOX_MODEL(
                     id=f"outbox-metrics-{index}",
                     event_id=f"event-{index}",
-                    event_type=_EVENT_TYPE,
+                    integration_event_name=_EVENT_TYPE,
                     source_service="execution_service",
                     occurred_at=datetime.now(tz=UTC),
                     aggregate_id=f"aggregate-{index}",
-                    aggregate_name="Sample",
                     schema_version=1,
                     payload={},
                     correlation_id="c",

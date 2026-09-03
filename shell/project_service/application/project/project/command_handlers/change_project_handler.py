@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.changed_at import ChangedAt
+from shell.project_service.application.project.project.commands.change_project_command import (
+    ChangeProjectCommand,
+)
 from shell.project_service.application.project.project.exceptions.project_not_found_error import (
     ProjectNotFoundError,
 )
@@ -20,12 +24,9 @@ from shell.project_service.domain.project.aggregates.project.value_objects.repo_
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.project_service.application.project.project.commands.change_project_command import (
-        ChangeProjectCommand,
-    )
 
 
-class ChangeProjectHandler:
+class ChangeProjectHandler(CommandHandler[ChangeProjectCommand]):
     def __init__(self, unit_of_work: UnitOfWork, clock: Clock) -> None:
         self._unit_of_work = unit_of_work
         self._clock = clock

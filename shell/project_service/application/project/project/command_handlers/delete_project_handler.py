@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.project_service.application.project.project.commands.delete_project_command import (
+    DeleteProjectCommand,
+)
 from shell.project_service.application.project.project.exceptions.project_not_found_error import (
     ProjectNotFoundError,
 )
@@ -16,12 +20,9 @@ from shell.project_service.domain.project.aggregates.project.value_objects.proje
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.project_service.application.project.project.commands.delete_project_command import (
-        DeleteProjectCommand,
-    )
 
 
-class DeleteProjectHandler:
+class DeleteProjectHandler(CommandHandler[DeleteProjectCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

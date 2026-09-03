@@ -15,13 +15,11 @@ from shell.platform.domain.events import DomainEvent
 from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
-from shell.platform.infrastructure.context import (
-    get_session_scope,
-)
-from shell.platform.infrastructure.messaging.transport.source_service import (
+from shell.platform.infrastructure.context import get_session_scope
+from shell.platform.infrastructure.messaging.event_transport.source_service import (
     source_service_for_type,
 )
-from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
 
@@ -173,10 +171,9 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
                 id=envelope["outbox_id"],
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                event_type=envelope["event_type"],
+                integration_event_name=envelope["integration_event_name"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
-                aggregate_name=envelope["aggregate_name"],
                 schema_version=envelope["schema_version"],
                 payload=envelope["payload"],
                 correlation_id=envelope["correlation_id"],
@@ -186,7 +183,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             self._session.add(
                 self._models.audit(
                     id=self._id_generator.new_id(),
-                    event_type=envelope["event_type"],
+                    integration_event_name=envelope["integration_event_name"],
                     occurred_at=envelope["occurred_at"],
                     payload=envelope["payload"],
                 )

@@ -17,7 +17,7 @@ Aggregate Provider (`<Dane>Provider`). Oba typy żyją w tym samym katalogu `por
 **wyłącznie nazewnictwo**.
 
 ```python
-# shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/workflow_session_command_port.py
+# shell/<service>/domain/<bc>/aggregates/<aggregate>/ports/workflow_session_command_port.py
 class WorkflowSessionCommandPort(Protocol):
     async def add_session_output(self, session_id: SessionId, output: SessionOutput) -> None: ...
     async def complete_session(self, session_id: SessionId, result: SessionResult) -> SessionOutcome: ...
@@ -37,7 +37,7 @@ Konsument korzysta z Command Port, a adapter portu zna serwis lub kontrakt HTTP 
 ## 3. Katalog portów
 
 ```
-shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/
+shell/<service>/domain/<bc>/aggregates/<aggregate>/ports/
 └── workflow_session_command_port.py
 ```
 
@@ -84,7 +84,7 @@ podfolderze nazwanym od portu. Jeden podfolder skupia wszystkie transporty daneg
 kontrakty i mappery:
 
 ```
-shell/<bc>/infrastructure/<bc>/<aggregate>/adapters/<port_name>/
+shell/<service>/infrastructure/<bc>/<aggregate>/adapters/<port_name>/
 ├── <port_name>_http_adapter.py      # WorkflowSessionCommandPortHttpAdapter (cross-BC)
 ├── <port_name>_sql_adapter.py       # WorkflowSessionCommandPortSqlAdapter (lokalny serwis)
 ├── contracts/v1/<nazwa>_request.py  # lokalny, wersjonowany model komendy
@@ -118,11 +118,11 @@ class WorkflowSessionCommandPortSqlAdapter(WorkflowSessionCommandPort):
 `ports/` obejmuje **synchroniczne** komendy/operacje (HTTP lub lokalny serwis). Operacja jest krótka
 i wymaga natychmiastowego potwierdzenia.
 
-Gdy operacja jest **asynchroniczna** — eventual consistency, czasowa niedostępność, proces długotrwały,
-koordynacja wieloagregatowa — **nie modelujemy jej jako portu operacyjnego**:
+Operację **asynchroniczną** (eventual consistency, czasowa niedostępność, proces długotrwały,
+koordynacja wieloagregatowa) modelujesz jako:
 
-- publikujemy **Domain Event / Integration Event** i subskrybujemy po stronie odbiorcy, albo
-- orkiestrujemy przez **sagę / process manager** (warstwa `process/`).
+- **Domain Event / Integration Event** z subskrypcją po stronie odbiorcy, albo
+- **sagę / process manager** (warstwa `process/`).
 
 ```
 sync, szybka komenda            → ports/ (port operacyjny)
@@ -130,24 +130,24 @@ async, eventual consistency      → eventy
 długotrwała operacja wielo-BC    → saga / process manager
 ```
 
-## 8. Czym port operacyjny NIE jest
+## 8. Zakres portu operacyjnego względem pozostałych wzorców
 
 | Koncept | Różnica |
 |---------|---------|
 | **Provider** | Provider = tylko odczyt (`<Dane>Provider`). Port z dowolną mutacją to Command Port — oba w `ports/`, rozróżnia nazwa. |
-| **Repository** | Repository = persystencja WŁASNEGO agregatu. Port operacyjny nie udaje repozytorium obcego BC. |
+| **Repository** | Repository = persystencja WŁASNEGO agregatu; port operacyjny obsługuje operacje międzyagregatowe. |
 | **QueryService** | QueryService = odczyt (read projection). Port operacyjny wykonuje akcję. |
 | **Event** | Event = komunikacja asynchroniczna. Port operacyjny = synchroniczna komenda. |
-| **Adapter** | Adapter implementuje port i zna transport; nigdy nie jest wstrzykiwany do konsumenta bezpośrednio. |
+| **Adapter** | Adapter implementuje port i zna transport; konsument zależy od portu (bez wstrzykiwania adaptera bezpośrednio). |
 
 ## 9. Checklista
 
 - [ ] Port (Protocol) w `domain/<bc>/aggregates/<aggregate>/ports/`
 - [ ] Nazwa wskazuje działanie, nie odczyt
-- [ ] Zwraca lokalny wynik/status/ID, nigdy obcy agregat
+- [ ] Zwraca lokalny wynik/status/ID; obcy agregat pozostaje po stronie źródła
 - [ ] Adapter w `infrastructure/<bc>/<aggregate>/adapters/<nazwa>/` (`<nazwa>_http_adapter.py` cross-BC, `<nazwa>_sql_adapter.py` lokalny)
 - [ ] Adapter dziedziczy po porcie, nazwa `<Port><Transport>Adapter`
 - [ ] Idempotencja + błędy → wyjątki domenowe
 - [ ] InMemory/fake adapter dla testów jednostkowych
-- [ ] Brak bezpośredniego wstrzykiwania serwisu/QueryService/Repository źródła do konsumenta
-- [ ] Operacja długotrwała/async → event lub saga, nie port operacyjny
+- [ ] Konsument otrzymuje wyłącznie port; serwisy/QueryService/Repository źródła pozostają po stronie adaptera
+- [ ] Operacja długotrwała/async → event lub saga; port operacyjny służy krótkim operacjom synchronicznym

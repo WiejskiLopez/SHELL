@@ -21,6 +21,10 @@ from shell.platform.infrastructure.persistence.sql.models.processed_delivery imp
 from shell.platform.infrastructure.persistence.sql.models.worker_heartbeat import (
     build_worker_heartbeat_model,
 )
+from shell.platform.infrastructure.process.saga.models.saga_delivery import (
+    SagaDeliveryModels,
+    build_saga_delivery_models,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.orm import DeclarativeBase
@@ -32,6 +36,7 @@ class PersistenceDeliveryModels(NamedTuple):
     audit: type[DeclarativeBase]
     processed_delivery: type[DeclarativeBase]
     worker_heartbeat: type[DeclarativeBase]
+    sagas: SagaDeliveryModels
 
 
 def build_persistence_delivery_models(
@@ -45,4 +50,5 @@ def build_persistence_delivery_models(
         audit=build_audit_event_model(base),
         processed_delivery=build_processed_delivery_model(base),
         worker_heartbeat=build_worker_heartbeat_model(base),
+        sagas=build_saga_delivery_models(base),
     )

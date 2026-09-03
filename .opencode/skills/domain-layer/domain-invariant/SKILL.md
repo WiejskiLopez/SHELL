@@ -27,16 +27,15 @@ Przykłady:
 ## 3. Lokalizacja
 
 ```
-# Rule Objects
-shell/domain/<bc>/aggregates/<agregat>/rules/<nazwa_reguly>_rule.py
+# Wyjątki domenowe (per agregat) — SHELL używa dedykowanych klas _error.py, nie katalogu rules/
+shell/<service>/domain/<bc>/aggregates/<agregat>/exceptions/<nazwa>_error.py
+shell/platform/domain/exceptions/domain_error.py   # base DomainError
 
-# Wyjątki domenowe (per agregat)
-shell/domain/<bc>/aggregates/<agregat>/exceptions/
-shell/domain/platform/exceptions.py
-
-# Invarianty w agregatach
-shell/domain/<bc>/aggregates/<agregat>/<agregat>.py  # _assert_* methods
+# Invarianty w agregatach — guard clauses i _assert_* methods
+shell/<service>/domain/<bc>/aggregates/<agregat>/<agregat>.py
 ```
+
+> Rule Objects jako osobne klasy nie są wzorcem SHELL — powtórzone reguły wyrażaj metodami `_assert_*` agregatu i dedykowanymi wyjątkami (patrz `pattern-standards/domain-invariant-structure`).
 
 ## 4. Podsumowanie — Checklista
 

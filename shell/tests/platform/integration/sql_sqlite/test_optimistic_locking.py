@@ -40,7 +40,7 @@ from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.infrastructure.persistence.service_schema_migration import service_metadata
+from shell.platform.infrastructure.persistence.service_metadata import service_metadata
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

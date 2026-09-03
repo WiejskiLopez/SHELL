@@ -13,7 +13,7 @@ innego agregatu, innego BC, zewnętrznego mikroserwisu lub dowolnego systemu —
 Provider udostepnia odczyt danych z zewnetrznego zrodla. Operacje tworzenia, aktualizacji, usuwania i uruchamiania procesu należą do Command Port.
 
 ```python
-# shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/graph_definition_provider.py
+# shell/<service>/domain/<bc>/aggregates/<aggregate>/ports/graph_definition_provider.py
 class GraphDefinitionProvider(Protocol):
     async def get_graph_definition(self, definition_id: GraphDefinitionReferenceId) -> GraphDefinitionReference | None: ...
     async def get_graph_definition_by_semantic(self, query: GraphDefinitionSemanticQuery) -> GraphDefinitionReference | None: ...
@@ -25,7 +25,7 @@ Każdy agregat definiuje swoje porty wyjściowe w dwóch katalogach swojej domen
 jeden z dwóch wzorców portów wyjściowych (obok Repository):
 
 ```
-shell/<bc>/domain/<bc>/aggregates/<aggregate>/
+shell/<service>/domain/<bc>/aggregates/<aggregate>/
 ├── repositories/   # PERSYSTENCJA WŁASNYCH danych agregatu (save / get_by_id / delete) — wzorzec Repository
 └── ports/          # WSZYSTKIE POZOSTAŁE PORTY ZEWNĘTRZNE — odczyt (Provider) i operacje/mutacje (Command Port)
 ```
@@ -58,7 +58,7 @@ adapter** — port i cała logika konsumenta zostają bez zmian.
 ## 4. Katalog portów
 
 ```
-shell/<bc>/domain/<bc>/aggregates/<aggregate>/ports/
+shell/<service>/domain/<bc>/aggregates/<aggregate>/ports/
 ├── graph_definition_provider.py     # Provider (tylko odczyt)
 ├── workflow_session_command_port.py           # Command Port (operacja) — obok, ten sam katalog
 └── graph_definition_semantic_query.py         # VO query, jeśli potrzebne
@@ -108,7 +108,7 @@ podfolderze nazwanym od portu. Jeden podfolder skupia wszystkie transporty daneg
 kontrakty i mappery:
 
 ```
-shell/<bc>/infrastructure/<bc>/<aggregate>/adapters/<port_name>/
+shell/<service>/infrastructure/<bc>/<aggregate>/adapters/<port_name>/
 ├── <port_name>_http_adapter.py      # GraphDefinitionProviderHttpAdapter (cross-BC)
 ├── <port_name>_sql_adapter.py       # GraphDefinitionProviderSqlAdapter (lokalny QueryService)
 ├── contracts/v1/<nazwa>_response.py # lokalny, wersjonowany model kontraktu (HTTP)

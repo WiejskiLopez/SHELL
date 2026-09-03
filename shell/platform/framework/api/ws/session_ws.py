@@ -1,3 +1,19 @@
+"""Obsługa WebSocket dla strumieni sesji — KONCEPCJA FUTURE (nieaktywna).
+
+Status: planowany (future concept), nie podłączony produkcyjnie.
+Brak rejestracji jakiejkolwiek trasy WebSocket w aplikacjach BC
+(``app.websocket`` / ``add_api_websocket_route``), brak instancji tego handlera
+w composition root oraz brak testów. Klasse utrzymujemy jako propozycję
+pod przyszły sygnał czasu rzeczywistego (np. push eventów sesji do klienta).
+
+Decyzja techniczna: jeżeli koncept nie zostanie wdrożony w rozsądnym
+horyzoncie i stanie się martwym kodem legacy (nieużywana, nieprzetestowana
+abstrakcja), NALEŻY go przebudować/uwzględnić w architekturze, a nie
+utrzymywać bezczynnie. Domniemanie: aktywny WebSocket wymaga osobnego
+kontraktu i middleware'a (transport dwukierunkowy, inny niż HTTP), patrz
+notatki o observability w conversacji projektowej.
+"""
+
 from __future__ import annotations
 
 import asyncio

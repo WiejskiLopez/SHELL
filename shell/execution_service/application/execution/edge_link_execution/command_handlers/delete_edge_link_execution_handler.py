@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.edge_link_execution.commands.delete_edge_link_execution_command import (
+    DeleteEdgeLinkExecutionCommand,
+)
 from shell.execution_service.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
     EdgeLinkExecutionRepository,
 )
 from shell.execution_service.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
     EdgeLinkExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.edge_link_execution.commands.delete_edge_link_execution_command import (
-        DeleteEdgeLinkExecutionCommand,
-    )
     from shell.platform.application.ports.logger import Logger
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
@@ -23,7 +24,7 @@ from shell.execution_service.domain.execution.aggregates.edge_link_execution.exc
 )
 
 
-class DeleteEdgeLinkExecutionHandler:
+class DeleteEdgeLinkExecutionHandler(CommandHandler[DeleteEdgeLinkExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

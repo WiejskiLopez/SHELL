@@ -143,7 +143,7 @@ class InboxProcessorBase:
     def _causation_value(self, domain_object: object, row: _ClaimedInboxRow) -> str:
         raise NotImplementedError
 
-    def _type_name(self, row: _ClaimedInboxRow) -> str:
+    def _message_name(self, row: _ClaimedInboxRow) -> str:
         raise NotImplementedError
 
     # ------------------------------------------------------------------
@@ -218,7 +218,7 @@ class InboxProcessorBase:
     async def _process_claimed_row(self, row: _ClaimedInboxRow) -> str:
         envelope_error = self._envelope_validator.validate(
             outbox_id=row.outbox_id,
-            contract_type=self._type_name(row),
+            message_name=self._message_name(row),
             schema_version=row.schema_version,
             payload=getattr(row, "payload", {}),
             correlation_id=row.correlation_id,
@@ -228,7 +228,7 @@ class InboxProcessorBase:
             return await self._schedule_failure(
                 row.id,
                 error_code=envelope_error,
-                error_message=f"Envelope invalid for type {self._type_name(row)}: {envelope_error}",
+                error_message=f"Envelope invalid for type {self._message_name(row)}: {envelope_error}",
                 current_retry_count=row.retry_count,
                 immediate_dead_letter=envelope_error == UNSUPPORTED_SCHEMA_VERSION,
             )
@@ -239,7 +239,7 @@ class InboxProcessorBase:
             return await self._schedule_failure(
                 row.id,
                 error_code="DESERIALIZATION_ERROR",
-                error_message=f"Deserialization failed for type: {self._type_name(row)}",
+                error_message=f"Deserialization failed for type: {self._message_name(row)}",
                 current_retry_count=row.retry_count,
             )
 

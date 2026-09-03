@@ -17,23 +17,23 @@ Definition Domain (źródło)                Execution Domain (docelowa)
 
 ### Gdzie umieszczać DTO?
 
-- **DTO definiowane przez domenę źródłową** → `shell/application/<domena>/dto/nazwa_dto.py`
+- **DTO definiowane przez domenę źródłową** → `shell/<service>/application/<bc>/<aggregate>/dto/nazwa_dto.py`
 - Są to dataclasses w warstwie aplikacyjnej domeny źródłowej
 - Reprezentują kontrakt API / read model tej domeny
 
 ### Gdzie umieszczać port?
 
-- **Port w domenie docelowej** → `shell/domain/<domena>/aggregates/<agregat>/ports/nazwa_portu.py` — odczyt (Provider) i operacje (Command Port) w tym samym katalogu, rozróżnia nazwa
+- **Port w domenie docelowej** → `shell/<service>/domain/<bc>/aggregates/<agregat>/ports/nazwa_portu.py` — odczyt (Provider) i operacje (Command Port) w tym samym katalogu, rozróżnia nazwa
 - Port (Protocol) definiuje interfejs potrzebny domenie docelowej
 - W sygnaturach portu można używać DTO z domeny źródłowej — pod `TYPE_CHECKING` (typy są tylko dla type-checkera, z `from __future__ import annotations` nie są importowane w runtime)
 
 ```python
-# shell/domain/execution/aggregates/graph_execution/ports/graph_definition_provider.py
+# shell/<service>/domain/execution/aggregates/graph_execution/ports/graph_definition_provider.py
 from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.application.definition.dto.graph_definition import GraphDefinitionDto
+    from shell.definition_service.application.definition.graph_definition.dto.graph_definition import GraphDefinitionDto
 
 class GraphDefinitionProvider(Protocol):
     async def get_graph_definition(self, definition_id: str) -> GraphDefinitionDto | None: ...
@@ -67,16 +67,16 @@ Definition Domain (źródło)       Infrastructure                   Execution D
 ### Zasady
 
 1. Domena źródłowa definiuje `GraphDefinitionDto` w `application/<domena>/dto/` — to jest kontrakt API
-2. Domena docelowa definiuje `GraphExecutionDefinition` w `domain/<domena>/value_objects/` — to jest wewnętrzny model
-3. Adapter w `infrastructure/<domena_docelowa>/` mapuje źródłowy DTO → docelowy DTO
+2. Domena docelowa definiuje `GraphExecutionDefinition` w `shell/<service>/domain/<bc>/aggregates/<agregat>/value_objects/` — to jest wewnętrzny model
+3. Adapter w `shell/<service>/infrastructure/<bc>/<aggregate>/adapters/` mapuje źródłowy DTO → docelowy DTO
 4. Port w domenie docelowej operuje na **swoim własnym DTO**
 
 ## Adapter używa serwisów kwerend (read model), nie repozytoriów domenowych
 
 Adapter który realizuje operację odczytu (pobranie danych z innej domeny) **nie może wołać repozytoriów domenowych** (`uow.<domena>.get_by_id()`). Zamiast tego:
 
-1. Domena źródłowa definiuje serwis kwerend (QueryService Protocol) w `application/<domena>/ports/queries/`
-2. Infrastruktura implementuje go jako SQL query service w `infrastructure/<domena>/persistence/sql/services/` — mapuje ORM modele → DTO bez encji domenowych
+1. Domena źródłowa definiuje serwis kwerend (QueryService Protocol) w `shell/<service>/application/<bc>/<aggregate>/ports/`
+2. Infrastruktura implementuje go jako SQL query service w `shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/services/` — mapuje ORM modele → DTO bez encji domenowych
 3. Adapter wstrzykuje QueryService (przez DI) i go woła
 
 ```
@@ -101,7 +101,7 @@ SQLAlchemy model → DTO (bez encji domenowych!)
 ### Przykład
 
 ```python
-# shell/infrastructure/execution/graph_execution/adapters/graph_definition/graph_definition_provider_sql_adapter.py
+# shell/<service>/infrastructure/execution/graph_execution/adapters/graph_definition/graph_definition_provider_sql_adapter.py
 class GraphDefinitionProviderSqlAdapter(GraphDefinitionProvider):
     def __init__(self, query_service: GraphDefinitionQueryService) -> None:
         self._query_service = query_service  # ← port odczytu z definition (jedyny który zna źródło)
@@ -144,12 +144,12 @@ SchedulerExecutionHandler (implementuje port)
 ### Przykład
 
 ```python
-# shell/domain/scheduling/ports/workflow_outcome_receiver.py
+# shell/<service>/domain/scheduling/aggregates/scheduler_execution/ports/workflow_outcome_receiver.py
 class WorkflowOutcomeReceiver(Protocol):
     async def on_workflow_completed(self, workflow_id: str) -> None: ...
     async def on_workflow_failed(self, workflow_id: str, error: str) -> None: ...
 
-# shell/infrastructure/scheduling/execution_workflow_outcome_adapter.py
+# shell/<service>/infrastructure/scheduling/scheduler_execution/adapters/execution_workflow_outcome_adapter.py
 class ExecutionWorkflowOutcomeAdapter:
     def __init__(self, receiver: WorkflowOutcomeReceiver) -> None:
         self._receiver = receiver
@@ -165,7 +165,7 @@ class ExecutionWorkflowOutcomeAdapter:
 
 | Typ komunikacji | Port w | Adapter w | Uwagi |
 |----------------|--------|-----------|-------|
-| Odczyt danych (sync) | domena docelowa (aggregates/<x>/ports/, `<Dane>Provider`) | infrastructure/<domena_docelowa>/<aggregate>/adapters/<nazwa>/ | Używa QueryService (read model), nie domain repo |
-| Operacja / mutacja (sync) | domena docelowa (aggregates/<x>/ports/, `<Czasownik><Obiekt>Port`) | infrastructure/<domena_docelowa>/<aggregate>/adapters/<nazwa>/ | Wykonuje akcję w źródle, zwraca lokalny wynik |
-| Event (async) | domena subskrybująca (aggregates/<x>/ports/) | infrastructure/<domena_subskrybująca>/ | Konwertuje event źródłowy na wywołanie portu |
-| DTO | domena źródłowa (application/<bc>/<aggregate>/dto/) | — | Źródło definiuje kontrakt, docelowa mapuje na własne VO |
+| Odczyt danych (sync) | domena docelowa (aggregates/<x>/ports/, `<Dane>Provider`) | shell/<service>/infrastructure/<bc>/<aggregate>/adapters/<nazwa>/ | Używa QueryService (read model), nie domain repo |
+| Operacja / mutacja (sync) | domena docelowa (aggregates/<x>/ports/, `<Czasownik><Obiekt>Port`) | shell/<service>/infrastructure/<bc>/<aggregate>/adapters/<nazwa>/ | Wykonuje akcję w źródle, zwraca lokalny wynik |
+| Event (async) | domena subskrybująca (aggregates/<x>/ports/) | shell/<service>/infrastructure/<bc>/<aggregate>/adapters/ | Konwertuje event źródłowy na wywołanie portu |
+| DTO | domena źródłowa (shell/<service>/application/<bc>/<aggregate>/dto/) | — | Źródło definiuje kontrakt, docelowa mapuje na własne VO |

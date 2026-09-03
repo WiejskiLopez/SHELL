@@ -9,9 +9,9 @@ Each BC is independently buildable, testable, runnable, and deployable.
 
 ## Allowed dependencies
 
-A BC may import:
+A BC (pakiet serwisu `shell/<bc>_service/` z pakietem BC wewnątrz, np. `shell/execution_service/domain/execution/`) may import:
 
-- its own `shell/<bc>/domain`, `application`, `process`, `infrastructure`, `framework`, and `bootstrap`;
+- its own `shell/<bc>_service/{domain,application,process,infrastructure,framework,bootstrap}/<bc>/`;
 - `shell/platform`;
 - public integration contracts and adapter interfaces defined for cross-BC communication.
 
@@ -27,9 +27,9 @@ BC's own database session and migrations; sharing code does not share database d
 
 Each deployable BC should provide:
 
-- its own composition root under `shell/<bc>/bootstrap/`;
-- its own API/CLI entrypoint under `shell/<bc>/framework/`;
-- its own database metadata and migrations;
+- its own composition root under `shell/<bc>_service/bootstrap/<bc>/container/`;
+- its own API/CLI entrypoint under `shell/<bc>_service/framework/<bc>/`;
+- its own database metadata and migrations (`shell/<bc>_service/migrations/`);
 - its own event/message registry inputs;
 - health/readiness behavior;
 - unit, integration, and standalone E2E tests.

@@ -63,7 +63,7 @@ Wszystkie artefakty wywodzą się z tej samej Capability.
 
 ## 3. Domain Methods
 
-Metody domenowe wyrażają **intencję biznesową** — nigdy operację techniczną.
+Metody domenowe wyrażają **intencję biznesową**; nazwa techniczna operacji zostaje w warstwie infrastruktury.
 
 ```python
 # POPRAWNIE — biznesowa intencja
@@ -126,10 +126,10 @@ Event opisuje **fakt biznesowy w przeszłości**.
 | OwnerAssigned | `OwnerAssignedEvent` |
 | WorkflowStarted | `WorkflowStartedEvent` |
 
-Zabronione:
-- `ApproveInvoiceEvent` — to komenda, nie event
-- `InvoiceEvent` — niejednoznaczne (co się stało?)
-- `StatusChangedEvent` — techniczne, nie biznesowe
+Antywzorce nazw eventów:
+- `ApproveInvoiceEvent` — intencja komendy, a nie fakt eventu
+- `InvoiceEvent` — nazwa niejednoznaczna (brak faktu w przeszłości)
+- `StatusChangedEvent` — nazwa techniczna; wymagany fakt biznesowy z podmiotem
 
 ## 6. Queries
 
@@ -137,7 +137,7 @@ Zabronione:
 <Verb><Aggregate>[Projection]Query
 ```
 
-Dozwolone operacje: `GetById`, `FindBy*`, `Search`, `List`, `Count`, `Exists`.
+Operacje zapytań: `GetById`, `FindBy*`, `Search`, `List`, `Count`, `Exists`.
 
 | Query | Opis |
 |-------|------|
@@ -154,7 +154,7 @@ Dozwolone operacje: `GetById`, `FindBy*`, `Search`, `List`, `Count`, `Exists`.
 <Aggregate><Description>Message
 ```
 
-Message opisuje **zawartość** — nigdy akcję.
+Message opisuje **zawartość**; akcja pozostaje poza nazwą message.
 
 | Message | Opis |
 |---------|------|
@@ -231,7 +231,7 @@ Handler nazywa się identycznie jak Query — zamieniając sufiks `Query` na `Ha
 <BusinessProcess>Saga
 ```
 
-Saga opisuje **proces biznesowy**, nie agregat.
+Saga opisuje **proces biznesowy**; nazwy sag pochodzą od procesu, a nie od agregatu.
 
 | Saga | Proces |
 |------|--------|
@@ -240,7 +240,7 @@ Saga opisuje **proces biznesowy**, nie agregat.
 | `OrderFulfillmentSaga` | Payment → pack → ship |
 | `WorkflowExecutionSaga` | Execution lifecycle |
 
-Saga orkiestruje komendy. Nigdy nie implementuje logiki domenowej.
+Saga orkiestruje komendy; logika domenowa pozostaje w domenie.
 
 ## 13. Domain Services
 
@@ -265,7 +265,7 @@ Saga orkiestruje komendy. Nigdy nie implementuje logiki domenowej.
 | Factory | `<Aggregate>Factory` | `InvoiceFactory` |
 | DTO | `<Aggregate><Projection>Dto` | `InvoiceSummaryDto` |
 | Mapper | `<Aggregate>Mapper` | `InvoiceMapper` |
-| Exception | `<Aggregate><Problem>Exception` | `InvoiceNotFoundException` |
+| Exception (Domain Error) | `<Aggregate><Problem>Error` | `InvoiceNotFoundError` |
 | Agent | `<BusinessCapability>Agent` | `ApproveInvoiceAgent` |
 
 ## 15. AI transformation rules
@@ -307,7 +307,7 @@ GetInvoiceByIdQuery    →  get_invoice_by_id_query.py
 
 ## 16. SemanticDescriptor (koncept)
 
-Deskryptor semantyczny — to on jest embeddowany do vector search, nie nazwa klasy.
+Deskryptor semantyczny jest embeddowany do vector search; nazwa klasy pozostaje poza embeddingiem.
 
 ```python
 @dataclass(frozen=True)

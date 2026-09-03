@@ -17,7 +17,7 @@ Każdy endpoint MUSI mieć przypisany tag. Tagi są w PascalCase, odpowiadają B
 |-----|--------------|-----------|
 | `Users` | `/api/v1/users` | GET `/{user_id}`, POST `/`, PUT `/{user_id}`, DELETE `/{user_id}` |
 | `Sessions` | `/api/v1/sessions` | GET `/{session_id}/history` |
-| `Projects` | `/api/v1/projects` | GET `/{project_id}` (stub 501) |
+| `Projects` | `/api/v1/projects` | GET `/` (lista), GET `/{project_id}`, POST `/` (201), PUT `/{project_id}` (204), DELETE `/{project_id}` (204) |
 | `Workflows` | `/api/v1/workflows` | GET `/{workflow_id}` |
 | `NodeExecutions` | `/api/v1/node-executions` | GET `/{node_execution_id}/result` |
 | `EdgeExecutions` | `/api/v1/edge-executions` | POST `/`, PUT `/{edge_execution_id}`, DELETE `/{edge_execution_id}` |
@@ -25,12 +25,14 @@ Każdy endpoint MUSI mieć przypisany tag. Tagi są w PascalCase, odpowiadają B
 | `GraphDefinitions` | `/api/v1/graph-definitions` | GET `/{graph_definition_id}`, POST `/by-semantic` |
 | `Health` | `/health` | GET `/` |
 
+> Uwaga: lista tagów jest dynamiczna (przybywają kolejne routery per aggregat, np. `Task Executions`, `AuthSessions`, `SchedulerJobs`). Przed edycją zweryfikuj realne routery w `shell/<bc>_service/framework/<bc>/.../api/router.py`.
+
 ### Gdzie zmieniać
 
-- **Router tag**: w `shell/framework/<bc>/<aggregate>/api/router.py` — `APIRouter(tags=["TagName"])`
+- **Router tag**: w `shell/<bc>_service/framework/<bc>/<aggregate>/api/router.py` — `APIRouter(prefix="/...", tags=["TagName"])`
 - **OpenAPI metadata**: w konkretnym service factory, przez neutralne `configure_openapi()` z `shell/platform/framework/api/openapi.py`
-- **Health endpoint**: w `shell/platform/framework/api/app.py` — `@app.get("/health", tags=["Health"])`
-- **Per-BC app fabryki**: w `shell/framework/**/api/app.py` — `@app.get("/health", tags=["Health"])`
+- **Health endpoint**: w `shell/platform/framework/api/setup.py` — `@app.get("/health", tags=["Health"])`
+- **Per-BC app fabryki**: w `shell/<bc>_service/framework/**/api/app.py` — przez `create_app` zależny od konkretnego kontenera BC
 
 ### Zasady dodawania nowego tagu
 
@@ -53,7 +55,7 @@ Skrypt importuje aplikację FastAPI i zrzuca specyfikację:
 ```python
 # scripts/generate-openapi.py
 import json
-from shell.execution.framework.execution.api.app import create_execution_app
+from shell.execution_service.framework.execution.api.app import create_execution_app
 
 app = create_execution_app(...)
 with open("openapi.json", "w") as f:

@@ -22,64 +22,77 @@ repositories/
 
 ## Wzorce nazw katalogów
 
+> SHELL nie ma top-level pakietów `domain/`, `application/`, `infrastructure/`, `framework/`, `bootstrap/`. Realna struktura to `shell/<service>/{domain,application,process,infrastructure,framework,bootstrap}/<bc>/...` (np. `shell/execution_service/domain/execution/...`) oraz platforma `shell/platform/...`.
+
 | Warstwa | Katalog | Zawartość |
 |---------|---------|-----------|
-| Domain | `aggregates/<nazwa_agregatu>/` | Aggregate Root |
-| Domain | `aggregates/<nazwa_agregatu>/entities/` | Child entities |
-| Domain | `aggregates/<nazwa_agregatu>/events/` | Domain Events |
-| Domain | `aggregates/<nazwa_agregatu>/value_objects/` | Value Objects (w tym ID) |
-| Domain | `domain/platform/base/` | Entity/AggregateRoot base classes |
-| Domain | `domain/platform/value_objects/` | Universalne VO platformy |
-| Domain | `domain/platform/ports/` | Porty platformy (Clock, IdGenerator) |
-| Domain | `domain/platform/events/` | DomainEvent base class |
-| Domain | `domain/platform/exceptions.py` | DomainError base |
-| Domain | `domain/<bc>/aggregates/<agregat>/repositories/` | Porty repozytoriów per agregat |
-| Domain | `domain/<bc>/aggregates/<agregat>/services/` | Domain Services per agregat |
-| Domain | `domain/<bc>/aggregates/<agregat>/exceptions/` | Domain Exceptions per agregat |
-| Application | `application/<bc>/commands/<aggregate>/` | Komendy per agregat |
-| Application | `application/<bc>/command_handlers/<aggregate>/` | Handlery komend per agregat |
-| Application | `application/<bc>/queries/<aggregate>/` | Query per agregat |
-| Application | `application/<bc>/query_handlers/<aggregate>/` | Handlery query per agregat |
-| Application | `application/<bc>/query_services/` | QueryServices |
-| Application | `application/<bc>/events/<aggregate>/` | Eventy per agregat |
-| Application | `application/<bc>/event_handlers/<aggregate>/` | Handlery eventów per agregat |
-| Application | `application/<bc>/messages/<aggregate>/` | Message per agregat |
-| Application | `application/<bc>/message_handlers/<aggregate>/` | Handlery message per agregat |
-| Application | `application/<bc>/sagas/<aggregate>/` | Sagi per agregat |
-| Application | `application/<bc>/dto/<aggregate>/` | DTO odpowiedzi per agregat |
-| Application | `application/<bc>/mappers/<aggregate>/` | Mappery per agregat |
-| Application | `application/<bc>/ports/` | Porty aplikacyjne |
-| Application | `application/strategies/<nazwa>/` | Strategie |
-| Domain | `domain/<bc>/aggregates/<aggregate>/services/` | Domain Services per agregat |
-| Domain | `domain/<bc>/descriptors/` | SemanticDescriptory |
-| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/sql/repositories/` | SQL repozytoria per agregat |
-| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/memory/` | InMemory repozytoria per agregat |
-| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/sql/models/` | ORM modele per agregat |
-| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/sql/mappers/` | Mappery ORM per agregat |
-| Infrastructure | `infrastructure/<bc>/acl/` | Anti-Corruption Layer |
-| Infrastructure | `infrastructure/platform/time/` | Adaptery uniwersalne (zegar) |
-| Infrastructure | `infrastructure/platform/identity/` | Adaptery uniwersalne (IdGenerator) |
-| Infrastructure | `infrastructure/platform/persistence/migrations/sql/versions/` | Migracje Alembic |
-| Framework | `framework/<bc>/<aggregate>/api/` | Routery FastAPI per agregat |
-| Framework | `framework/<bc>/entrypoints/` | Entrypointy (agent, planner, worker) |
-| Process | `process/<bc>/<nazwa_sagi>/` | Saga state machine (<nazwa>_saga.py, state.py) |
-| Process | `process/<bc>/<nazwa_sagi>/handlers/` | Event handlery delegujące do sagi |
-| Process | `process/<bc>/<nazwa_sagi>/commands/` | Komendy produkowane tylko przez tę sagę |
-| Process | `process/<bc>/<nazwa_sagi>/ports/` | Porty (Protocol) dla repozytorium i command publishera |
-| Bootstrap | `bootstrap/<bc>/container/` | DI per BC |
-| Bootstrap | `bootstrap/platform/container/` | Containery platformowe |
-| Bootstrap | `bootstrap/platform/factory/` | Factory (command_factory, event_factory) |
-| Test | `tests/<bc>/unit/domain/` | Testy jednostkowe domeny per BC |
-| Test | `tests/<bc>/unit/application/` | Testy jednostkowe aplikacji per BC |
-| Test | `tests/<bc>/integration/sql_sqlite/` | Testy integracyjne SQLite per BC |
-| Test | `tests/<bc>/integration/sql_postgres/` | Testy integracyjne Postgres per BC |
-| Test | `tests/<bc>/e2e/api/` | Testy E2E API per BC |
-| Test | `tests/<bc>/e2e/cli/` | Testy E2E CLI per BC |
-| Test | `tests/process/unit/` | Testy jednostkowe process (saga state machine) |
-| Test | `tests/process/integration/sql_sqlite/` | Testy integracyjne process z SQLite |
-| Test | `tests/platform/architecture/` | Testy architektury |
+| Domain (platforma) | `shell/platform/domain/base/` | Entity/AggregateRoot/ValueObject/EntityId base classes |
+| Domain (platforma) | `shell/platform/domain/value_objects/` | Uniwersalne VO platformy |
+| Domain (platforma) | `shell/platform/domain/ports/` | Porty platformy (Clock, IdGenerator, RepositoryPort) |
+| Domain (platforma) | `shell/platform/domain/events/` | DomainEvent base class |
+| Domain (platforma) | `shell/platform/domain/exceptions/` | DomainError base |
+| Domain | `shell/<service>/domain/<bc>/aggregates/<nazwa_agregatu>/` | Aggregate Root |
+| Domain | `.../aggregates/<nazwa_agregatu>/entities/` | Child entities |
+| Domain | `.../aggregates/<nazwa_agregatu>/events/` | Domain Events |
+| Domain | `.../aggregates/<nazwa_agregatu>/value_objects/` | Value Objects (w tym ID) |
+| Domain | `.../aggregates/<agregat>/repositories/` | Porty repozytoriów per agregat |
+| Domain | `.../aggregates/<agregat>/services/` | Domain Services per agregat |
+| Domain | `.../aggregates/<agregat>/exceptions/` | Domain Exceptions per agregat |
+| Domain | `.../aggregates/<agregat>/ports/` | Porty domenowe (Provider / Command Port) per agregat |
+| Application | `.../application/<bc>/<aggregate>/commands/` | Komendy per agregat |
+| Application | `.../application/<bc>/<aggregate>/command_handlers/` | Handlery komend per agregat |
+| Application (platforma) | `shell/platform/application/commands/` + `command_handlers/` | Komendy i handlery platformy (siblings, liczba mnoga) |
+| Application (platforma) | `shell/platform/application/events/` + `event_handlers/` | Integracyjne eventy i ich handlery (siblings, liczba mnoga) |
+| Application | `.../application/<bc>/<aggregate>/queries/` | Query per agregat |
+| Application | `.../application/<bc>/<aggregate>/query_handlers/` | Handlery query per agregat |
+| Application | `.../application/<bc>/<aggregate>/dto/` | DTO odpowiedzi per agregat |
+| Application | `.../application/<bc>/<aggregate>/integration_events/` | Integration Events per agregat |
+| Application | `.../application/<bc>/<aggregate>/ports/` | QueryServices i porty aplikacyjne per agregat |
+| Application | `.../application/<bc>/<aggregate>/mappers/` | Mappery aplikacyjne (domain ↔ DTO) |
+| Application | `.../application/<bc>/<aggregate>/sagas/` | Sagi per agregat |
+| Infrastructure | `shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/` | SQL repozytoria per agregat |
+| Infrastructure | `.../infrastructure/<bc>/<aggregate>/persistence/memory/` | InMemory repozytoria per agregat |
+| Infrastructure | `.../infrastructure/<bc>/<aggregate>/persistence/sql/models/` | ORM modele per agregat |
+| Infrastructure | `.../infrastructure/<bc>/<aggregate>/persistence/sql/mappers/` | Mappery ORM per agregat |
+| Infrastructure | `.../infrastructure/<bc>/<aggregate>/adapters/` | Adaptery portów (Provider / Command Port) |
+| Infrastructure (platforma) | `shell/platform/infrastructure/...` | Adaptery uniwersalne (zegar, identity, outbox/inbox) |
+| Framework | `shell/<service>/framework/<bc>/<aggregate>/api/` | Routery FastAPI per agregat |
+| Process | `shell/<service>/process/<bc>/<nazwa_sagi>/` | Saga state machine (wzorzec docelowy) |
+| Bootstrap | `shell/<service>/bootstrap/<bc>/container/` | DI per BC (np. `<bc>_core_container.py`) |
+| Test | `shell/tests/<bc_service>/unit/` | Testy jednostkowe per BC |
+| Test | `shell/tests/<bc_service>/integration/sql_sqlite/` | Testy integracyjne SQLite per BC |
+| Test | `shell/tests/<bc_service>/integration/sql_postgres/` | Testy integracyjne Postgres per BC |
+| Test | `shell/tests/<bc_service>/e2e/api/` | Testy E2E API per BC |
+| Test | `shell/tests/architecture/` | Testy architektury (flat) |
+| Test | `shell/tests/contracts/` | Publiczne kontrakty HTTP/event między BC |
 
 > **Szczegółowe reguły → [naming-convention-standard](../naming-convention-standard/SKILL.md)**
+
+## Zasada rodzeństwa (siblings) — pojęcie i jego handlery na tym samym poziomie
+
+Katalog pojęcia i katalog jego handlerów są **rodzeństwem na tym samym poziomie**,
+zawsze w **liczbie mnogiej**:
+
+```
+…/commands/          +  …/command_handlers/
+…/queries/           +  …/query_handlers/
+…/events/            +  …/event_handlers/
+…/integration_events/ + …/event_handlers/
+```
+
+**Zakazane kształty:**
+- **NIE wolno zagnieżdżać handlerów pod pojęciem**: `…/command/handlers/`,
+  `…/event/handlers/` — handlery idą obok, nie pod spodem.
+- **NIE wolno liczby pojedynczej**: `command/`, `command_handler/`,
+  `event/`, `event_handler/` — liczba mnoga: `commands/`, `command_handlers/`,
+  `events/`, `event_handlers/`.
+
+Obowiązuje w platformie i w BC:
+- `shell/platform/application/` → `commands/` + `command_handlers/`,
+  `events/` + `event_handlers/` (platforma zrefaktorowana: dawna `command/handlers/`
+  przeniesiona do `commands/` + `command_handlers/` + `event_handlers/`).
+- `shell/<service>/application/<bc>/<aggregate>/` → `commands/` +
+  `command_handlers/`, `integration_events/` + `event_handlers/`.
 
 ## Ograniczenia
 

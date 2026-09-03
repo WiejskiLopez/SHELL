@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.scheduling_service.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
+    CreateSchedulerExecutionCommand,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
@@ -20,12 +24,9 @@ if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
-    from shell.scheduling_service.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
-        CreateSchedulerExecutionCommand,
-    )
 
 
-class CreateSchedulerExecutionHandler:
+class CreateSchedulerExecutionHandler(CommandHandler[CreateSchedulerExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

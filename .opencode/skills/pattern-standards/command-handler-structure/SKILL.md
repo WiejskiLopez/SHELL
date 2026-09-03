@@ -9,35 +9,35 @@ description: Reguły struktury Command Handler — koordynacja bez logiki biznes
 
 ## Definicja
 
-- Command Handler koordynuje wykonanie komendy — **nie zawiera logiki biznesowej**.
+- Command Handler koordynuje wykonanie komendy; logikę biznesową deleguje do agregatu domenowego.
 - Zadaniem handlera jest:
   1. Zbudować agregat domenowy z repozytorium (lub utworzyć nowy przez factory).
-  2. Poprzez serwisy domenowe dostarczyć agregatowi kompletny dataset do podjęcia decyzji (porty serwisów zdefiniowane w module agregatu).
+  2. Poprzez serwisy domenowe / porty dostarczyć agregatowi kompletny dataset do podjęcia decyzji (porty zdefiniowane w module agregatu).
   3. Wywołać odpowiednią metodę agregatu ze wszystkimi parametrami.
-  4. W tej samej transakcji zapisać zmieniony agregat do repozytorium oraz opublikować zdarzenia z tą zmianą związane (`stage_events`).
+  4. W tej samej transakcji zapisać zmieniony agregat do repozytorium — `unit_of_work.save(repo_type, agregat)` sam wyciąga `pull_events()` i stawia je w outboxie.
 
 ## Jedna komenda = jeden agregat
 
 - Command Handler może modyfikować stan **maksymalnie jednego agregatu** domenowego w ramach jednej komendy.
 - Handler ładuje **jeden** agregat z repozytorium, woła **jedną** metodę domenową (lub tworzy nowy agregat przez factory), zapisuje **jeden** agregat.
-- Jeśli logika wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj wzorce koordynacji opisane w `pattern-standards/saga-structure` (Event Chain / Saga), a reakcję na eventy — w `pattern-standards/event-handler-structure`.
+- Każdy handler modyfikuje maksymalnie jeden agregat; koordynację wielu agregatów realizują
+  wzorce z `pattern-standards/saga-structure` (Event Chain / Saga), a reakcję na eventy —
+  `pattern-standards/event-handler-structure`.
 
-### Przykład ZŁY (zabroniony)
+### Przykład antywzorca (multi-aggregate w jednym handlerze)
 
 ```python
 async def handle(self, command: SomeCommand) -> None:
     async with self._unit_of_work as unit_of_work:
-        order = await unit_of_work.order_repository.get_by_id(...)
-        task = await unit_of_work.task_repository.get_by_id(...)
+        order = await unit_of_work.repository(OrderRepository).get_by_id(...)
+        task = await unit_of_work.repository(TaskRepository).get_by_id(...)
 
-        # Zapisuje 2 agregaty w jednym handlerze — ZABRONIONE
+        # Modyfikuje 2 agregaty w jednym handlerze — antywzorzec
         order.complete(...)
         task.start(...)
 
-        unit_of_work.order_repository.save(order)        # 1. agregat
-        unit_of_work.task_repository.save(task)          # 2. agregat — ŹLE!
-        unit_of_work.stage_events(order.pull_events())
-        unit_of_work.stage_events(task.pull_events())
+        await unit_of_work.save(OrderRepository, order)  # 1. agregat
+        await unit_of_work.save(TaskRepository, task)    # 2. agregat — antywzorzec
 ```
 
 ## Klasa
@@ -55,41 +55,42 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.workflow.commands import StartWorkflowCommand
-    from shell.domain.workflow.repository import WorkflowRepository
-    from shell.domain.platform.ports import UnitOfWork
+    from shell.my_service.application.my_bc.my_aggregate.commands.start_workflow_command import (
+        StartWorkflowCommand,
+    )
+    from shell.my_service.domain.my_bc.aggregates.my_aggregate.repositories.my_aggregate_repository import (
+        MyAggregateRepository,
+    )
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
 ```
 
 ## Metoda handle
 
-- Pojedyncza `async handle(self, command: TCommand) -> str`.
-- Komenda zmienia stan, zwraca ID utworzonego agregatu jako `str`.
+- Pojedyncza `async handle(self, command: <CommandName>) -> <ResultDto> | None`.
+- Komenda modyfikuje stan agregatu; wynik operacji handler zwraca jako **DTO** (frozen dataclass),
+  a nie surowy `str` czy agregat.
 
-## Struktura metody — wzorzec
+## Struktura metody — wzorzec (API UnitOfWork SHELL)
 
 ```python
-async def handle(self, command: CompleteOrderCommand) -> str:
+async def handle(self, command: CompleteOrderCommand) -> CompleteOrderResult:
     async with self._unit_of_work as unit_of_work:
-        # 1. Budujemy agregat z repozytorium
-        order = await unit_of_work.order_repository.get_by_id(
+        # 1. Budujemy agregat z repozytorium (port jako klasa — repository())
+        order = await unit_of_work.repository(OrderRepository).get_by_id(
             OrderId(command.order_id)
         )
 
-        # 2. Przez serwisy domenowe (porty w module agregatu)
-        #    dostarczamy agregatowi kompletny dataset do decyzji
+        # 2. Przez porty dostarczamy agregatowi kompletny dataset do decyzji
         pricing = await self._pricing_service.calculate(order.items)
         eligibility = await self._eligibility_service.check(order.customer_id)
 
         # 3. Wołamy metodę agregatu z kompletem parametrów
-        order.complete(
-            pricing=pricing,
-            eligibility=eligibility,
-            now=self._clock.now(),
-        )
+        order.complete(pricing=pricing, eligibility=eligibility, now=self._clock.now())
 
-        # 4. W tej samej transakcji: zapis + eventy
-        unit_of_work.order_repository.save(order)
-        unit_of_work.stage_events(order.pull_events())
+        # 4. Zapis — save() wyciąga pull_events() i stage'uje je do outboxa
+        await unit_of_work.save(OrderRepository, order)
+
+    return CompleteOrderResult(order_id=order.id.value)
 ```
 
 ## Porty — korzystanie z portów w handlerze
@@ -101,72 +102,56 @@ async def handle(self, command: CompleteOrderCommand) -> str:
 
 ## Zero decyzji w handlerze
 
-- Handler **nie podejmuje żadnych decyzji biznesowych**:
-  - Nie sprawdza stanu agregatu przed wywołaniem metody (`if order.status == 'pending': ...`)
-  - Nie wybiera między metodami agregatu w zależności od parametrów
-  - Nie decyduje czy zapisać agregat czy nie
-- Handler jedyne co może zrobić to:
+- Handler koordynuje wykonanie; decyzje biznesowe podejmuje agregat:
+  - Stan agregatu ewaluuje metoda domenowa (guard/invariants); handler przekazuje komplet parametrów z portów
+  - Handler wywołuje jedną metodę domenową właściwą dla danej komendy
+  - Zapis wykonuje `unit_of_work.save(...)` automatycznie na zakończenie
+- Zakres działań handlera:
   - **Błąd infrastrukturalny** — np. błąd bazy danych, timeout sieciowy (propagowany z repozytorium/serwisu)
   - **Błąd domenowy** — rzucony przez agregat/serwis domenowy przy naruszeniu invariantu (np. `OrderAlreadyCompleted`, `WorkflowNotRunning`)
-- **Obsługa błędów**: handler nie łapie błędów domenowych — propaguje je wyżej (do warstwy framework/API).
+- **Obsługa błędów**: handler propaguje błędy domenowe wyżej (do warstwy framework/API).
 
-## Koordynacja, nie logika
+## Koordynacja, delegacja do agregatu
 
 ```python
-# DOBRY — delegacja do agregatu
+# Poprawnie — delegacja do agregatu
 order.complete(pricing=pricing, eligibility=eligibility, now=now)
 
-# ŹLE — logika biznesowa w handlerze
+# Antywzorzec — logika biznesowa w handlerze
 if order.status == OrderStatus.PENDING:
     order.status = OrderStatus.COMPLETED
     ...
 ```
 
-## Przykład ZŁY (zabroniony)
-
-```python
-async def handle(self, command: SomeCommand) -> None:
-    async with self._unit_of_work as unit_of_work:
-        order = await unit_of_work.order_repository.get_by_id(OrderId(command.order_id))
-        task = await unit_of_work.task_repository.get_by_id(TaskId(command.task_id))
-
-        # Zapisuje 2 agregaty w jednym handlerze
-        order.complete(...)
-        task.start(...)
-
-        unit_of_work.order_repository.save(order)
-        unit_of_work.task_repository.save(task)
-        unit_of_work.stage_events(order.pull_events())
-        unit_of_work.stage_events(task.pull_events())
-```
-
 ## UoW
 
 - `async with self._unit_of_work as unit_of_work:` — UoW jako async context manager.
-- `commit()` na `__aexit__` jeśli brak wyjątku; `rollback()` jeśli wyjątek.
-- Nigdy ręcznego `unit_of_work.commit()` w handlerze.
-- `stage_events(aggregate.pull_events())` po każdej mutacji agregatu.
+- Port `UnitOfWork` (`shell/platform/application/ports/persistence/unit_of_work.py`) oferuje:
+  - `repository(repo_type: type) -> Any` — pobranie repozytorium przez klasę portu;
+  - `await save(repo_type: type, aggregate: object)` — zapis agregatu, automatycznie `pull_events()` → `stage_events` (outbox);
+  - `stage_events(events)` — wołany automatycznie przez `save()`; ręczne wołanie przy `save()` tworzy double-staging.
+- `commit()` wykonuje `__aexit__` UoW przy braku wyjątku; `rollback()` przy wyjątku.
+- Handler przekazuje zapis i commit do UoW; bezpośrednie `unit_of_work.commit()` w handlerze nie występuje.
+- `stage_events(...)` używasz bezpośrednio wyłącznie wtedy, gdy agregat zapisujesz spoza `save()` (przypadek nietypowy).
 
 ## Walidacja
 
 - **Strukturalna** (typy, formaty, zakresy) — na granicy API, przez Pydantic w warstwie framework.
-- **Komendy** — walidacja w `__post_init__` (dataclass), nie w metodzie `validate()` wołanej przez handler.
+- **Komendy** — walidacja w `__post_init__` (dataclass).
 - **Biznesowa** — w domenie (Value Object w `__post_init__`, guard clauses w agregacie).
-- Handler nie waliduje — deleguje do domeny.
+- Handler przekazuje dane; walidację biznesową wykonuje domena.
 
 ## Obsługa błędów
 
-- **Błędy domenowe** (`DomainError`) — propagują do frameworka, handler nie łapie.
-- **Błędy infrastrukturalne** (`RepositoryException`) — propagują, handler nie łapie.
-- **Jedyny wyjątek**: `ConcurrentModificationError` (optymistyczne blokowanie) — może być złapany dla retry/logowania.
-- Handler przekazuje bledy logiki biznesowej do warstwy domenowej.
+- **Błędy domenowe** (`DomainError`) — propagują do frameworka; retry/logowanie może przejąć middleware.
+- **Błędy infrastrukturalne** (`RepositoryException`) — propagują wyżej.
+- `ConcurrentModificationError` (optymistyczne blokowanie) — przechwytywany wyłącznie dla retry/logowania.
+- Handler przekazuje błędy logiki biznesowej z warstwy domenowej dalej.
 
 ## Lokalizacja
 
-- `shell/application/<bc>/command_handlers/`
-
-
+- `shell/<service>/application/<bc>/<aggregate>/command_handlers/`
 
 ## Bezpieczeństwo
 
-- Handler nie importuje infrastruktury.
+- Handler importuje wyłącznie z warstwy application/domain.

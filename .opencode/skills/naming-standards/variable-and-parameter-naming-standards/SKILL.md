@@ -9,9 +9,9 @@ description: Reguły nazewnictwa zmiennych i parametrów — zakaz skrótów, pe
 
 ## Podstawowa zasada
 
-**Nigdy nie skracaj nazw zmiennych.** Każda zmienna musi mieć pełną, biznesową nazwę która oddaje jej znaczenie w języku domeny.
+**Zmienne noszą pełne, biznesowe nazwy.** Każda zmienna musi mieć pełną, biznesową nazwę która oddaje jej znaczenie w języku domeny.
 
-Skracanie nazw zmiennych jest zabronione, ponieważ:
+Skróty nazw zmiennych zastępowane są pełnymi nazwami, ponieważ:
 1. Zaciera intencję biznesową kodu
 2. Wymusza domyślanie się znaczenia przez czytającego
 3. Tworzy niespójność — ta sama nazwa w różnych miejscach może oznaczać różne rzeczy
@@ -19,21 +19,21 @@ Skracanie nazw zmiennych jest zabronione, ponieważ:
 
 ## Zasada twarda — zero wyjątków
 
-To nie są sugestie ani zalecenia — to **bezwzględnie egzekwowane reguły bez żadnych wyjątków**.
+Te reguły są **egzekwowane bezwzględnie i bez wyjątków**.
 
 | Status | Przykład | Powód |
 |--------|----------|-------|
-| ❌ **ZABRONIONE** | `uow` | Musi być `unit_of_work` |
-| ❌ **ZABRONIONE** | `cmd` (parametr handlera) | Musi być `command` |
-| ✅ **DOZWOLONE** | `command` (parametr handlera) | Standardowa nazwa parametru w Command Handler |
-| ✅ **DOZWOLONE** | `event` (parametr handlera) | Standardowa nazwa parametru w Event Handler |
-| ✅ **DOZWOLONE** | `query` (parametr handlera) | Standardowa nazwa parametru w Query Handler |
-| ❌ **ZABRONIONE** | `id_gen` | Musi być `id_generator` |
-| ❌ **ZABRONIONE** | `repo` | Musi być `repository` |
-| ❌ **ZABRONIONE** | `ctx` | Musi być `context` (lepiej konkretnie: `sub_graph_context`) |
-| ❌ **ZABRONIONE** | `args` | Musi być `arguments` (lepiej konkretnie: `type_arguments`) |
-| ❌ **ZABRONIONE** | `dto` jako zmienna | Musi być opisane: `graph_definition_dto` |
-| ❌ **ZABRONIONE** | `exc` | Musi być `exception` |
+| ❌ Skrót | `uow` | Musi być `unit_of_work` |
+| ❌ Skrót | `cmd` (parametr handlera) | Musi być `command` |
+| ✅ Wzorzec | `command` (parametr handlera) | Standardowa nazwa parametru w Command Handler |
+| ✅ Wzorzec | `event` (parametr handlera) | Standardowa nazwa parametru w Event Handler |
+| ✅ Wzorzec | `query` (parametr handlera) | Standardowa nazwa parametru w Query Handler |
+| ❌ Skrót | `id_gen` | Musi być `id_generator` |
+| ❌ Skrót | `repo` | Musi być `repository` |
+| ❌ Skrót | `ctx` | Musi być `context` (lepiej konkretnie: `sub_graph_context`) |
+| ❌ Skrót | `args` | Musi być `arguments` (lepiej konkretnie: `type_arguments`) |
+| ❌ Skrót | `dto` jako zmienna | Musi być opisane: `graph_definition_dto` |
+| ❌ Skrót | `exc` | Musi być `exception` |
 
 Wszystkie powyższe są **bezwzględnie zabronione** — również w handlerach, serwisach, testach, fixture'ach, conftestach, containerach DI, adapterach i całej infrastrukturze.
 
@@ -41,7 +41,7 @@ To oznacza również, że lista dopuszczonych skrotow jest wyczerpujaca i zamkni
 
 ## Przykłady ZABRONIONE
 
-| SKRÓCONA (ZABRONIONA) | Problem |
+| SKRÓCONA (Skrócona) | Problem |
 |----------------------|---------|
 | `wf_id` | Nie wiadomo czy `workflow_id` czy `workflow_instance_id` |
 | `env_id` | Czy `envelope_id` czy `environment_id`? |

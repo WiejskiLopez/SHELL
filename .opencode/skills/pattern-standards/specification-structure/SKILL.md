@@ -5,7 +5,11 @@ description: Reguły struktury klasy Specification — dziedziczenie po Specific
 
 # Specification Structure
 
-> Reguły struktury klasy Specification we wszystkich bounded contextach.
+> Reguły struktury klasy Specification.
+
+## Status wzorca
+
+Test architektury `test_domain_structure__test_specifications_extend_specification` wymaga dziedziczenia po bazie `Specification`, ale **baza ta nie istnieje jeszcze w platformie**. Wprowadzenie wzorca wymaga pierwszego kroku rozdrobnionego wdrożenia bazy `shell/platform/domain/base/specification.py`. Do czasu wdrożenia używaj guard clauses (`pattern-standards/guard-clause-pattern`) i metodami filtrów repozytoriów `list_by_*`.
 
 ## Definicja
 
@@ -54,8 +58,8 @@ class OwnerSpecification(Specification[Workflow]):
 
 ## Lokalizacja
 
-- `shell/domain/<bc>/specifications/`
-- Klasa bazowa: `shell/domain/platform/base/specification.py`
+- `shell/<service>/domain/<bc>/aggregates/<agregat>/specifications/`
+- Klasa bazowa: `shell/platform/domain/base/specification.py` (wzorzec docelowy — wymaga wdrożenia wraz z base)
 
 ## Bezpieczeństwo
 

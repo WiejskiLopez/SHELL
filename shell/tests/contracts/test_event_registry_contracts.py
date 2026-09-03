@@ -11,8 +11,10 @@ from shell.definition_service.application.definition.graph_definition.integratio
 from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
-from shell.platform.infrastructure.serialization.event.event_deserializer import EventDeserializer
-from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+from shell.platform.infrastructure.serialization.integration_event.integration_event_deserializer import (
+    IntegrationEventDeserializer,
+)
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
 
@@ -24,7 +26,6 @@ def test_definition_event_round_trips_through_its_registry() -> None:
         causation_id="causation-1",
         occurred_at=datetime(2026, 8, 12, tzinfo=UTC),
         aggregate_id="graph-1",
-        aggregate_name="GraphDefinition",
         schema_version=1,
         graph_definition_id="graph-1",
     )
@@ -32,8 +33,8 @@ def test_definition_event_round_trips_through_its_registry() -> None:
         event, outbox_id="outbox-1", source_service="definition_service"
     )
 
-    restored = EventDeserializer(build_definition_event_registry()).deserialize(
-        cast("str", outbox_payload["event_type"]),
+    restored = IntegrationEventDeserializer(build_definition_event_registry()).deserialize(
+        cast("str", outbox_payload["integration_event_name"]),
         event.occurred_at,
         cast("dict[str, object]", outbox_payload["payload"]),
         schema_version=cast("int", outbox_payload["schema_version"]),
@@ -41,7 +42,6 @@ def test_definition_event_round_trips_through_its_registry() -> None:
         correlation_id=cast("str", outbox_payload["correlation_id"]),
         causation_id=cast("str", outbox_payload["causation_id"]),
         aggregate_id=cast("str", outbox_payload["aggregate_id"]),
-        aggregate_name=cast("str", outbox_payload["aggregate_name"]),
     )
 
     assert isinstance(restored, GraphDefinitionCreatedIntegrationEvent)
@@ -50,7 +50,7 @@ def test_definition_event_round_trips_through_its_registry() -> None:
 
 
 def test_registry_returns_none_for_unknown_event_type() -> None:
-    deserializer = EventDeserializer(build_definition_event_registry())
+    deserializer = IntegrationEventDeserializer(build_definition_event_registry())
 
     restored = deserializer.deserialize(
         "EventFromUnknownBoundedContext",

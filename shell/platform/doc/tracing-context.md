@@ -25,13 +25,33 @@ sygnatury metod domenowych i aplikacyjnych.
 - `correlation_id.py`:
   - `correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default="")`;
   - `get_correlation_id() -> str`, `set_correlation_id(value) -> Token[str]`,
-    `reset_correlation_id(token)` (wzorzec set/reset z `Token`).
+    `reset_correlation_id(token)` (wzorzec set/reset z `Token`);
+  - `get_or_create_correlation_id() -> str` — zwraca bieżący `correlation_id`,
+    a gdy jest pusty generuje nowy przez skonfigurowany
+    `CorrelationIdGenerator` i ustawia go w kontekście. Używany przez
+    wszystkie miejsca **zapisujące** trace (mapper, command outbox writer,
+    publisher) — dzięki temu outbox nigdy nie otrzymuje pustego
+    identyfikatora przy wejściu spoza HTTP (CLI, worker, test).
+  - `set_correlation_id_generator(generator)` — wymienny backend generowania
+    (adapter `CorrelationIdGenerator`); ustawiany w Composition Root przez
+    `shell/platform/bootstrap/tracing.py:install_trace_id_generator()`.
 - `causation_id.py`:
   - `causation_id_var: ContextVar[str] = ContextVar("causation_id", default="")`;
   - `get_causation_id()`, `set_causation_id(value) -> Token[str]`,
     `reset_causation_id(token)` — identyczny kształt API.
 - `session_scope.py` — osobny `ContextVar` dla scope'a transakcji delivery,
   patrz [session-scope](session-scope.md).
+
+### Port i adaptery — wymienność backendu
+
+- **Port**: `shell/platform/application/context/ports/correlation_id_generator.py`
+  (`CorrelationIdGenerator.generate() -> str`).
+- **Adaptery**: `shell/platform/infrastructure/identity/uuid_correlation_id_generator.py`
+  (`UuidCorrelationIdGenerator` — domyślny, UUID4) oraz
+  `shell/platform/infrastructure/identity/static_correlation_id_generator.py`
+  (`StaticCorrelationIdGenerator` — deterministyczny, do testów).
+- **Instalacja**: `shell/platform/bootstrap/tracing.py:install_trace_id_generator()`
+  wołany na starcie każdego BC (HTTP i worker).
 
 ### Re-export — `shell/platform/infrastructure/context/__init__.py`
 

@@ -28,7 +28,7 @@ def test_session_service_artifacts_are_isolated(
     assert not any(path.startswith("shell/session_service/") for path in platform_files)
     assert any(path.startswith("shell/session_service/") for path in session_files)
     assert not any(path.startswith("shell/user_service/") for path in session_files)
-    assert "shell/session_service/migrations/versions/0001_session_baseline.py" in session_files
+    assert "shell/session_service/migrations/versions/session_0001_session.py" in session_files
 
     dockerfile = Path("shell/session_service/docker/Dockerfile").read_text(encoding="utf-8")
     assert "COPY shell/platform ./shell/platform" in dockerfile

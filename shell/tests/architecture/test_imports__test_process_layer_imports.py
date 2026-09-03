@@ -22,11 +22,16 @@ _FORBIDDEN_EXTERNAL: frozenset[str] = frozenset({"sqlalchemy", "fastapi", "motor
 
 def _is_forbidden_process_import(imp: str) -> bool:
     """Process/application-handler code may only reach domain (and the
-    application layer). Flag any cross-layer shell import plus web/ORM frameworks."""
+    application layer). Flag any cross-layer shell import plus web/ORM frameworks.
+    Imports within the process layer itself (``shell.*.process.*`` — platform i
+    per-BC, np. handlers importujące manager) są same-layer i dozwolone;
+    cross-BC reguluje test izolacji."""
     if any(imp == prefix or imp.startswith(prefix + ".") for prefix in _FORBIDDEN_EXTERNAL):
         return True
     parts = imp.split(".")
-    return len(parts) >= 3 and parts[0] == "shell" and parts[2] in _FORBIDDEN_LAYERS
+    if len(parts) >= 3 and parts[0] == "shell" and parts[2] in _FORBIDDEN_LAYERS:
+        return parts[2] != "process"
+    return False
 
 
 def test_process_layer_imports() -> None:

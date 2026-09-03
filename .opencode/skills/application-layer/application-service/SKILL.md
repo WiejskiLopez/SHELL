@@ -27,12 +27,12 @@ Decyzje biznesowe sa realizowane przez Domain Service lub agregat. Handler koord
 
 ## 4. Transaction Script vs Domain Model
 
-| Sytuacja | Domain Model | Transaction Script |
-|----------|-------------|-------------------|
-| Bogata logika biznesowa | Tak | Nie |
-| Prosty CRUD | Nie | Tak (QueryService) |
-| Złożone reguły | Tak (agregat + service) | Nie |
-| Performance zapisu | Umiarkowany | Wysoki |
+| Sytuacja | Model docelowy |
+|----------|----------------|
+| Bogata logika biznesowa | Domain Model (agregat + Domain Service) |
+| Prosty CRUD | QueryService / cienka ścieżka zapisu |
+| Złożone reguły | Domain Model (agregat + service) |
+| Performance zapisu | Zoptymalizowana warstwa persistence |
 
 ## 5. Autoryzacja w Application Service
 
@@ -54,7 +54,8 @@ class DeleteExecutionHandler:
 
 ## 6. Application Service a Testy
 
-Testy Application Services używają InMemory implementacji — testują koordynację, nie logikę biznesową.
+Testy Application Services używają implementacji InMemory — testują koordynację,
+a logikę biznesową pokrywają testy agregatu.
 
 ## Dodatkowe reguły dla Command Handlerów
 

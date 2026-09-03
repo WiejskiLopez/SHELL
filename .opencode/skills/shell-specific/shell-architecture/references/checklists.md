@@ -4,22 +4,24 @@ Checklisty do przejścia przed wysłaniem zmian. Każda odpowiada konkretnej kla
 
 ## Dodawanie nowej funkcjonalności (krok po kroku)
 
+> Konwencja ścieżek: SHELL nie ma top-level pakietów `domain/`, `application/`, `infrastructure/`, `framework/`, `bootstrap/`. Każdą ścieżkę poniżej czytaj jako `shell/<bc>_service/<warstwa>/<bc>/...` (np. `domain/<bc>/aggregates/<agregat>/` = `shell/execution_service/domain/execution/aggregates/<agregat>/`).
+
 1. **Model domenowy** (jeśli potrzeba):
    - Value Object w `domain/<bc>/aggregates/<agregat>/value_objects/`
    - Entity/Aggregate Root w `domain/<bc>/aggregates/<agregat>/`
    - Domain Event w `domain/<bc>/aggregates/<agregat>/events/`
    - Domain Exception w `domain/<bc>/aggregates/<agregat>/exceptions/`
-   - Domain Service w `domain/<bc>/aggregates/<agregat>/services/`
+   - Domain Service w `domain/<bc>/aggregates/<agregat>/services/` (lub `domain/<bc>/services/`)
    - Repository Port w `domain/<bc>/aggregates/<agregat>/repositories/`
 
 2. **Operacja aplikacyjna** (atomowa, 1 agregat):
    - Command lub Query w `application/<bc>/<aggregate>/commands/` lub `application/<bc>/<aggregate>/queries/`
    - Handler w `application/<bc>/<aggregate>/command_handlers/` lub `application/<bc>/<aggregate>/query_handlers/`
-   - Event Handler w `application/<bc>/event_handlers/`
+   - Event Handler w `application/<bc>/<aggregate>/event_handlers/`
    - DTO w `application/<bc>/<aggregate>/dto/`
    - Mapper w `application/<bc>/<aggregate>/mappers/`
 
-3. **Orkiestracja/Process** (jeśli potrzeba koordynacji wielu agregatów):
+3. **Orkiestracja/Process** (jeśli potrzeba koordynacji wielu agregatów — warstwa docelowa):
    - Saga/Process Manager w `process/<bc>/<nazwa_sagi>/manager.py`
    - Saga State w `process/<bc>/<nazwa_sagi>/state.py`
    - Event Handlery sagi w `process/<bc>/<nazwa_sagi>/handlers/`
@@ -28,26 +30,24 @@ Checklisty do przejścia przed wysłaniem zmian. Każda odpowiada konkretnej kla
 
 4. **Adapter infrastrukturalny**:
    - ORM Model w `infrastructure/<bc>/<aggregate>/persistence/sql/models/`
-   - Migracja Alembic w `infrastructure/platform/persistence/migrations/sql/versions/`
+   - Migracja Alembic w `<bc>_service/migrations/versions/` (per BC)
    - Repository w `infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`
    - InMemory Repository w `infrastructure/<bc>/<aggregate>/persistence/memory/`
 
 5. **Rejestracja w DI**:
-   - Application Container w `bootstrap/<bc>/container/` lub `bootstrap/platform/container/`
-   - Factory w `bootstrap/<bc>/factory/` lub `bootstrap/platform/factory/`
-   - Core Container w `bootstrap/platform/container/` — dodaj nowy moduł
+   - Container w `bootstrap/<bc>/container/<bc>_core_container.py`
 
 6. **Endpoint frameworkowy**:
    - Router FastAPI w `framework/<bc>/<aggregate>/api/`
-   - Lub komenda CLI w `framework/<bc>/entrypoints/`
+   - Lub komenda CLI w `framework/<bc>/api/` / `bootstrap/<bc>/cli/`
 
 7. **Testy**:
-   - Unit domain w `tests/<bc>/unit/domain/`
-   - Unit application w `tests/<bc>/unit/application/`
-   - Unit process w `tests/process/unit/` (testy sagi/process managerów z InMemory adapterami)
-   - Integration process w `tests/process/integration/sql_sqlite/` (testy repozytoriów sagi z SQLite)
-   - Integration w `tests/<bc>/integration/sql_sqlite/`
-   - E2E w `tests/<bc>/e2e/api/` lub `tests/<bc>/e2e/cli/`
+   - Unit domain w `tests/<bc>_service/unit/domain/`
+   - Unit application w `tests/<bc>_service/unit/application/`
+   - Unit process w `tests/process/unit/` (wzorzec docelowy)
+   - Integration process w `tests/process/integration/sql_sqlite/` (wzorzec docelowy)
+   - Integration w `tests/<bc>_service/integration/sql_sqlite/`
+   - E2E w `tests/<bc>_service/e2e/api/` lub `tests/<bc>_service/e2e/cli/`
 
 ## Handler completeness
 
@@ -67,18 +67,15 @@ Każdy handler (command/event) musi przejść tę listę:
 
 Przy dodawaniu nowego handlera:
 
-1. **Container**: dodaj `providers.Factory(NewHandler, ...)` w odpowiednim kontenerze
-   - Command → `command_container.py`
-   - Query → `query_container.py`
-   - Event → `event_container.py`
-2. **Factory**: zarejestruj handler w odpowiedniej funkcji factory
-   - `command_factory.py` → `command_bus.register(NewCommand, app_ctx.commands.new_handler_factory)`
-   - `query_factory.py` → `q_bus.register(NewQuery, app_ctx.queries.new_handler_factory)`
-   - `event_factory.py` → `event_bus.subscribe(NewEvent, app_ctx.events.new_handler_factory)`
+1. **Container**: dodaj `providers.Factory(NewHandler, ...)` w kontenerze danego BC (`shell/<service>/bootstrap/<bc>/container/<bc>_core_container.py`) — nazwa `*_handler_factory`
+2. **Rejestracja na busie**: w kontenerze/funkcji setup danego BC
+   - `command_bus.register(NewCommand, container.new_command_handler_factory)`
+   - `query_bus.register(NewQuery, container.new_query_handler_factory)`
+   - `event_bus.subscribe(NewEvent, container.new_event_handler_factory)`
 3. **Weryfikacja**:
    - Typ komendy/eventu jest unikalny (CommandBus: 1:1, EventBus: 1:N)
-   - Kontener ma wszystkie zależności (infra, domain, buses) podpięte
-   - `core_container.py` przekazuje wszystkie wymagane zależności do sub-kontenerów
+   - Kontener ma wszystkie zależności podpięte (odpowiada za nie test kontenera)
+   - Spójność rejestracji sprawdza `application-layer/handler-registration-integrity` i testy architektury (`test_container_delivery_bundle_wiring`)
 
 ## Mapper symmetry (KRYTYCZNE — zapobiega antywzorcom 1, 7)
 
@@ -88,7 +85,7 @@ Przy każdej zmianie agregatu persystowanego sprawdź round-trip:
 2. Każda kolumna jest odczytywana w `*_model_to_entity`
 3. Każda kolumna jest zapisywana w `*_entity_to_model`
 4. Konwersje typów (UUID↔str, datetime↔str, JSON↔dict) są symetryczne w obu kierunkach
-5. Zmiana schematu eventu = inkrementacja `schema_version` + obsługa starego formatu w `from_payload()`
+5. Zmiana schematu eventu = nowa `schema_version` + obsługa starego formatu przez upcaster (`IntegrationEventDeserializer`)
 6. Test round-trip: `entity → model → entity` — porównaj wszystkie pola
 
 ## Lockstep refaktoryzacji (KRYTYCZNE — zapobiega antywzorcowi 1)
@@ -146,7 +143,7 @@ Dla każdego agregatu persystowanego:
 | Integration | `tests/<bc>/integration/sql_postgres/` | PostgreSQL-specific | PostgreSQL przez `PG_TEST_URL` |
 | E2E | `tests/<bc>/e2e/api/` | FastAPI endpointy | httpx + prawdziwy DI container |
 | E2E | `tests/<bc>/e2e/cli/` | CLI komendy | argparse + prawdziwy DI container |
-| Architecture | `tests/platform/architecture/` | Zależności importowe, konwencje, typy | AST parser (nie importuje kodu) |
+| Architecture | `shell/tests/architecture/` | Zależności importowe, konwencje, typy | AST parser (nie importuje kodu) |
 
 Reguły:
 - Testy jednostkowe nigdy nie używają bazy, frameworka, sieci

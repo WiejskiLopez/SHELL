@@ -3,9 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from shell.platform.application.commands.command import Command
+
 
 @dataclass(frozen=True, slots=True)
-class CreateSchedulerDefinitionCommand:
+class CreateSchedulerDefinitionCommand(Command):
     name: str
     trigger_config: dict[str, Any]
     action_config: dict[str, Any]

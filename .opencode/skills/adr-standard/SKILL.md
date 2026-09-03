@@ -116,14 +116,13 @@ Wynik walidacji może być wyłącznie:
 - `BLAD ARCHITEKTONICZNY` — raport wskazuje problem; poprawka wymaga albo
   zmiany ADR, albo uzasadnionej zmiany reguł, nigdy obejścia reguł.
 
-## Czego nie robić (legacy anti-patterns)
+## Treść dokumentacji — profil twierdzący
 
-- nie twórz `doc/TODO.md` ani `doc/FUTURE.md` opisujących przyszłą zawartość;
-- nie twórz pustych katalogów modułu jako "rezerwacji" obszaru;
-- nie pisz "zaraz dodamy", "do uzupełnienia", "future work" w dokumentacji
-  katalogów i Wiki;
-- nie deklaruj, że funkcjonalność istnieje, zanim istnieje kod i testy;
-- nie trzymaj backlogu ani planów w źródłach i dokumentacji pakietów.
+- opisz decyzję, stan faktyczny i przyszłość w treści samej dokumentacji (ADR, Wiki, katalogi);
+- przydziel obszar modułu wtedy, gdy ma realny kod i testy;
+- oznacz status i dojrzałość jawnie (`Proposed | Accepted | Superseded | Deprecated`);
+- opisuj w dokumentacji to, co implementuje kod i potwierdzają testy;
+- plany i backlog prowadź poza źródłami pakietów (np. tracker zadań).
 
 ## Minimalny szablon
 

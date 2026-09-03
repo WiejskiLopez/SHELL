@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.ingestion_service.application.ingestion.ingestion.commands.change_ingestion_command import (
+    ChangeIngestionCommand,
+)
 from shell.ingestion_service.application.ingestion.ingestion.exceptions.ingestion_not_found_error import (
     IngestionNotFoundError,
 )
@@ -11,17 +14,15 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.repositories.
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_id import (
     IngestionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.changed_at import ChangedAt
 
 if TYPE_CHECKING:
-    from shell.ingestion_service.application.ingestion.ingestion.commands.change_ingestion_command import (
-        ChangeIngestionCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
 
 
-class ChangeIngestionHandler:
+class ChangeIngestionHandler(CommandHandler[ChangeIngestionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr
+from shell.scheduling_service.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
+    CreateSchedulerJobCommand,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
@@ -34,12 +38,9 @@ if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
-    from shell.scheduling_service.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
-        CreateSchedulerJobCommand,
-    )
 
 
-class CreateSchedulerJobHandler:
+class CreateSchedulerJobHandler(CommandHandler[CreateSchedulerJobCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

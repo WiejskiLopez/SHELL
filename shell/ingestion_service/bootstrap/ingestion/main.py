@@ -14,6 +14,7 @@ from shell.ingestion_service.bootstrap.ingestion.container.ingestion_core_contai
 from shell.ingestion_service.framework.ingestion.api.app import create_ingestion_app
 from shell.ingestion_service.infrastructure.ingestion.seed import seed_ingestion_dev_data
 from shell.ingestion_service.migrations.baseline import run_ingestion_baseline
+from shell.platform.bootstrap.tracing import install_trace_id_generator
 from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
@@ -51,6 +52,7 @@ def main() -> None:
         runtime.events.worker_max_batch_time_seconds
     )
     configure_ingestion_container(container)
+    install_trace_id_generator()
     app = create_ingestion_app(container, api_key=api_key)
     server = uvicorn.Server(
         build_service_uvicorn_config(app, service="ingestion", host=args.host, port=args.port)
@@ -79,6 +81,8 @@ def main() -> None:
                 poll_interval_seconds=runtime.events.worker_poll_interval,
                 outbox_relay=container.outbox_to_transport_relay_factory(),
                 outbox_worker_id="ingestion-outbox-relay",
+                command_outbox_relay=container.command_outbox_to_transport_relay_factory(),
+                command_outbox_worker_id="ingestion-command-outbox-relay",
             )
             return
         await server.serve()

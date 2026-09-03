@@ -24,13 +24,14 @@ def start(self) -> None:
     if not self._nodes:
         raise WorkflowHasNoNodes(self._id)
     self._status = WorkflowStatus.RUNNING
-    self._version += 1
+    self._version = self._version.next()
     self.append_event(WorkflowStartedEvent(...))
 ```
 
 ## Dedykowane wyjątki
 
-- Każdy naruszony invariant rzuca dedykowany wyjątek domenowy — nie ogólny `ValueError` czy `RuntimeError`.
+- Naruszenie invariantu skutkuje dedykowanym wyjątkiem domenowym (`...Error` dziedziczącym po `DomainError`);
+  ogólne `ValueError` czy `RuntimeError` pozostają poza warstwą domeny.
 
 ```python
 class WorkflowAlreadyStarted(DomainError):
@@ -86,5 +87,5 @@ def _assert_invariants(self) -> None:
 ## Lokalizacja
 
 - Guard clauses: w agregacie (`_assert_*` metody)
-- Rule Objects: `shell/domain/<bc>/rules/<nazwa_reguly>_rule.py`
-- Wyjątki: `shell/domain/<bc>/exceptions.py`
+- Rule Objects: `shell/<service>/domain/<bc>/aggregates/<agregat>/rules/<nazwa_reguly>_rule.py` (wzorzec opcjonalny — SHELL domyślnie używa `_assert_*` w agregacie)
+- Wyjątki: `shell/<service>/domain/<bc>/aggregates/<agregat>/exceptions/<nazwa>_error.py`

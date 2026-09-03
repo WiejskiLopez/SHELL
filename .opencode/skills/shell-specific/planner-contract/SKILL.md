@@ -5,6 +5,8 @@ description: Kontrakt wyjściowy PLANNER node — format, przepływ, implementac
 
 # Planner Contract — jak działa PLANNER node
 
+> **Status:** niniejszy skill opisuje **stan docelowy (kontrakt) do wdrożenia**. Mechanizmy `PlannerStrategy`, `SubGraphDiscovery`, `planner_result_handler` oraz eventy opisane niżej nie są jeszcze zaimplementowane w repo — nie odwołują się do "istniejącego kodu". Przed implementacją weryfikuj aktualny stan w `shell/<service>/...`. Ścieżki w przykładach zachowują topologię per-BC (`shell/<service>/{domain,application,infrastructure}`), nie top-level monolit.
+
 ## 1. Rola Plannera
 
 Planner to `NodeExecution` z `mode=PLANNER`. Jest schedulowany przez Scheduler jak każdy inny node — nie nasłuchuje, nie jest wywoływany ręcznie. Scheduler uruchamia go gdy:
@@ -87,7 +89,7 @@ NodeExecutionCompletedHandler (Cycle B):
 
 ### 4.1 Nowy port: `SubGraphDiscovery`
 
-**Path:** `shell/domain/execution/aggregates/node_execution/ports/sub_graph_discovery.py` (lub `shell/domain/execution/ports/`)
+**Path:** `shell/<service>/domain/execution/aggregates/node_execution/ports/sub_graph_discovery.py` (lub `shell/<service>/domain/execution/ports/`)
 
 ```python
 """SubGraphDiscovery Protocol — znajduje GraphDefinition na podstawie opisu."""
@@ -113,7 +115,7 @@ class SubGraphDiscovery(Protocol):
 
 ### 4.2 Nowy adapter: `VectorSubGraphDiscovery`
 
-**Path:** `shell/infrastructure/execution/graph_execution/http/` (lub `shell/infrastructure/execution/discovery/vector_sub_graph_discovery.py` — do stworzenia)
+**Path:** `shell/<service>/infrastructure/execution/graph_execution/http/` (lub `shell/<service>/infrastructure/execution/discovery/vector_sub_graph_discovery.py` — do stworzenia)
 
 Implementacja:
 1. Embeduje `query` do wektora (np. OpenAI Ada, local embedding)
@@ -143,8 +145,8 @@ class PlannerSpawnsQueuedEvent(DomainEvent):
 
 ### 4.5 Refaktor: `PlannerResultHandler`
 
-**Z:** `shell/application/execution/event_handlers/spawn_sub_graphs_on_planner_completion_handler.py` (do stworzenia/usunięcia)
-**Na:** `shell/application/execution/event_handlers/planner_result_handler.py` (do stworzenia)
+**Z:** `shell/<service>/application/execution/event_handlers/spawn_sub_graphs_on_planner_completion_handler.py` (do stworzenia/usunięcia)
+**Na:** `shell/<service>/application/execution/event_handlers/planner_result_handler.py` (do stworzenia)
 
 Kluczowe zmiany:
 - Parsuje `{ stage, spawn[] }` zamiast `{ steps: [{ action, sub_graph_definition_id }] }`

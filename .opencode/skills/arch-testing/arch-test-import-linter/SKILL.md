@@ -5,6 +5,8 @@ description: Testy architektury oparte na `import-linter` — automatyzują regu
 
 # Testy Architektury — Import Linter
 
+> **Status w SHELL:** repo wywołuje `import-linter lint` (m.in. w `run_tests.ps1` przez wrapper `tests/architecture/test_import_linter.py`). Kontrakty w `[tool.import-linter]` nie są jeszcze skonfigurowane — poniższe przykłady to **wzorzec docelowy**. Uwaga na topologię: SHELL nie ma top-level pakietów `shell.domain`, `shell.application` itd. — realne pakiety to `shell/<bc>_service/{domain,application,process,infrastructure,framework,bootstrap}/<bc>` oraz `shell/platform`. Reguły (np. `source_modules`) trzeba definiować względem realnych pakietów.
+
 ## 1. Koncepcja
 
 `import-linter` to narzędzie, które analizuje statycznie importy w Pythonie i porównuje je z regułami zdefiniowanymi w `pyproject.toml` (lub `setup.cfg`). Każda reguła deklaruje, które pakiety mogą (lub nie mogą) importować które pakiety.
@@ -76,11 +78,8 @@ source_modules = ["shell.infrastructure"]
 ## 3. Komenda uruchomieniowa
 
 ```bash
-# lokalnie
-lint-imports
-
-# CI
-lint-imports --fail-on-errors
+# lokalnie / CI (realna w repo)
+.venv\Scripts\import-linter.exe lint
 ```
 
 Wynik: lista naruszeń z nazwą pliku i linią — każdy import, który łamie regułę.
@@ -148,21 +147,21 @@ source_modules = ["shell.domain"]
 
 ## 5. Struktura plików testowych
 
-Testy import-linter nie są standardowymi testami pytest — to osobne narzędzie. Jednak warto dodać test pytest, który wywołuje `lint-imports` i assercjonuje exit code:
+Testy import-linter nie są standardowymi testami pytest — to osobne narzędzie. Jednak warto dodać test pytest, który wywołuje `import-linter lint` i assercjonuje exit code:
 
 ```
-tests/platform/architecture/
-├── test_import_linter.py        # wrapper wywołujący lint-imports
+tests/architecture/
+├── test_import_linter.py        # wrapper wywołujący import-linter lint
 └── test_layer_imports.py        # alternatywnie: ręczne AST (fallback)
 ```
 
-### 5.1 Wrapper pytest w `tests/platform/architecture/test_import_linter.py`
+### 5.1 Wrapper pytest w `tests/architecture/test_import_linter.py`
 
 ```python
 """Test, który uruchamia import-linter i assertuje brak naruszeń."""
 
+import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 
@@ -170,8 +169,9 @@ class TestImportLinter:
     """Weryfikuje reguły import-linter zdefiniowane w pyproject.toml."""
 
     def test_no_forbidden_imports(self) -> None:
+        import_linter = shutil.which("import-linter")
         result = subprocess.run(
-            [sys.executable, "-m", "lint_imports"],
+            [import_linter, "lint"],
             cwd=Path(__file__).resolve().parents[2],
             capture_output=True,
             text=True,
@@ -184,7 +184,7 @@ class TestImportLinter:
 ### 5.2 Ręczne AST (fallback, gdy import-linter nie może być użyty)
 
 ```python
-# tests/platform/architecture/test_layer_imports.py
+# tests/architecture/test_layer_imports.py
 """Ręczna weryfikacja importów między warstwami przez AST."""
 
 import ast

@@ -15,14 +15,14 @@ description: Reguły struktury Value Object — dziedziczenie po ValueObject, fr
 - `datetime` reprezentuje znacznik czasu `created_at` albo `occurred_at`.
 - Kazde pojecie biznesowe ma dedykowany Value Object.
 
-Testy weryfikujące (w `shell/tests/platform/architecture/test_domain_structure.py`):
+Testy weryfikujące (w `shell/tests/architecture/test_domain_structure__*.py`):
 - `test_entity_aggregate_fields_have_domain_types`
 - `test_domain_event_fields_have_domain_types`
 - `test_repository_port_signatures_have_domain_types`
 
 ## Klasa
 
-- Każdy VO MUSI implementować `ValueObject` z platformy (`shell.domain.platform.base.ValueObject`).
+- Każdy VO MUSI implementować `ValueObject` z platformy (`from shell.platform.domain.base.value_object import ValueObject`).
 - VO oparte na pojedynczej wartości → `@dataclass(frozen=True, slots=True)`.
 - VO złożone → `@dataclass(frozen=True)`.
 
@@ -51,12 +51,12 @@ class EmailAddress(ValueObject):
 
 ## Walidacja
 
-- Każdy VO waliduje swój stan w `__post_init__` i rzuca dedykowany błąd domenowy, jeśli nie spełnia invariantów.
-- Fail-fast — walidacja przy konstrukcji, nie przy użyciu.
+- Każdy VO waliduje swój stan w `__post_init__`; naruszenie invariantów skutkuje dedykowanym błędem domenowym.
+- Fail-fast — walidacja wykonuje się przy konstrukcji; stan VO jest ważny na etapie użycia.
 
 ## Zachowania biznesowe
 
-- VO to nie worek na dane — to pełnoprawny obiekt domenowy, który zawiera zachowania biznesowe związane z danym pojęciem.
+- VO to pełnoprawny obiekt domenowy zawierający zachowania biznesowe danego pojęcia (a nie worek na dane).
 - Jeśli w encji, serwisie domenowym lub agregacie pojawia się logika operująca na surowej wartości VO (np. `version.value + 1`), tę logikę należy przenieść do VO jako metodę.
 
 ```python
@@ -127,17 +127,17 @@ class Money(ValueObject):
 
 ## Uniwersalne VO
 
-- Definiowane na platformie: `shell/domain/platform/value_objects/`
-- Przykłady: `Version`, `Timestamp`, `Hash`, `Enabled`, `CreatedAt`, `UpdatedAt`
+- Definiowane na platformie: `shell/platform/domain/value_objects/`
+- Przykłady: `Version`, `Timestamp`, `Hash`, `Enabled`, `CreatedAt`, `ChangedAt`, `DeletedAt`, `OccurredAt`
 
 ## ID
 
-- Każde ID w domenie dziedziczy po generycznej klasie `EntityId` (`shell/domain/platform/base/entity_id.py`).
+- Każde ID w domenie dziedziczy po generycznej klasie `EntityId` (`shell/platform/domain/base/entity_id.py`).
 - `EntityId` dostarcza: `value: str`, `__post_init__` (niepuste), `__str__`, `generate()`.
 - Własny plik dla każdego ID → jedna linijka.
 
 ```python
-from shell.domain.platform.base import EntityId
+from shell.platform.domain.base import EntityId
 
 
 class WorkflowId(EntityId):
@@ -155,20 +155,21 @@ class EmailId(EntityId):
 
 ## Lokalizacja
 
-- `shell/domain/<bc>/value_objects/`
-- Uniwersalne: `shell/domain/platform/value_objects/`
-- Baza `EntityId`: `shell/domain/platform/base/`
+- `shell/<service>/domain/<bc>/aggregates/<agregat>/value_objects/`
+- Uniwersalne platformowe: `shell/platform/domain/value_objects/`
+- Baza `EntityId`: `shell/platform/domain/base/`
 
 ## Bezpieczeństwo
 
 - VO to czysty kod domenowy.
-- Nie może importować niczego z `shell.infrastructure.*`, `shell.application.*` ani frameworków ORM.
+- VO importuje wyłącznie stdlib, platformowe bazy (`ValueObject`) i własną domenę;
+  `shell.infrastructure.*`, `shell.application.*` oraz frameworki ORM pozostają poza zasięgiem.
 
 ## Podsumowanie — Checklista
 
 Podczas dodawania nowego VO:
-- [ ] Jeśli uniwersalny → w `platform/value_objects/`, nie w domenie
+- [ ] Uniwersalny → `shell/platform/domain/value_objects/`; per-BC → własna domena
 - [ ] Jeden VO = jeden plik
-- [ ] Importuje `ValueObject` z `shell.domain.platform.base.value_object` (nie przez re-eksport)
-- [ ] Dla ID: `EntityId` z `shell.domain.platform.base` zamiast ręcznego `@dataclass(frozen=True, slots=True)`
+- [ ] Importuje `ValueObject` z kanonicznego modułu `shell.platform.domain.base.value_object`
+- [ ] Dla ID: `EntityId` z `shell.platform.domain.base` zamiast ręcznego `@dataclass(frozen=True, slots=True)`
 - [ ] Brak zależności od ORM / infrastruktury

@@ -25,6 +25,8 @@ from shell.platform.framework.api.models.page import Page
 from shell.platform.framework.api.models.problem_detail import FieldError, ProblemDetail
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     from shell.platform.framework.api.version import ApiVersionRegistry
 
 
@@ -93,14 +95,16 @@ def setup_api_common(
     registry: ApiVersionRegistry = API_VERSION_REGISTRY,
     api_key: str = "",
     jwt_secret: str = "",
+    allowed_origins: Collection[str] | None = None,
 ) -> None:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    if allowed_origins is not None:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(allowed_origins),
+            allow_credentials=("*" not in allowed_origins),
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
     app.add_middleware(CorrelationIdMiddleware)
     app.add_middleware(AuditLogMiddleware)
 

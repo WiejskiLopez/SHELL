@@ -9,8 +9,10 @@ from shell.platform.application.context.causation_id import (
 from shell.platform.application.context.correlation_id import (
     correlation_id_var,
     get_correlation_id,
+    get_or_create_correlation_id,
     reset_correlation_id,
     set_correlation_id,
+    set_correlation_id_generator,
 )
 from shell.platform.application.context.session_scope import (
     DeliverySessionScope,
@@ -26,6 +28,7 @@ __all__ = [
     "correlation_id_var",
     "get_causation_id",
     "get_correlation_id",
+    "get_or_create_correlation_id",
     "get_session_scope",
     "reset_causation_id",
     "reset_correlation_id",
@@ -33,5 +36,6 @@ __all__ = [
     "session_scope_var",
     "set_causation_id",
     "set_correlation_id",
+    "set_correlation_id_generator",
     "set_session_scope",
 ]

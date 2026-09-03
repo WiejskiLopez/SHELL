@@ -9,6 +9,7 @@ from pathlib import Path
 
 import uvicorn
 
+from shell.platform.bootstrap.tracing import install_trace_id_generator
 from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_delivery_workers
@@ -46,6 +47,8 @@ async def _run_event_worker(container: SessionCoreContainer) -> None:
         poll_interval_seconds=runtime.events.worker_poll_interval,
         outbox_relay=container.outbox_to_transport_relay_factory(),
         outbox_worker_id="session-outbox-relay",
+        command_outbox_relay=container.command_outbox_to_transport_relay_factory(),
+        command_outbox_worker_id="session-command-outbox-relay",
     )
 
 
@@ -82,6 +85,7 @@ def main() -> None:
     container.config.worker_id.from_value("session-event-processor")
     container.config.command_worker_id.from_value("session-command-processor")
     configure_session_container(container)
+    install_trace_id_generator()
     app = create_session_app(container, api_key=api_key)
     server = uvicorn.Server(
         build_service_uvicorn_config(

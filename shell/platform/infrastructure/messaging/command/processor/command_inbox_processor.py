@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.application.bus.command_bus import CommandBus
+    from shell.platform.application.commands.command import Command
     from shell.platform.application.ports.technical_id_generator import TechnicalIdGenerator
     from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
         EnvelopeValidationPolicy,
@@ -36,7 +37,7 @@ class _CommandRow(Protocol):
     causation_id: str
     retry_count: int
     schema_version: int
-    command_type: str
+    command_name: str
     payload: dict[str, object]
 
 
@@ -93,17 +94,17 @@ class CommandInboxProcessor(InboxProcessorBase):
     def _deserialize(self, row: object) -> object | None:
         command_row = cast("_CommandRow", row)
         return self._deserializer.deserialize(
-            command_row.command_type,
-            getattr(row, "occurred_at", None),
+            command_row.command_name,
+            getattr(row, "issued_at", None),
             command_row.payload,
             schema_version=getattr(row, "schema_version", 1),
         )
 
     async def _dispatch(self, domain_object: object) -> None:
-        await self._command_bus.dispatch(domain_object)
+        await self._command_bus.dispatch(cast("Command", domain_object))
 
     def _causation_value(self, domain_object: object, row: object) -> str:
         return str(getattr(row, "causation_id", ""))
 
-    def _type_name(self, row: object) -> str:
-        return cast("_CommandRow", row).command_type
+    def _message_name(self, row: object) -> str:
+        return cast("_CommandRow", row).command_name

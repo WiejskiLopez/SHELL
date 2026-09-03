@@ -91,14 +91,14 @@ class NodeStatus(StrEnum):
 
 - Mają lokalną tożsamość tylko w kontekście rodzica.
 - Modyfikowane wyłącznie przez metody Aggregate Root.
-- Nie mają własnego repozytorium.
+- Podlegają repozytorium agregatu root (bez własnego repozytorium).
 
 ## Lokalizacja
 
-- `shell/domain/<bc>/aggregates/<nazwa_agregatu>/entities/`
-- Encje współdzielone między agregatami: `shell/domain/<bc>/entities/`
+- `shell/<service>/domain/<bc>/aggregates/<nazwa_agregatu>/entities/`
+- Encje współdzielone między agregatami: `shell/<service>/domain/<bc>/entities/` (jeśli BC wymaga)
 
 ## Bezpieczeństwo
 
 - Encje to czysty kod domenowy.
-- Brak importów ORM, brak adnotacji serializacyjnych, brak zależności od `shell.infrastructure.*`.
+- Brak importów ORM, brak adnotacji serializacyjnych, brak zależności od `shell.*.infrastructure.*`.

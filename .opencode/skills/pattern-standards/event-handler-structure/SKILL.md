@@ -5,14 +5,18 @@ description: Reguły struktury Event Handler — subskrypcja eventów, idempoten
 
 # Enterprise Event Handler Structure
 
-> Kompletne reguły struktury Domain Event Handler we wszystkich bounded contextach.
+> Kompletne reguły struktury Event Handler we wszystkich bounded contextach.
+> Event Handler obsługuje **Integration Events** (fakty z inboxu/outboxa oraz
+> wewnątrz BC po mapowaniu). Domain Event jest wewnętrznym faktem agregatu i trafia
+> do outboxa jako Integration Event (mapper w UoW: `append_event` → stage → map → outbox).
 > Wzorzec jest **symetryczny** do Command Handler — analogiczna struktura plików, DI, rejestracja na busie (patrz `command-handler-structure`).
 
 ---
 
 ## Architektura — bus
 
-- Event Handler rejestrowany na `EventBus` przez `event_factory.py` (`event_bus.subscribe(...)`).
+- Event Handler rejestrowany na `EventBus` w kontenerze DI danego BC (`shell/<service>/bootstrap/<bc>/container/<bc>_core_container.py` — `event_bus.subscribe(<EventName>, container.<handler>_factory)`).
+- Każdy zarejestrowany handler musi mieć odpowiadający mu provider `*_handler_factory` w kontenerze (patrz `application-layer/handler-registration-integrity`).
 - Semantyke Event opisuje `architectural-discipline/event-semantics`.
 
 ---
@@ -20,14 +24,14 @@ description: Reguły struktury Event Handler — subskrypcja eventów, idempoten
 ## Lokalizacja
 
 ```
-shell/application/<bounded_context>/<aggregate>/event_handlers/
-                                    ↑ obok command_handlers/
+shell/<service>/application/<bounded_context>/<aggregate>/event_handlers/
+                                                    ↑ obok command_handlers/
 ```
 
 Przykład:
 ```
-shell/application/session/session/event_handlers/user_login_succeeded_handler.py
-shell/application/session/session/event_handlers/__init__.py
+shell/session_service/application/session/session/event_handlers/user_login_succeeded_handler.py
+shell/session_service/application/session/session/event_handlers/__init__.py
 ```
 
 ---
@@ -43,24 +47,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.session.aggregates.session.repositories.session_repository import (
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.session_service.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
-from shell.domain.session.value_objects.user_id_ref import UserIdRef
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.session_service.domain.session.value_objects.user_id_ref import UserIdRef
 
 if TYPE_CHECKING:
-    from shell.application.user.user.integration_events.user_login_succeeded_integration_event import (
+    from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.time import Clock
+    from shell.user_service.application.user.user.integration_events.user_login_succeeded_integration_event import (
         UserLoginSucceededIntegrationEvent,
     )
-    from shell.platform.application.ports.ports import Clock, UnitOfWork
 ```
 
 ---
 
 ## Metoda `handle`
 
-- Pojedyncza `async handle(self, event: TEvent) -> None`.
+- Pojedyncza `async handle(self, event: <EventName>) -> None`.
 - Zwraca `None` — event handlery są fire-and-forget.
 
 ---

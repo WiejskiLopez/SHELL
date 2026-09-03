@@ -1,5 +1,7 @@
 # Anti-Corruption Layer — wzorzec krok po kroku
 
+> Uwaga o konwencji ścieżek: poniższe przykłady (ordering, invoicing, legacy) są **ilustracyjne**. W SHELL nie ma top-level pakietów `shell/domain`, `shell/application` itd. — realna topologia to `shell/<service>/domain/<bc>/...` oraz `shell/<service>/application/<bc>/<aggregate>/...`. W każdym przykładzie zastąp `<service>` nazwą serwisu BC.
+
 ## Kiedy stosować ACL
 
 ACL izoluje Twój BC od zewnętrznego systemu którego model danych jest "zepsuty", przestarzały albo który zmienia się bez ostrzeżenia.

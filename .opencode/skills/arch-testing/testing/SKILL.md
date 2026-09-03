@@ -138,38 +138,18 @@ class TestSqlExecutionRepository:
 
 ## 6. Testy Architektury
 
-Weryfikują reguły architektoniczne — importy między warstwami, konwencje nazewnicze, obecność wymaganych elementów.
+Weryfikują reguły architektoniczne — importy między warstwami, konwencje nazewnicze, obecność wymaganych elementów. Realna lokalizacja: `shell/tests/architecture/` (flat).
 
 ```python
-# tests/platform/architecture/test_layer_imports.py
-class TestLayerImports:
-    def test_domain_does_not_import_infrastructure(self) -> None:
-        violations = []
-        for module in find_python_modules("shell/domain"):
-            imports = extract_imports(module)
-            if any("shell.infrastructure" in i for i in imports):
-                violations.append(module)
-        assert not violations, f"Domain imports infrastructure: {violations}"
-
-    def test_application_does_not_import_infrastructure(self) -> None:
-        violations = []
-        for module in find_python_modules("shell/application"):
-            imports = extract_imports(module)
-            if any("shell.infrastructure" in i for i in imports):
-                violations.append(module)
-        assert not violations, f"Application imports infrastructure: {violations}"
-
-    def test_every_aggregate_has_factory(self) -> None:
-        aggregates = find_aggregate_directories()
-        for agg in aggregates:
-            factory_path = f"shell/domain/{agg}/factories"
-            assert exists(factory_path), f"Missing factory for aggregate {agg}"
-
-    def test_every_repository_has_in_memory_impl(self) -> None:
-        repos = find_repository_ports()
-        for repo in repos:
-            in_memory = repo.replace("repositories/", "repositories/in_memory_")
-            assert exists(in_memory), f"Missing InMemory for {repo}"
+# shell/tests/architecture/test_imports__test_domain_layer_imports.py
+def test_no_forbidden_imports() -> None:
+    """Sprawdza, że domain nie importuje infrastructure i odwrotnie (wzorzec ilustracyjny)."""
+    violations = []
+    for module in find_python_modules("shell/<service>/domain"):
+        imports = extract_imports(module)
+        if any(i.startswith("shell.") and "infrastructure" in i for i in imports):
+            violations.append(module)
+    assert not violations, f"Domain imports infrastructure: {violations}"
 ```
 
 ## 7. Testy Mapperów (Round-trip)

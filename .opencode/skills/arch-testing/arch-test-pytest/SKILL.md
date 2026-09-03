@@ -19,42 +19,44 @@ Te reguły testuje się przez **pytest + AST** (Abstract Syntax Tree) — czytam
 
 ## 2. Podział testów
 
-Każda klasa testowa w osobnym pliku, podzielona wg warstwy architektonicznej:
+Realny katalog w SHELL to **flat** `shell/tests/architecture/` — bez podfolderów per warstwa; każda reguła w osobnym pliku o nazwie `test_<grupa>__test_reguły.py`. Przykładowe grupy i reguły (nazwy zgodne z faktycznymi plikami):
 
 ```
-tests/platform/architecture/
-├── test_domain_structure.py
-│   ├── test_value_objects_are_frozen_dataclass_with_slots
-│   ├── test_entities_are_not_dataclass
-│   ├── test_entities_have_slots
-│   ├── test_no_public_setters
-│   ├── test_entity_init_uses_private_attrs
-│   ├── test_domain_events_are_frozen_dataclass
-│   ├── test_domain_events_have_from_payload
-│   ├── test_mutating_methods_emit_events
-│   ├── test_mutating_methods_have_guard
-│   ├── test_domain_event_past_tense_naming
-│   ├── test_specifications_extend_specification
-│   ├── test_collections_returned_as_copies
-│   ├── test_domain_services_are_stateless
-│   ├── test_aggregate_references_by_id_only
-│   ├── test_entity_aggregate_fields_have_domain_types   ⚠️ nowy: primitive obsession
-│   ├── test_domain_event_fields_have_domain_types        ⚠️ nowy: primitive obsession
-│   ├── test_repository_port_signatures_have_domain_types ⚠️ nowy: primitive obsession
-│   └── test_domain_port_signatures_have_domain_types     ⚠️ nowy: porty (warning)
-├── application/
-│   ├── test_handlers_return_dto.py
-│   ├── test_handlers_are_stateless.py
-│   ├── test_use_cases_do_not_depend_on_fastapi.py
-│   └── test_queries_return_read_only.py
-├── infrastructure/
-│   ├── test_repository_implements_port_for_each_aggregate.py
-│   ├── test_mapper_has_both_conversion_methods.py
-│   └── test_in_memory_exists_for_each_port.py
-└── conftest.py                   # helpery: walk_py_files, parse_py, extract_import_modules, find_decorators
+shell/tests/architecture/
+├── test_domain_structure__test_value_objects_are_frozen_dataclass_with_slots.py
+├── test_domain_structure__test_entities_are_not_dataclass.py
+├── test_domain_structure__test_entities_have_slots.py
+├── test_domain_structure__test_no_public_setters.py
+├── test_domain_structure__test_entity_init_uses_private_attrs.py
+├── test_domain_structure__test_domain_events_are_frozen_dataclass.py
+├── test_domain_structure__test_domain_event_fields_are_ids_only.py
+├── test_domain_structure__test_mutating_methods_emit_events.py
+├── test_domain_structure__test_mutating_methods_have_guard.py
+├── test_domain_structure__test_domain_event_past_tense_naming.py
+├── test_domain_structure__test_specifications_extend_specification.py
+├── test_domain_structure__test_collections_returned_as_copies.py
+├── test_domain_structure__test_domain_services_are_stateless.py
+├── test_domain_structure__test_aggregate_references_by_id_only.py
+├── test_domain_structure__test_entity_aggregate_fields_have_domain_types.py
+├── test_domain_structure__test_domain_event_fields_have_domain_types.py
+├── test_domain_structure__test_repository_port_signatures_have_domain_types.py
+├── test_domain_structure__test_domain_port_signatures_have_domain_types.py
+├── test_application_structure__test_commands_are_frozen_dataclass.py
+├── test_application_structure__test_queries_are_frozen_dataclass.py
+├── test_application_structure__test_handlers_are_stateless.py
+├── test_enterprise_patterns__test_all_aggregates_have_factory.py
+├── test_enterprise_patterns__test_all_aggregates_have_restore.py
+├── test_enterprise_patterns__test_all_repository_ports_have_in_memory.py
+├── test_enterprise_patterns__test_repository_ports_are_protocols.py
+├── test_enterprise_patterns__test_infra_mappers_use_restore.py
+├── test_enterprise_patterns__test_domain_services_do_not_import_infrastructure.py
+├── conftest.py                   # helpery: walk_py_files, parse_py, extract_import_modules, find_classes
+└── _arch_helpers.py              # BASE, iter_py_files, extends_any_base, find_classes, ...
 ```
 
-### 2.1 Helpery w `tests/platform/architecture/conftest.py`
+> Uwaga: powyższa lista to podzbiór wzorcowych reguł. Nie duplikuj istniejących testów z `shell/tests/architecture/` — nową regułę dodawaj tylko gdy nie jest już pokryta.
+
+### 2.1 Helpery w `shell/tests/architecture/conftest.py`
 
 ```python
 """Wspólne helpery do testów architektonicznych.
@@ -496,29 +498,29 @@ class TestInMemoryExistsForEachPort:
 ## 6. Uruchamianie
 
 ```bash
-# wszystkie testy architektury
-pytest tests/platform/architecture/ -v
+# wszystkie testy architektury (realna lokalizacja: shell/tests/architecture/)
+pytest shell/tests/architecture/ -v
 
-# tylko domain
-pytest tests/platform/architecture/ -v -k "domain"
+# tylko domain structure
+pytest shell/tests/architecture/ -v -k "domain_structure"
 
-# tylko application
-pytest tests/platform/architecture/ -v -k "application"
+# tylko application structure
+pytest shell/tests/architecture/ -v -k "application_structure"
 
-# tylko infrastructure
-pytest tests/platform/architecture/ -v -k "infrastructure"
+# tylko enterprise patterns
+pytest shell/tests/architecture/ -v -k "enterprise_patterns"
 
 # CI — wyłączone z normalnego runa, osobna matryca
-pytest tests/platform/architecture/ -v --tb=short
+pytest shell/tests/architecture/ -v --tb=short
 ```
 
 ## 7. Zasady Dodawania Nowego Testu
 
-1. Plik w odpowiednim podfolderze `tests/platform/architecture/`
-2. Każda klasa testowa w osobnym pliku
+1. Plik w `shell/tests/architecture/` (katalog flat, bez podfolderów per warstwa) z nazwą `test_<grupa>__test_reguły.py` (np. `test_domain_structure__test_value_objects_are_frozen_dataclass_with_slots.py`)
+2. Każda reguła testowana w osobnym pliku/funkcji
 3. Test sprawdza **jedną regułę architektoniczną**
 4. Komunikaty błędów zawierają nazwę pliku i linię
-5. Używaj helperów z `conftest.py` — nie duplikuj kodu
+5. Używaj helperów z `conftest.py` / `_arch_helpers.py` — nie duplikuj kodu
 6. Testy muszą być szybkie (< 1s łącznie dla warstwy)
 7. **Nie duplikuj reguł z innych skilli** — jeśli dana reguła jest już sprawdzana przez import-linter (warstwa 1) lub mypy strict (warstwa 3), nie dodawaj jej jako testu AST. Patrz też `testing` skill oraz `arch-test-import-linter` i `arch-test-mypy`.
 
@@ -527,7 +529,7 @@ pytest tests/platform/architecture/ -v --tb=short
 Chcesz sprawdzić, że każdy handler ma type hint dla zwracanego typu:
 
 ```python
-# tests/platform/architecture/application/test_handlers_have_return_type.py
+# shell/tests/architecture/test_application_structure__test_handlers_have_return_type.py
 """Sprawdza, że każdy handler deklaruje typ zwracany."""
 
 
@@ -536,7 +538,7 @@ class TestHandlersHaveReturnType:
 
     def test_all_handlers_have_return_annotation(self) -> None:
         violations: list[str] = []
-        for py_file in walk_py_files("shell/application"):
+        for py_file in walk_py_files("shell"):
             tree = parse_py(py_file)
             for class_def in [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]:
                 if "handler" not in class_def.name.lower():

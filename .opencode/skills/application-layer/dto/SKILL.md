@@ -22,7 +22,7 @@ description: Zasady projektowania DTO (Data Transfer Objects) w architekturze he
 DTO jest definiowane przez BC, który jest **źródłem danych**. Konsumujący BC mapuje DTO na swoje własne VO.
 
 ```python
-# shell/domain/billing/contracts/__init__.py — DTO własnością Billing BC
+# shell/billing_service/application/billing/invoice/dto/invoice_dto.py — DTO własnością Billing BC
 @dataclass(frozen=True)
 class InvoiceDTO:
     id: str
@@ -31,7 +31,7 @@ class InvoiceDTO:
     due_date: str  # ISO format
     status: str
 
-# shell/domain/execution/... — Execution BC mapuje DTO na swoje VO
+# shell/execution_service/application/execution/payment/mappers/... — Execution BC mapuje DTO na swoje VO
 class ExecutionInvoiceMapper:
     def to_domain_payment(self, invoice_dto: InvoiceDTO) -> Payment:
         return Payment(
@@ -55,14 +55,14 @@ class ExecutionInvoiceMapper:
 
 ```
 # DTO między BC (własność źródłowego BC) — definiowane w domain lub application
-shell/application/<bc>/<aggregate>/dto/<entity>_dto.py
+shell/<service>/application/<bc>/<aggregate>/dto/<entity>_dto.py
 
 # Komendy i Query w aplikacji (per agregat)
-shell/application/<bc>/<aggregate>/commands/<command>.py
-shell/application/<bc>/<aggregate>/queries/<query>.py
+shell/<service>/application/<bc>/<aggregate>/commands/<command>.py
+shell/<service>/application/<bc>/<aggregate>/queries/<query>.py
 
 # DTO odpowiedzi (per agregat)
-shell/application/<bc>/<aggregate>/dto/<entity>_dto.py
+shell/<service>/application/<bc>/<aggregate>/dto/<entity>_dto.py
 ```
 
 ## 5. Podsumowanie — Checklista

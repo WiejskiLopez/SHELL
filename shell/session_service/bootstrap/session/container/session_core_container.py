@@ -15,8 +15,20 @@ from shell.platform.infrastructure.mapping.reflective_integration_mapper import 
 from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
     CommandInboxProcessor,
 )
+from shell.platform.infrastructure.messaging.command_transport import (
+    CommandOutboxToTransportRelay,
+)
+from shell.platform.infrastructure.messaging.command_transport.rabbit import (
+    RabbitCommandDeliveryTransport,
+    RabbitCommandInboxConsumer,
+)
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
+)
+from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
+from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+    RabbitEventDeliveryTransport,
+    RabbitEventInboxConsumer,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
@@ -26,11 +38,6 @@ from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import 
 )
 from shell.platform.infrastructure.messaging.outbox.outbox_metrics_service import (
     OutboxMetricsService,
-)
-from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
-from shell.platform.infrastructure.messaging.transport.rabbit import (
-    RabbitDeliveryTransport,
-    RabbitInboxConsumer,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization.registries.command_registry import (
@@ -160,13 +167,23 @@ class SessionCoreContainer(containers.DeclarativeContainer):
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         envelope_policy=envelope_policy_from_catalog(SESSION_CONTRACT_CATALOG),
     )
-    delivery_transport = providers.Factory(RabbitDeliveryTransport, url=config.broker_url)
+    event_delivery_transport = providers.Factory(
+        RabbitEventDeliveryTransport, url=config.broker_url
+    )
     outbox_to_transport_relay_factory = providers.Factory(
-        OutboxToTransportRelay,
+        EventOutboxToTransportRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
-        transport=delivery_transport,
-        kind="event",
+        transport=event_delivery_transport,
+    )
+    command_delivery_transport = providers.Factory(
+        RabbitCommandDeliveryTransport, url=config.broker_url
+    )
+    command_outbox_to_transport_relay_factory = providers.Factory(
+        CommandOutboxToTransportRelay,
+        session_factory=session_factory,
+        models=persistence_delivery_models.provided.commands,
+        transport=command_delivery_transport,
     )
     command_registry = providers.Object(
         build_command_registry(discover_command_types("shell.session_service.application.session"))
@@ -219,7 +236,7 @@ class SessionCoreContainer(containers.DeclarativeContainer):
 
     # Consume cross-BC events from the broker (Faza 9): Rabbit → local inbox.
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitInboxConsumer,
+        RabbitEventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
@@ -227,12 +244,11 @@ class SessionCoreContainer(containers.DeclarativeContainer):
         routing_keys=["event.AuthSessionCreatedIntegrationEvent"],
     )
     rabbit_command_inbox_consumer_factory = providers.Factory(
-        RabbitInboxConsumer,
+        RabbitCommandInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
-        queue_name="shell-session-command-inbox",
-        routing_keys=["command.#"],
+        service_name="session",
     )
 
     session_query_service = providers.Singleton(

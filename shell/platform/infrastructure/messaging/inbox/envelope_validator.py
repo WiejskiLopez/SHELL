@@ -50,7 +50,7 @@ class EnvelopeValidator:
         self,
         *,
         outbox_id: str | None,
-        contract_type: str,
+        message_name: str,
         schema_version: int,
         payload: object,
         correlation_id: str | None,
@@ -65,7 +65,7 @@ class EnvelopeValidator:
             return MISSING_CAUSATION_ID
 
         supported = self._policy.supported_schema_versions.get(
-            contract_type, self._policy.default_supported_versions
+            message_name, self._policy.default_supported_versions
         )
         if schema_version not in supported:
             return UNSUPPORTED_SCHEMA_VERSION

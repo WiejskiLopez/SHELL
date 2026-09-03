@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.hash import Hash
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.user_service.application.user.auth_session.commands.login_auth_session_command import (
+    LoginAuthSessionCommand,
+)
 from shell.user_service.application.user.auth_session.dto.login_auth_session_result import (
     LoginAuthSessionResult,
 )
@@ -29,9 +33,6 @@ if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
-    from shell.user_service.application.user.auth_session.commands.login_auth_session_command import (
-        LoginAuthSessionCommand,
-    )
     from shell.user_service.domain.user.aggregates.auth_session.ports.token_generator import (
         TokenGenerator,
     )
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
     )
 
 
-class LoginAuthSessionHandler:
+class LoginAuthSessionHandler(CommandHandler[LoginAuthSessionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

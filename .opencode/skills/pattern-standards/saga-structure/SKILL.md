@@ -83,11 +83,11 @@ Saga nazywa się od procesu biznesowego, który koordynuje:
 
 - Każdy krok sagi musi mieć akcję kompensującą — cofającą zmianę.
 - Kompensacje wykonywane są w odwrotnej kolejności.
-- Jeśli krok nie wymaga kompensacji → `noop`.
+- Krok bez kompensacji → `noop`.
 
 ## Timeout
 
-- Każdy krok sagi może mieć timeout — jeśli nie otrzymamy odpowiedzi w określonym czasie, uruchamiamy kompensacje.
+- Każdy krok sagi może mieć timeout: po upływie czasu, przy braku odpowiedzi, uruchamiana jest kompensacja.
 
 ## Trwałość
 

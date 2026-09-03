@@ -20,36 +20,37 @@ Command Handler to komponent warstwy aplikacyjnej, który przyjmuje komendę (Co
 
 ## Lokalizacja
 
-Handlery komend znajdują się w katalogu `application/<bounded_context>/<aggregate>/command_handlers/`.
+Handlery komend znajdują się w katalogu `shell/<service>/application/<bounded_context>/<aggregate>/command_handlers/`.
 
 ```
-shell/application/
+shell/<service>/application/
     execution/
         node_execution/
             command_handlers/
-                start_node_execution_handler.py
-                complete_node_execution_handler.py
+                create_node_execution_handler.py
+                delete_node_execution_handler.py
         edge_execution/
             command_handlers/
-                advance_edge_execution_handler.py
-    definition/
-        graph_definition/
+                create_edge_execution_handler.py
+                change_edge_execution_handler.py
+        workflow/
             command_handlers/
-                create_graph_definition_handler.py
-                update_graph_definition_handler.py
-    session/
-        session/
-            command_handlers/
-                open_session_handler.py
-                close_session_handler.py
+                create_workflow_handler.py
+                change_workflow_handler.py
     user/
-        user/
+        auth_session/
             command_handlers/
-                create_user_handler.py
+                login_auth_session_handler.py
+    project/
+        project/
+            command_handlers/
+                create_project_handler.py
+                change_project_handler.py
+                delete_project_handler.py
 ```
 
 ## Rejestracja
 
-Rejestracja odbywa się w kontenerze DI (dependency_injection) lub przez bezpośrednie wstrzyknięcie w warstwie framework/bootstrap.
+Rejestracja odbywa się w kontenerze DI danego BC (`shell/<service>/bootstrap/<bc>/container/<bc>_core_container.py`) — każdy handler ma provider `*_handler_factory = providers.Factory(...)` (patrz `handler-registration-integrity`).
 
 > Szczegółowe reguły struktury → [command-handler-structure](../../pattern-standards/command-handler-structure/SKILL.md)

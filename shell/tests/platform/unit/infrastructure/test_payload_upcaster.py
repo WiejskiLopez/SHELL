@@ -11,7 +11,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.serialization.event.event_deserializer import EventDeserializer
+from shell.platform.infrastructure.serialization.integration_event.integration_event_deserializer import (
+    IntegrationEventDeserializer,
+)
 from shell.platform.infrastructure.serialization.upcaster import PayloadTransform, PayloadUpcaster
 
 
@@ -81,7 +83,7 @@ class TestVersionAwareDeserialization:
                 }
             }
         )
-        deserializer = EventDeserializer(
+        deserializer = IntegrationEventDeserializer(
             registry={TaskExecutionCreatedEvent.__name__: TaskExecutionCreatedEvent},
             upcaster=upcaster,
         )
@@ -97,7 +99,7 @@ class TestVersionAwareDeserialization:
         assert event.task_execution_id == task_id
 
     def test_unknown_event_type_returns_none(self) -> None:
-        deserializer = EventDeserializer(registry={})
+        deserializer = IntegrationEventDeserializer(registry={})
 
         result = deserializer.deserialize(
             "MissingEvent", _occurred_at_value(), {}, schema_version=1

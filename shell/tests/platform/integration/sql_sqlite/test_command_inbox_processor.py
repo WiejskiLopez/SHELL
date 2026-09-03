@@ -8,13 +8,20 @@ from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import select
 
+from shell.platform.application.commands.command import Command
+from shell.platform.application.contracts.command_contract import CommandContract
+from shell.platform.infrastructure.context import (
+    DeliverySessionScope,
+    reset_session_scope,
+    set_session_scope,
+)
 from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
     CommandInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.command.sql_command_outbox_publisher import (
-    SqlCommandOutboxPublisher,
+from shell.platform.infrastructure.messaging.command.sql_command_outbox_writer import (
+    SqlCommandOutboxWriter,
 )
-from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
+from shell.platform.infrastructure.messaging.command_transport import CommandOutboxToTransportRelay
 from shell.tests.platform.integration.platform_delivery_models import (
     COMMAND_DELIVERY_MODELS,
 )
@@ -27,8 +34,8 @@ if TYPE_CHECKING:
 _INBOX_MODEL: Any = COMMAND_DELIVERY_MODELS.inbox
 
 
-@dataclass
-class SampleCommand:
+@dataclass(frozen=True, slots=True)
+class SampleCommand(Command):
     value: str = "ok"
 
 
@@ -63,9 +70,13 @@ async def _add_command(session_factory: async_sessionmaker, command_id: str = "c
             COMMAND_DELIVERY_MODELS.inbox(
                 id=command_id,
                 outbox_id=f"outbox-{command_id}",
-                command_type="SampleCommand",
-                occurred_at=datetime.now(tz=UTC),
-                payload={},
+                command_id=f"cmd-{command_id}",
+                command_name="SampleCommand",
+                source_service="session",
+                target_service="execution",
+                schema_version=1,
+                issued_at=datetime.now(tz=UTC),
+                payload={"command_id": f"cmd-{command_id}"},
                 correlation_id="correlation",
                 causation_id="causation",
                 received_at=datetime.now(tz=UTC),
@@ -79,18 +90,31 @@ class TestCommandInboxProcessor:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        publisher = SqlCommandOutboxPublisher(session_factory, COMMAND_DELIVERY_MODELS)
-        await publisher.publish(
-            command_type="SampleCommand",
-            payload={},
-            occurred_at=datetime.now(tz=UTC),
-        )
+        writer = SqlCommandOutboxWriter(COMMAND_DELIVERY_MODELS, source_service="session")
+        async with session_factory() as session:
+            scope = DeliverySessionScope(session=session)
+            token = set_session_scope(scope)
+            try:
+                writer.append(
+                    session,
+                    contract=CommandContract(
+                        command_name="SampleCommand",
+                        command_class=SampleCommand,
+                        target_service="execution",
+                        schema_version=1,
+                    ),
+                    payload={},
+                    command_id="cmd-outbox-1",
+                    issued_at=datetime.now(tz=UTC),
+                )
+            finally:
+                reset_session_scope(token)
+            await session.commit()
         transport = RecordingTransport()
-        relay = OutboxToTransportRelay(
+        relay = CommandOutboxToTransportRelay(
             session_factory,
             models=COMMAND_DELIVERY_MODELS,
             transport=transport,
-            kind="command",
         )
 
         assert await relay.run_once() == 1

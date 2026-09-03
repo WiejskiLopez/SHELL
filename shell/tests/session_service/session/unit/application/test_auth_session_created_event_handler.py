@@ -35,7 +35,6 @@ def _login_event(user_id: str = "user-1") -> AuthSessionCreatedIntegrationEvent:
         causation_id="cause-0",
         occurred_at=datetime(2024, 1, 1, tzinfo=UTC),
         aggregate_id="auth-session-1",
-        aggregate_name="AuthSession",
         schema_version=1,
         auth_session_id="auth-session-1",
         user_id=user_id,

@@ -28,7 +28,7 @@ class StartWorkflowRequest(BaseModel):
 ## Warstwa 2: Application (koordynacyjna)
 
 - Handler / walidator aplikacyjny.
-- Sprawdza: autoryzację, stan systemu, dostęp do zasobów, poprawność跨-polową komendy.
+- Sprawdza: autoryzację, stan systemu, dostęp do zasobów, poprawność między-polową komendy.
 - Błąd: dedykowany wyjątek aplikacyjny.
 
 ```python
@@ -68,7 +68,8 @@ def start(self) -> None:
 ## Komenda z walidacją
 
 - Command waliduje się podczas tworzenia — w `__post_init__` (dataclass) lub automatycznie (Pydantic).
-- Handler **nie woła** `command.validate()` — walidacja jest automatyczna.
+- Walidacja komendy wykonuje się automatycznie w `__post_init__` (dataclass) albo przez Pydantic;
+  handler korzysta z gotowej walidacji.
 
 ```python
 @dataclass(frozen=True)
@@ -89,5 +90,5 @@ class StartWorkflowCommand:
 | Warstwa | Co waliduje | Narzędzie | Błąd |
 |---------|-------------|-----------|------|
 | API | Typy, formaty, zakresy | Pydantic | HTTP 422 |
-| Application | Autoryzacja, quota,跨-polowa | Validator | Wyjątek aplikacyjny |
+| Application | Autoryzacja, quota, między-polowa | Validator | Wyjątek aplikacyjny |
 | Domain | Invarianty biznesowe | VO / Aggregate | Dedykowany `...Error` dziedziczący po `DomainError` |

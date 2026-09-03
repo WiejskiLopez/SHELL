@@ -78,7 +78,7 @@ class TestEdgeExecutionEndpoints:
                 json=change_payload,
                 headers=headers,
             )
-        assert change_resp.status_code == 200
+        assert change_resp.status_code == 204
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             delete_resp = await client.delete(

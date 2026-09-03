@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from scripts.verify_service_release import build_release_manifest
+from scripts.verify_service_release import _migration_head, build_release_manifest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -60,4 +60,4 @@ def test_release_manifest_contains_verified_metadata(
             "shell_platform-0.1.0-py3-none-any.whl",
             f"{package_name.replace('-', '_')}-0.1.0-py3-none-any.whl",
         }
-        assert manifest["migration_head"] == f"0001_{service_slug}_baseline"
+        assert manifest["migration_head"] == _migration_head(service_name)

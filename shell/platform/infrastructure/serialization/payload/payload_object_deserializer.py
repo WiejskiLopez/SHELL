@@ -3,6 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Any
 
+from shell.platform.application.commands.command import PAYLOAD_REQUIRED_KEY
 from shell.platform.infrastructure.serialization.errors import UnsupportedPayloadTypeError
 from shell.platform.infrastructure.serialization.payload.payload_type_hints_resolver import (
     PayloadTypeHintsResolver,
@@ -20,7 +21,9 @@ class PayloadObjectDeserializer:
     Every field is rebuilt from the payload keyed by its name; the envelope-owned
     ``occurred_at`` and ``schema_version`` columns are injected from the envelope.
     A required field that is absent from the payload raises instead of being
-    silently filled with an empty value.
+    silently filled with an empty value. Fields marked with
+    ``PAYLOAD_REQUIRED_KEY`` in ``metadata`` are mandatory even when they carry a
+    default: they must travel in the payload (identity fields, e.g. ``command_id``).
     """
 
     def __init__(
@@ -49,6 +52,10 @@ class PayloadObjectDeserializer:
                 raw_value = schema_version
             elif field.name in payload:
                 raw_value = payload[field.name]
+            elif field.metadata.get(PAYLOAD_REQUIRED_KEY):
+                raise UnsupportedPayloadTypeError(
+                    f"Payload for {object_cls.__name__} omits required field {field.name!r}"
+                )
             elif field.default is not _MISSING or field.default_factory is not _MISSING:
                 continue
             else:

@@ -54,6 +54,9 @@ from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
+from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+    RabbitEventInboxConsumer,
+)
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
 )
@@ -63,7 +66,6 @@ from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import 
 from shell.platform.infrastructure.messaging.outbox.outbox_metrics_service import (
     OutboxMetricsService,
 )
-from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.platform.infrastructure.time.system_clock import SystemClock
@@ -106,7 +108,7 @@ class DefinitionCoreContainer(containers.DeclarativeContainer):
         upcaster=providers.Singleton(PayloadUpcaster),
     )
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitInboxConsumer,
+        RabbitEventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,

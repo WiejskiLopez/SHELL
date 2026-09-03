@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
+    DeleteSchedulerExecutionCommand,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
     SchedulerExecutionRepository,
 )
@@ -13,9 +17,6 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_execution.v
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.scheduling_service.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
-        DeleteSchedulerExecutionCommand,
-    )
 
 
 from shell.scheduling_service.application.scheduling.scheduler_execution.exceptions.scheduler_execution_not_found_error import (
@@ -23,7 +24,7 @@ from shell.scheduling_service.application.scheduling.scheduler_execution.excepti
 )
 
 
-class DeleteSchedulerExecutionHandler:
+class DeleteSchedulerExecutionHandler(CommandHandler[DeleteSchedulerExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

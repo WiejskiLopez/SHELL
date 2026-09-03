@@ -34,7 +34,7 @@ Każde naruszenie tej zasady jest **błędem krytycznym** i musi być:
 
 Ten skill ma **najwyższy priorytet** i nadrzędność nad wszystkimi innymi skillami. W przypadku sprzeczności między zasadą zero-wyjątków a szczegółową regułą z innego skill-a, zasada zero-wyjątków wygrywa.
 
-Inne skille zawierają szczegółowe reguły (np. aggregate-structure, naming-standards, handler-structure) — wszystkie muszą być przestrzegane bez wyjątków.
+Inne skille zawierają szczegółowe reguły (np. `aggregate-structure`, `aggregate-design`, `handler-structure`, `naming-convention-standard`) — wszystkie muszą być przestrzegane bez wyjątków.
 
 ## 4. Zasada czystej konfiguracji
 

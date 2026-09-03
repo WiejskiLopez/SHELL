@@ -15,12 +15,15 @@ from shell.definition_service.infrastructure.definition.persistence.sql.models.b
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
+from shell.platform.infrastructure.messaging.event_transport import (
+    EnvelopeCodec,
+    EventOutboxToTransportRelay,
+)
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     EnvelopeValidationPolicy,
 )
-from shell.platform.infrastructure.messaging.transport import EnvelopeCodec, OutboxToTransportRelay
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
 from shell.tests.shared.sql_lifecycle import track_session_factory
@@ -52,7 +55,6 @@ def _event() -> GraphDefinitionCreatedIntegrationEvent:
         causation_id="causation-1",
         occurred_at=datetime(2026, 8, 21, 12, 0, tzinfo=UTC),
         aggregate_id="graph-1",
-        aggregate_name="GraphDefinition",
         schema_version=2,
         graph_definition_id="graph-1",
     )
@@ -86,13 +88,12 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
         key not in envelope["payload"]
         for key in (
             "event_id",
-            "event_type",
+            "integration_event_name",
             "occurred_at",
             "schema_version",
             "correlation_id",
             "causation_id",
             "aggregate_id",
-            "aggregate_name",
             "source_service",
         )
     )
@@ -103,10 +104,9 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
                 id=envelope["outbox_id"],
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                event_type=envelope["event_type"],
+                integration_event_name=envelope["integration_event_name"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
-                aggregate_name=envelope["aggregate_name"],
                 schema_version=envelope["schema_version"],
                 payload=envelope["payload"],
                 correlation_id=envelope["correlation_id"],
@@ -116,11 +116,11 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
         await session.commit()
 
     transport = RecordingTransport()
-    relay = OutboxToTransportRelay(
+    relay = EventOutboxToTransportRelay(
         session_factory,
         PERSISTENCE_DELIVERY_MODELS.events,
         transport,
-        kind="event",
+        
     )
     assert await relay.run_once() == 1
     delivered = transport.envelopes[0]
@@ -130,13 +130,12 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     assert decoded.outbox_id == "outbox-1"
     assert decoded.event_id == "event-1"
     assert decoded.source_service == "definition_service"
-    assert decoded.contract_type == "GraphDefinitionCreatedIntegrationEvent"
+    assert decoded.integration_event_name == "GraphDefinitionCreatedIntegrationEvent"
     assert decoded.schema_version == 2
     assert decoded.occurred_at == event.occurred_at
     assert decoded.correlation_id == event.correlation_id
     assert decoded.causation_id == event.causation_id
     assert decoded.aggregate_id == event.aggregate_id
-    assert decoded.aggregate_name == event.aggregate_name
     assert decoded.payload == {"graph_definition_id": "graph-1"}
 
     async with session_factory() as session:
@@ -146,10 +145,9 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
                 outbox_id=decoded.outbox_id,
                 event_id=decoded.event_id,
                 source_service=decoded.source_service,
-                event_type=decoded.contract_type,
+                integration_event_name=decoded.integration_event_name,
                 occurred_at=decoded.occurred_at,
                 aggregate_id=decoded.aggregate_id,
-                aggregate_name=decoded.aggregate_name,
                 schema_version=decoded.schema_version,
                 payload=decoded.payload,
                 correlation_id=decoded.correlation_id,

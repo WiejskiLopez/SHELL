@@ -1,6 +1,6 @@
 ---
 name: mapper-structure
-description: Reguły struktury Mapper — symetryczność round-trip, mapowanie grafów obiektów, brak logiki biznesowej.
+description: Reguły struktury Mapper — symetryczność round-trip, mapowanie grafów obiektów, mapowanie pól bez logiki biznesowej.
 ---
 
 # Mapper Structure
@@ -39,11 +39,11 @@ class WorkflowMapper:
         )
 ```
 
-## Brak logiki biznesowej
+## Zakres: mapowanie pól
 
-- Mapper nie zawiera logiki biznesowej — tylko mapowanie pól.
+- Mapper zawiera wyłącznie mapowanie pól; logika biznesowa pozostaje w domenie.
 - Transformacje typów (UUID ↔ str, datetime ↔ str) są dozwolone.
-- Reguły biznesowe, walidacja, kalkulacje — nie w mapperze.
+- Reguły biznesowe, walidacja i kalkulacje realizowane są w domenie, poza mapperem.
 
 ## Graf obiektów
 
@@ -64,10 +64,10 @@ def to_domain(self, model: WorkflowModel) -> Workflow:
 
 ## restore()
 
-- Mapper używa `restore()` na agregacie do odczytu — pomija walidację biznesową (dane z bazy są spójne).
+- Mapper używa `restore()` na agregacie do odczytu; walidacja biznesowa pominięta (dane z bazy są spójne).
 
 ## Lokalizacja
 
-- ORM: `shell/infrastructure/<bc>/mappers/<aggregate>_mapper.py`
-- DTO: `shell/application/<bc>/mappers/<aggregate>_dto_mapper.py`
-- Command: `shell/application/<bc>/mappers/<command>_mapper.py`
+- ORM: `shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/mappers/<aggregate>_mapper.py`
+- DTO: `shell/<service>/application/<bc>/<aggregate>/mappers/<aggregate>_dto_mapper.py`
+- Command: `shell/<service>/application/<bc>/<aggregate>/mappers/<command>_mapper.py`

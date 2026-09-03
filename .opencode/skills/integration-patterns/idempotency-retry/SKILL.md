@@ -8,7 +8,7 @@ description: Wzorce niezawodności w architekturze event-driven — idempotentno
 ## 1. Inbox Pattern — Deduplikacja Eventów
 
 W SHELL deduplikacja jest realizowana przez:
-- **`RabbitInboxConsumer`**: idempotentny insert koperty do inbox po `source_service + outbox_id` — ta sama publikacja nie tworzy drugiego rekordu logicznego
+- **`RabbitEventInboxConsumer`** / **`RabbitCommandInboxConsumer`**: idempotentny insert koperty do inbox po `source_service + outbox_id` — ta sama publikacja nie tworzy drugiego rekordu logicznego
 - **`EventInboxProcessor`**: `SELECT WHERE processed_at IS NULL` — event przetworzony raz nie jest dispatchowany ponownie
 
 ## 2. Retry — fixed backoff (obecna implementacja)
@@ -32,9 +32,11 @@ retry_backoff_seconds: int = 30  # stałe opóźnienie, nie skalowane
 | Klasa | Lokalizacja | Opis |
 |-------|-------------|------|
 | `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Retry + backoff + tombstone DLQ |
-| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/transport/outbox_to_transport_relay.py` | Publikuje outbox przez broker |
-| `OutboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/outbox_event.py` | Model outbox |
-| `InboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/inbox_event.py` | Model inbox z kolumnami retry |
+| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/event_transport/outbox_to_transport_relay.py` | Publikuje outbox przez broker |
+| `OutboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event_delivery.py` | Model outbox |
+| `InboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event_delivery.py` | Model inbox z kolumnami retry |
+| `RabbitEventInboxConsumer` | `shell/platform/infrastructure/messaging/event_transport/rabbit/` | Konsument kopert eventów z brokera |
+| `RabbitCommandInboxConsumer` | `shell/platform/infrastructure/messaging/command_transport/rabbit/` | Konsument kopert komend z brokera |
 
 **Zakres implementacji**: retry, backoff i tombstone sa skupione w `event_inbox_processor.py`. Dedykowane katalogi sa kierunkiem dalszego rozwoju.
 

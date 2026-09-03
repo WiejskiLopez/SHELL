@@ -26,14 +26,12 @@ class AggregateRoot(Entity[TId]):
 
     def append_event(self, event: DomainEvent) -> None:
         from shell.platform.domain.value_objects.aggregate_id import AggregateId
-        from shell.platform.domain.value_objects.aggregate_name import AggregateName
 
         object.__setattr__(
             event,
             "aggregate_id",
             AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id)),
         )
-        object.__setattr__(event, "aggregate_name", AggregateName(type(self).__name__))
         self._events.append(event)
 
     def pull_events(self) -> list[DomainEvent]:

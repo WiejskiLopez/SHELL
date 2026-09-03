@@ -7,16 +7,17 @@ description: Reguły testów round-trip persystencji — każde pole zmieniane p
 
 ## 1. Problem
 
-Architektura sprawdza strukturę maperów („nie ma logiki biznesowej", „są oba kierunki"),
-ale to **nie łapie zagubionego pola**. Błąd polega na tym, że:
+Architektura weryfikuje strukturę mapperów (logika w domenie, obecność obu kierunków
+mapowania); zagubienie pola wykrywa dopiero round-trip test wykonujący pełny cykl.
+Zagubienie występuje, gdy:
 
 - `entity → model` **zapisuje** pole (`model.status = entity.status.value`),
-- `model → entity` / `restore()` **nie odczytuje** tego pola (nie ma go w sygnaturze `restore` lub
-  w wywołaniu), więc powstały po reloadzie agregat ma domyślny/zerowy stan.
+- `model → entity` / `restore()` **pomija** to pole (brak go w sygnaturze `restore` lub
+  w wywołaniu), a powstały po reloadzie agregat ma stan domyślny/zerowy.
 
 Przykład wykryty w SHELL: `GraphExecution.entity_to_model` zapisywał `status`, ale
-`GraphExecution.restore()` nie przyjmował `execution_status` — po restarcie workera graf zawsze
-wracał `PENDING`, mimo że był `COMPLETED`.
+`GraphExecution.restore()` pomijał `execution_status` — po restarcie workera graf wracał
+`PENDING`, mimo że był `COMPLETED`.
 
 ## 2. Sygnały ostrzegawcze
 
@@ -25,13 +26,15 @@ Szukaj pól, które są:
 - w `__slots__` agregatu i nadawane poza konstruktorem (`start()`, `complete()`, `change_status()`,
   `mark_deleted()` itd.);
 - zapisywane w mapperze `*_entity_to_model.py`;
-- ale **nieobecne w sygnaturze `restore()`** ani w mapperze `*_model_to_entity.py`.
+- muszą być obecne w sygnaturze `restore()` oraz w mapperze `*_model_to_entity.py`.
 
-Jeśli `restore()` nie przyjmuje pola, które `_new()/create()` po nadaniu zmienia — jest to utrata stanu.
+Pole pominięte przez `restore()` (a nadawane w `_new()/create()` po utworzeniu) oznacza utratę
+stanu po reloadzie.
 
 ## 3. Kontraktowy test round-trip
 
-Test nie może być wyłącznie „składnia/importy" — musi wykonać faktyczny cykl:
+Test wykonuje faktyczny cykl zapis→reload (a weryfikację samej składni/importów pomija jako
+niewystarczającą):
 
 ```
 entity → model → (baza utworzona przez migracje) → model → entity
@@ -48,8 +51,8 @@ async def test_round_trip_preserves_execution_status(session_factory):
     assert restored.status is GraphExecutionStatus.COMPLETED
 ```
 
-Wymaganie: baza musi powstać przez **migracje** (baseline), nie `create_all` obok — inaczej test
-nie dowodzi zgodności istniejącej bazy z modelem ORM.
+Wymaganie: baza powstaje przez **migracje** (baseline); test dowodzi wtedy zgodności
+istniejącej bazy (ze schematem migracyjnym) z modelem ORM.
 
 ## 4. Reguła dla `restore()`
 
@@ -64,8 +67,8 @@ Podczas zmiany pola w agregacie persystowanym:
 
 - [ ] Pole jest w `__slots__` agregatu
 - [ ] `entity_to_model` je zapisuje
-- [ ] `model_to_entity` je odczytuje i przekazuje do `restore()`
-- [ ] `restore()` przyjmuje to pole (albo jest to świadoma wartość domyślna dla legacy)
-- [ ] InMemory storage nie gubi pola (np. `copy.deepcopy` przy zwrocie)
+- [ ] `model_to_entity` odczytuje pole i przekazuje je do `restore()`
+- [ ] `restore()` przyjmuje to pole (albo używa świadomej wartości domyślnej dla legacy)
+- [ ] InMemory storage zachowuje pole w round-trip (np. `copy.deepcopy` przy zwrocie)
 - [ ] Test round-trip na bazie z migracji porównuje pole po pełnym cyklu
 - [ ] Test restartu/reloadu w ścieżkach process dla pól decyzyjnych (status, liczniki, wyniki)

@@ -8,6 +8,8 @@ from pathlib import Path
 from alembic import command
 from alembic.config import Config
 
+from shell.platform.infrastructure.persistence.alembic_runner import run_platform_baseline
+
 _MIGRATIONS_DIR = Path(__file__).resolve().parent
 
 
@@ -25,5 +27,6 @@ def _upgrade(url: str, reset_db: bool) -> None:
 
 
 async def run_user_baseline(url: str, reset_db: bool = False) -> None:
-    """Apply the standalone User migration history up to ``head``."""
+    """Apply the shared platform delivery chain, then the User migration history."""
+    await run_platform_baseline(url=url, reset_db=reset_db)
     await asyncio.to_thread(_upgrade, url, reset_db)

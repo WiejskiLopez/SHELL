@@ -84,6 +84,10 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     session_container = SessionCoreContainer()
     session_container.config.db_url.from_value(session_url)
     session_container.config.broker_url.from_value(RABBIT_TEST_URL)
+    session_container.config.worker_id.from_value("microservice-flow-event")
+    session_container.config.command_worker_id.from_value("microservice-flow-command")
+    session_container.config.worker_heartbeat_interval_seconds.from_value(0.0)
+    session_container.config.worker_max_batch_time_seconds.from_value(0.0)
     configure_session_container(session_container)
     track_session_factory(session_container.session_factory())
 
@@ -94,6 +98,10 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     user_container = UserCoreContainer()
     user_container.config.db_url.from_value(user_url)
     user_container.config.broker_url.from_value(RABBIT_TEST_URL)
+    user_container.config.worker_id.from_value("microservice-flow-user-outbox")
+    user_container.config.command_worker_id.from_value("microservice-flow-user-command")
+    user_container.config.worker_heartbeat_interval_seconds.from_value(0.0)
+    user_container.config.worker_max_batch_time_seconds.from_value(0.0)
     configure_user_container(user_container)
     track_session_factory(user_container.session_factory())
     unit_of_work = user_container.unit_of_work_factory()
@@ -131,12 +139,13 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     # Only integration events ever reach the outbox (domain events are mapped).
     async with user_factory() as session:
         outbox_types = {
-            row.event_type for row in (await session.execute(select(_USER_OUTBOX_MODEL))).scalars()
+            row.integration_event_name
+            for row in (await session.execute(select(_USER_OUTBOX_MODEL))).scalars()
         }
     assert outbox_types, "expected outbox rows"
-    assert all("IntegrationEvent" in event_type for event_type in outbox_types), (
-        f"outbox must contain only integration events, got: {sorted(outbox_types)}"
-    )
+    assert all(
+        "IntegrationEvent" in integration_event_name for integration_event_name in outbox_types
+    ), f"outbox must contain only integration events, got: {sorted(outbox_types)}"
 
     # ── 6. Wait for consumer → session inbox → processor → handler ──
     processor = session_container.event_inbox_processor_factory()
@@ -153,14 +162,15 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     async with session_factory() as session:
         rows = (await session.execute(select(_SESSION_INBOX_MODEL))).scalars().all()
     assert rows, "expected the AuthSessionCreated event in the session inbox"
-    assert rows[0].event_type == "AuthSessionCreatedIntegrationEvent"
+    assert rows[0].integration_event_name == "AuthSessionCreatedIntegrationEvent"
 
     async with session_factory() as session:
         opened = (
             (
                 await session.execute(
                     select(_SESSION_OUTBOX_MODEL).where(
-                        _SESSION_OUTBOX_MODEL.event_type == "SessionOpenedIntegrationEvent"
+                        _SESSION_OUTBOX_MODEL.integration_event_name
+                        == "SessionOpenedIntegrationEvent"
                     )
                 )
             )

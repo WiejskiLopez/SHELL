@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.session_service.application.session.session.commands.change_session_command import (
+    ChangeSessionCommand,
+)
 from shell.session_service.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
@@ -13,9 +17,6 @@ from shell.session_service.domain.session.aggregates.session.value_objects.sessi
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.session_service.application.session.session.commands.change_session_command import (
-        ChangeSessionCommand,
-    )
 
 
 from shell.session_service.application.session.session.exceptions.session_not_found_error import (
@@ -23,7 +24,7 @@ from shell.session_service.application.session.session.exceptions.session_not_fo
 )
 
 
-class ChangeSessionHandler:
+class ChangeSessionHandler(CommandHandler[ChangeSessionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

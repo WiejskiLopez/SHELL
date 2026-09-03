@@ -16,7 +16,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.event_handlers.event_handler import EventHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.session_service.application.session.session.integration_events.auth_session_created_integration_event import (
+    AuthSessionCreatedIntegrationEvent,
+)
 from shell.session_service.domain.session.aggregates.session import Session
 from shell.session_service.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
@@ -30,12 +34,9 @@ if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
-    from shell.session_service.application.session.session.integration_events.auth_session_created_integration_event import (
-        AuthSessionCreatedIntegrationEvent,
-    )
 
 
-class AuthSessionCreatedEventHandler:
+class AuthSessionCreatedEventHandler(EventHandler[AuthSessionCreatedIntegrationEvent]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

@@ -1,4 +1,4 @@
-"""SQLite integration tests for OutboxToTransportRelay (producer-side bridge)."""
+"""SQLite integration tests for EventOutboxToTransportRelay (producer-side bridge)."""
 
 from __future__ import annotations
 
@@ -12,12 +12,15 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
     TaskExecutionCreatedIntegrationEvent,
 )
-from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
-from shell.platform.infrastructure.messaging.transport.source_service import (
+from shell.platform.application.ports.transport.event_transport import (
+    IntegrationEventDeliveryEnvelope,
+)
+from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
+from shell.platform.infrastructure.messaging.event_transport.source_service import (
     source_service_for_type,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
 from shell.tests.platform.integration.platform_delivery_models import (
@@ -25,10 +28,9 @@ from shell.tests.platform.integration.platform_delivery_models import (
 )
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
-
-if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+DeliveryEnvelope = IntegrationEventDeliveryEnvelope
 
 _OUTBOX_MODEL: Any = EVENT_DELIVERY_MODELS.outbox
 
@@ -40,7 +42,6 @@ async def _seed_outbox(session_factory: async_sessionmaker) -> None:
         causation_id="causation-1",
         occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
         aggregate_id="task-execution-1",
-        aggregate_name="TaskExecution",
         schema_version=1,
         task_execution_id="task-execution-1",
     )
@@ -55,10 +56,9 @@ async def _seed_outbox(session_factory: async_sessionmaker) -> None:
                 id=envelope["outbox_id"],
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                event_type=envelope["event_type"],
+                integration_event_name=envelope["integration_event_name"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
-                aggregate_name=envelope["aggregate_name"],
                 schema_version=envelope["schema_version"],
                 payload=envelope["payload"],
                 correlation_id=envelope["correlation_id"],
@@ -71,9 +71,9 @@ async def _seed_outbox(session_factory: async_sessionmaker) -> None:
 class RecordingTransport:
     def __init__(self, *, fail: bool = False) -> None:
         self.fail = fail
-        self.delivered: list[DeliveryEnvelope] = []
+        self.delivered: list[IntegrationEventDeliveryEnvelope] = []
 
-    async def deliver(self, envelope: DeliveryEnvelope) -> None:
+    async def deliver(self, envelope: IntegrationEventDeliveryEnvelope) -> None:
         if self.fail:
             raise RuntimeError("broker unavailable")
         self.delivered.append(envelope)
@@ -84,9 +84,9 @@ class FlakyTimeoutTransport:
 
     def __init__(self) -> None:
         self.attempts = 0
-        self.delivered: list[DeliveryEnvelope] = []
+        self.delivered: list[IntegrationEventDeliveryEnvelope] = []
 
-    async def deliver(self, envelope: DeliveryEnvelope) -> None:
+    async def deliver(self, envelope: IntegrationEventDeliveryEnvelope) -> None:
         self.attempts += 1
         if self.attempts == 1:
             raise TimeoutError("broker timed out")
@@ -98,9 +98,9 @@ class AcceptedThenTimeoutTransport:
 
     def __init__(self) -> None:
         self.attempts = 0
-        self.delivered: list[DeliveryEnvelope] = []
+        self.delivered: list[IntegrationEventDeliveryEnvelope] = []
 
-    async def deliver(self, envelope: DeliveryEnvelope) -> None:
+    async def deliver(self, envelope: IntegrationEventDeliveryEnvelope) -> None:
         self.attempts += 1
         self.delivered.append(envelope)
         if self.attempts == 1:
@@ -112,16 +112,16 @@ class UnroutableThenRoutableTransport:
 
     def __init__(self) -> None:
         self.attempts = 0
-        self.delivered: list[DeliveryEnvelope] = []
+        self.delivered: list[IntegrationEventDeliveryEnvelope] = []
 
-    async def deliver(self, envelope: DeliveryEnvelope) -> None:
+    async def deliver(self, envelope: IntegrationEventDeliveryEnvelope) -> None:
         self.attempts += 1
         if self.attempts == 1:
             raise RuntimeError("NO_ROUTE: unroutable message (binding missing)")
         self.delivered.append(envelope)
 
 
-class TestOutboxToTransportRelay:
+class TestEventOutboxToTransportRelay:
     async def test_delivers_pending_and_marks_published(
         self,
         session_factory: async_sessionmaker,
@@ -129,18 +129,21 @@ class TestOutboxToTransportRelay:
         await _seed_outbox(session_factory)
 
         transport = RecordingTransport()
-        relay = OutboxToTransportRelay(
-            session_factory, EVENT_DELIVERY_MODELS, transport, kind="event"
+        relay = EventOutboxToTransportRelay(
+            session_factory, EVENT_DELIVERY_MODELS, transport
         )
         count = await relay.run_once()
 
         assert count == 1
         assert len(transport.delivered) == 1
-        assert transport.delivered[0].kind == "event"
-        assert transport.delivered[0].contract_type == "TaskExecutionCreatedIntegrationEvent"
-        assert transport.delivered[0].event_id is not None
-        assert transport.delivered[0].schema_version == 1
-        assert transport.delivered[0].payload == transport.delivered[0].payload
+        delivered_event = transport.delivered[0]
+        assert delivered_event.kind == "event"
+        assert (
+            delivered_event.integration_event_name == "TaskExecutionCreatedIntegrationEvent"
+        )
+        assert delivered_event.event_id is not None
+        assert delivered_event.schema_version == 1
+        assert delivered_event.payload == delivered_event.payload
 
         async with session_factory() as session:
             rows = (
@@ -168,11 +171,11 @@ class TestOutboxToTransportRelay:
 
         await _seed_outbox(isolated)
 
-        relay = OutboxToTransportRelay(
+        relay = EventOutboxToTransportRelay(
             isolated,
             EVENT_DELIVERY_MODELS,
             RecordingTransport(fail=True),
-            kind="event",
+            
         )
         try:
             await relay.run_once()
@@ -202,11 +205,11 @@ class TestOutboxToTransportRelay:
         await _seed_outbox(isolated)
 
         transport = FlakyTimeoutTransport()
-        relay = OutboxToTransportRelay(
+        relay = EventOutboxToTransportRelay(
             isolated,
             EVENT_DELIVERY_MODELS,
             transport,
-            kind="event",
+            
         )
 
         # First attempt times out: the outbox row is left unpublished.
@@ -241,11 +244,11 @@ class TestOutboxToTransportRelay:
         await _seed_outbox(isolated)
 
         transport = AcceptedThenTimeoutTransport()
-        relay = OutboxToTransportRelay(
+        relay = EventOutboxToTransportRelay(
             isolated,
             EVENT_DELIVERY_MODELS,
             transport,
-            kind="event",
+            
         )
 
         with pytest.raises(TimeoutError):
@@ -280,11 +283,11 @@ class TestOutboxToTransportRelay:
         await _seed_outbox(isolated)
 
         transport = UnroutableThenRoutableTransport()
-        relay = OutboxToTransportRelay(
+        relay = EventOutboxToTransportRelay(
             isolated,
             EVENT_DELIVERY_MODELS,
             transport,
-            kind="event",
+            
         )
 
         with pytest.raises(RuntimeError, match="NO_ROUTE"):

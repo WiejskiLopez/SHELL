@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.user_service.application.user.user.commands.create_user_command import (
+    CreateUserCommand,
+)
 from shell.user_service.domain.user.aggregates.user.repositories.user_repository import (
     UserRepository,
 )
@@ -14,12 +18,9 @@ if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
-    from shell.user_service.application.user.user.commands.create_user_command import (
-        CreateUserCommand,
-    )
 
 
-class CreateUserHandler:
+class CreateUserHandler(CommandHandler[CreateUserCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

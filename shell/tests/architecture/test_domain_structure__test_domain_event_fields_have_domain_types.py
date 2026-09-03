@@ -363,11 +363,9 @@ def test_domain_event_fields_have_domain_types() -> None:
                 if name in (
                     "event_id",
                     "aggregate_id",
-                    "aggregate_name",
                     "occurred_at",
                     "correlation_id",
                     "causation_id",
-                    "schema_version",
                     "kind",
                     "key",
                     "old_value",

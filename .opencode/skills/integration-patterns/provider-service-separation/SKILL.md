@@ -17,9 +17,9 @@ Nie przenoś do konsumującego BC agregatu, encji, DTO aplikacyjnego, response m
 
 Przykłady nazw:
 
-- `GraphDefinitionProvider`;
-- `SessionQueryProvider`;
-- `UserIdentityProvider`.
+- `GraphDefinitionProviderHttpAdapter`;
+- `SessionQueryProviderHttpAdapter`;
+- `UserIdentityProviderHttpAdapter`.
 
 Port providera należy do BC, który potrzebuje danych. Jego typy wejściowe i wyjściowe należą do konsumującego BC albo do platformowych kontraktów technicznych. Zwracaj tylko minimalny lokalny VO, snapshot albo read model wymagany przez konsumenta.
 
@@ -29,52 +29,47 @@ execution domain port:
         -> GraphDefinition
 
 execution infrastructure:
-    GraphDefinitionHttpProvider
+    GraphDefinitionProviderHttpAdapter
         HTTP response -> local contract V1 -> local mapper -> GraphDefinition
 ```
 
-Provider nie powinien:
+Provider zwraca minimalny lokalny VO, snapshot albo read model wymagany przez konsumenta;
+dane źródła są mapowane (HTTP → lokalny kontrakt → lokalny VO), a mutacje pozostają po stronie
+źródłowego BC. Zakres providera obejmuje:
 
-- zwracać `GraphDefinitionResponse` z BC `definition`;
-- zwracać agregatu `GraphDefinition` albo `NodeDefinition` ze źródłowego BC;
-- przekazywać surowego `dict`, JSON albo modelu ORM do domeny;
-- pobierać pól, których lokalna domena nie używa;
-- wykonywać mutacji po stronie źródłowego BC.
+- dane używane przez lokalną domenę (bez zbędnych pól);
+- model mapowany z transportu (surowe `dict`, JSON ani ORM do domeny);
+- wyłącznie odczyt.
 
-## Service: operacja lub mutacja
+## Service/Command Port: operacja lub mutacja
 
-`Service` służy do zlecenia operacji w innym BC albo do wywołania jego zachowania. Nazwa wskazuje działanie, nie odczyt.
+Port operacji (`Command Port`) służy do zlecenia operacji w innym BC albo do wywołania jego zachowania. Zgodnie z wzorcem `aggregate-command-port`, port nazywamy `<Czasownik><Obiekt>Port`; nazwa wskazuje działanie, nie odczyt.
 
 Przykłady nazw:
 
-- `WorkflowSessionCommandService`;
-- `PaymentAuthorizationService`;
-- `TaskExecutionTriggerService`.
+- `WorkflowSessionCommandPort`;
+- `PaymentAuthorizationPort`;
+- `TaskExecutionTriggerPort`.
 
 Port serwisu należy do BC zlecającego operację. Zwraca wyłącznie lokalny wynik operacji, identyfikator, status albo wynik wykonania zdefiniowany przez konsumenta. Nie zwraca obcego agregatu.
 
 ```text
 session domain/application port:
-    WorkflowSessionCommandService
+    WorkflowSessionCommandPort
         add_session_output(...) -> None
 
 session infrastructure:
-    WorkflowSessionHttpService
+    WorkflowSessionCommandHttpAdapter
         local command -> versioned HTTP request -> remote operation result
 ```
 
-Service może:
+Port operacji realizuje operacje na zasobie w innym BC; zwykły odczyt pokrywa Provider/QueryService,
+a zmiana dwóch agregatów bez jawnej orkiestracji (proces/saga) pozostaje poza wzorcem portu.
+Zakres portu operacji obejmuje:
 
-- utworzyć, zmienić albo usunąć zasób w innym BC;
-- uruchomić proces lub komendę w innym BC;
-- rozpocząć operację asynchroniczną i zwrócić operation ID;
-- mapować błąd transportowy na lokalny błąd portu.
-
-Service nie powinien:
-
-- być używany do zwykłego odczytu query;
-- udawać lokalnego repozytorium obcego BC;
-- zmieniać dwóch agregatów bez jawnej orkiestracji procesu lub sagi;
+- utworzenie, zmianę albo usunięcie zasobu w innym BC (lub uruchomienie komendy/procesu);
+- rozpoczęcie operacji asynchronicznej i zwrot operation ID;
+- mapowanie błędu transportowego na lokalny błąd portu.
 - przenosić transakcji lokalnego BC do zewnętrznego BC.
 
 ## Kontrakt transportowy i mapowanie
@@ -100,7 +95,7 @@ opisują wzorce Aggregate Provider i Command Port. Nie umieszczaj portu w BC źr
 ## Synchronicznie czy asynchronicznie
 
 - `Provider` zwykle używa synchronicznego HTTP query, gdy dane są potrzebne natychmiast.
-- `Service` może używać HTTP dla szybkiej komendy albo eventu/command busa dla operacji długiej, odpornej na chwilową niedostępność i eventual consistency.
+- `Command Port` może używać HTTP dla szybkiej komendy albo eventu/command busa dla operacji długiej, odpornej na chwilową niedostępność i eventual consistency.
 - Długotrwałe operacje wielo-BC należą do `process/` i są koordynowane przez sagę/process manager, nie przez pojedynczy provider.
 
 ## Checklist
@@ -108,7 +103,7 @@ opisują wzorce Aggregate Provider i Command Port. Nie umieszczaj portu w BC źr
 Przed dodaniem integracji odpowiedz:
 
 1. Czy tylko czytam dane? Użyj `Provider`.
-2. Czy żądam wykonania, utworzenia, zmiany, usunięcia lub uruchomienia procesu? Użyj `Service`.
+2. Czy żądam wykonania, utworzenia, zmiany, usunięcia lub uruchomienia procesu? Użyj Command Port (`<Czasownik><Obiekt>Port`).
 3. Który BC potrzebuje tej funkcji? On jest właścicielem portu.
 4. Jakie minimalne lokalne VO/read model/result są potrzebne?
 5. Czy adapter waliduje wersjonowany transport i mapuje go lokalnie?

@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.edge_execution.commands.delete_edge_execution_command import (
+    DeleteEdgeExecutionCommand,
+)
 from shell.execution_service.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
     EdgeExecutionRepository,
 )
 from shell.execution_service.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.edge_execution.commands.delete_edge_execution_command import (
-        DeleteEdgeExecutionCommand,
-    )
     from shell.platform.application.ports.logger import Logger
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
@@ -23,7 +24,7 @@ from shell.execution_service.domain.execution.aggregates.edge_execution.exceptio
 )
 
 
-class DeleteEdgeExecutionHandler:
+class DeleteEdgeExecutionHandler(CommandHandler[DeleteEdgeExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

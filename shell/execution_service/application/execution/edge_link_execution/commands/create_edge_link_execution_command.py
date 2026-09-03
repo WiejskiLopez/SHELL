@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell.platform.application.commands.command import Command
+
 
 @dataclass(frozen=True, slots=True)
-class CreateEdgeLinkExecutionCommand:
+class CreateEdgeLinkExecutionCommand(Command):
     node_execution_id: str
     edge_execution_id: str
 

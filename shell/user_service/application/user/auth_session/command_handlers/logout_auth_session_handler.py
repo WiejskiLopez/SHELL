@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.hash import Hash
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.user_service.application.user.auth_session.commands.logout_auth_session_command import (
+    LogoutAuthSessionCommand,
+)
 from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_session_repository import (
     AuthSessionRepository,
 )
@@ -12,12 +16,9 @@ from shell.user_service.domain.user.aggregates.auth_session.repositories.auth_se
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.user_service.application.user.auth_session.commands.logout_auth_session_command import (
-        LogoutAuthSessionCommand,
-    )
 
 
-class LogoutAuthSessionHandler:
+class LogoutAuthSessionHandler(CommandHandler[LogoutAuthSessionCommand]):
     def __init__(self, unit_of_work: UnitOfWork, clock: Clock) -> None:
         self._unit_of_work = unit_of_work
         self._clock = clock

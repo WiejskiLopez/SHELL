@@ -4,38 +4,30 @@ Reguły budowy klocków domenowych. Warstwa `domain/` jest sercem systemu — cz
 
 ## Struktura katalogu domeny
 
+SHELL nie ma top-level pakietu `shell/domain`. Domena żyje per BC: `shell/<service>/domain/<bc>/...`, a platforma domenowa w `shell/platform/domain/...`.
+
 ```
-shell/domain/
-├── <bc>/                         # Bounded Context
-│   ├── aggregates/<agregat>/     # Aggregate Root
-│   │   ├── <agregat>.py
-│   │   ├── entities/             # Child entities
-│   │   ├── events/               # Domain Events
-│   |   ├── repositories/         # Porty repozytoriów (własna persystencja)
-│   |   ├── ports/                # Porty zewnętrzne — odczyt (Provider) i operacje (Command Port)
-|   │   ├── services/             # Domain Services
-|   │   ├── specifications/       # Specification classes
-|   │   ├── exceptions/           # Domain Exceptions
-|   │   ├── rules/                # Rule Objects
-|   │   ├── politics/             # polityki agregatu
-│   │   ├── factories/                # Factory classes współdzielone miedzy <agregat>
-│   │   └── value_objects/        # Value Objects (w tym ID)
-│   ├── entities/                 # Encje współdzielone miedzy <agregat> tego <bc>
-│   ├── value_objects/            # VO BC współdzielone miedzy <agregat> tego <bc>
-│   └── services/                 # Domain Services współdzielone miedzy <agregat> tego <bc>
-├── platform/                     # Uniwersalne elementy platformy
-│   ├── value_objects/            # VO uniwersalne (Version, Timestamp itp.)
-│   ├── entities/base/            # Entity, AggregateRoot base classes
-│   ├── ports/                    # Porty uniwersalne (Clock, IdGenerator)
-│   ├── base/                     # ValueObject, Specification base
-│   ├── events/                   # DomainEvent base class
-│   └── exceptions.py             # DomainError base
+shell/<service>/domain/<bc>/
+├── aggregates/<agregat>/     # Aggregate Root
+│   ├── <agregat>.py
+│   ├── entities/             # Child entities
+│   ├── events/               # Domain Events
+│   ├── repositories/         # Porty repozytoriów (własna persystencja)
+│   ├── ports/                # Porty zewnętrzne — odczyt (Provider) i operacje (Command Port)
+│   ├── services/             # Domain Services
+│   ├── exceptions/           # Domain Exceptions (_error.py)
+│   └── value_objects/        # Value Objects (w tym ID)
+├── entities/                 # Encje współdzielone miedzy <agregat> tego <bc> (jeśli BC wymaga)
+├── value_objects/            # VO BC współdzielone miedzy <agregat> tego <bc> (jeśli BC wymaga)
+└── services/                 # Domain Services współdzielone miedzy <agregat> tego <bc>
 ```
+
+> Platforma domenowa żyje osobno w `shell/platform/domain/` (base klasy w `base/`, `value_objects/`, `ports/`, `events/`, `exceptions/`) — nie jest katalogiem żadnego BC.
 
 ## Kluczowe reguły
 
 ### Aggregate Root
-- Dziedziczy po `AggregateRoot[TId]` z `shell.domain.platform.entities.base.aggregate_root`
+- Dziedziczy po `AggregateRoot[TId]` z `shell/platform/domain/base/aggregate_root.py`
 - **Nie używa `@dataclass`** — tożsamość to nie równość strukturalna
 - Obowiązkowo `__slots__` (bez powtarzania `_id` z base class)
 - `__eq__` i `__hash__` bazują wyłącznie na ID
@@ -44,7 +36,6 @@ shell/domain/
 - Każda metoda mutująca: guard clause → mutacja → `append_event()` (bezwarunkowo dla przejść stanu)
 - Referencje do innych agregatów wyłącznie przez ID (nigdy obiekty)
 - Jeden agregat = jedna transakcja
-- Optymistyczne blokowanie przez `_version`
 
 ### Entity
 - Dziedziczy po `Entity[TId]`
@@ -56,26 +47,26 @@ shell/domain/
 - Kod domenowy korzysta z czystych typow domenowych
 
 ### Value Object
-- Dziedziczy po `ValueObject` z `shell.domain.platform.base.value_object`
+- Dziedziczy po `ValueObject` z `shell.platform.domain.base.value_object`
 - `@dataclass(frozen=True, slots=True)` dla VO opartych na pojedynczej wartości
 - `@dataclass(frozen=True)` dla VO złożonych
-- Walidacja w `__post_init__`, rzuca `ValueError`
+- Walidacja w `__post_init__`, rzuca dedykowany `DomainError`
 - Zawiera zachowania biznesowe (nie tylko dane)
 - Factory methods (`generate()`, `now()`, `initial()`, `of()`, `from_string()`)
-- Każde ID w domenie to osobny VO
+- Każde ID w domenie to osobny VO (dziedziczy po `EntityId`)
 - Sygnatury w warstwie domenowej używają VO, nigdy typów prostych
 
 ### Domain Event
-- `@dataclass(frozen=True)`
-- Rozszerza `DomainEvent` (base class z metadanymi: `event_id`, `aggregate_id`, `aggregate_type`, `occurred_at`, `correlation_id`, `causation_id`, `schema_version`)
+- `@dataclass(frozen=True, slots=True)`
+- Rozszerza `DomainEvent` (base class z metadanymi: `event_id`, `aggregate_id`, `occurred_at` — wszystkie jako ValueObjecty platformy)
 - Payload zawiera tylko fakty (co się stało), nigdy instrukcje (co ma się stać)
 - Nazwa w czasie przeszłym dokonanym: `<AggregateName><PastVerb>Event`
-- `from_payload()` używa `.get()` z domyślną wartością dla backward compatibility
-- Każda zmiana schematu = inkrementacja `schema_version`
+- Ewolucję schematu obsługuje `IntegrationEventDeserializer` + upcaster po stronie outbox/inbox; metadane koperty (`schema_version`, `correlation_id`, `causation_id`, `integration_event_name`) nie są polami klasy domenowej
 
 ### Repository Port
-- Protocol/ABC w `domain/<bc>/repositories/`
-- Definiuje kontrakt: `save()`, `get_by_id()`, `list_by_*()`, `delete()`, `exists()`
+- Protocol w `shell/<service>/domain/<bc>/aggregates/<agregat>/repositories/`
+- Rozszerza `RepositoryPort` z `shell/platform/domain/ports/repository_port.py` (kontrakt: `get_by_id`, `save`, `delete`, `exists`)
+- Może dodawać metody `list_by_*()` specyficzne dla agregatu
 - Operuje na typach domenowych (agregaty, VO)
 - Nie używa `store()`, `persist()`, `add()`, `update()` — tylko `save()`
 
@@ -84,16 +75,16 @@ shell/domain/
 - Używany gdy logika operuje na wielu agregatach tego samego BC
 - Może używać innych Domain Services
 - Porty (Protocol) dla zależności zewnętrznych
-- Wstrzykiwany jako singleton przez DI
+- Wstrzykiwany przez DI (bywa jako Factory per użycie)
 
 ### Domain Exception
-- Dziedziczy po `DomainError` z platformy
-- Każdy invariant ma dedykowaną klasę wyjątku
+- Dziedziczy po `DomainError` z `shell/platform/domain/exceptions/domain_error.py`
+- Każdy invariant ma dedykowaną klasę wyjątku (`<Aggregate><Problem>Error`, plik `<nazwa>_error.py`)
 - Nigdy ogólny `ValueError` czy `RuntimeError` dla reguł biznesowych
 
 ### Zakazy w warstwie domenowej
 - Nie importuje: `sqlalchemy`, `pydantic`, `fastapi`, `motor`
-- Nie importuje: `shell.application.*`, `shell.infrastructure.*`, `shell.framework.*`, `shell.bootstrap.*`
+- Nie importuje: `shell.*.application.*`, `shell.*.infrastructure.*`, `shell.*.framework.*`, `shell.*.bootstrap.*`
 - Encje/Aggregaty nie używają `@dataclass`
 - Brak publicznych setterów dla stanu domenowego
 - Brak referencji obiektowych do innych agregatów (tylko ID)

@@ -6,15 +6,11 @@ import argparse
 import asyncio
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Any
 
 import uvicorn
 
-if TYPE_CHECKING:
-    from shell.platform.infrastructure.messaging.transport.outbox_to_transport_relay import (
-        OutboxToTransportRelay,
-    )
-
+from shell.platform.bootstrap.tracing import install_trace_id_generator
 from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.event.event_worker import run_event_inbox_worker
@@ -40,9 +36,9 @@ from shell.user_service.migrations.baseline import run_user_baseline
 
 
 class _PollingOutboxRelay:
-    """Adapt OutboxToTransportRelay to the PollingTask protocol."""
+    """Adapt relay (event lub command) do protokołu PollingTask."""
 
-    def __init__(self, relay: OutboxToTransportRelay) -> None:
+    def __init__(self, relay: Any) -> None:
         self._relay = relay
 
     async def run_once(self) -> InboxBatchResult:
@@ -71,6 +67,29 @@ async def _run_outbox_relay(container: UserCoreContainer) -> None:
     )
     worker = PollingWorker(
         _PollingOutboxRelay(container.outbox_to_transport_relay_factory()),
+        PollingWorkerConfig(
+            worker_id=worker_id,
+            poll_interval_seconds=runtime.events.worker_poll_interval,
+        ),
+        heartbeat=heartbeat.beat,
+    )
+    await worker.run()
+
+
+async def _run_command_outbox_relay(container: UserCoreContainer) -> None:
+    """Periodically deliver the User BC command outbox to the broker."""
+    config = LoadedConfiguration.from_environment(
+        Path(__file__).resolve().parent / "config", service_name="user"
+    )
+    runtime = config.platform_runtime
+    worker_id = "user-command-outbox-relay"
+    heartbeat = WorkerHeartbeatRecorder(
+        container.session_factory(),
+        container.persistence_delivery_models().worker_heartbeat,
+        worker_id,
+    )
+    worker = PollingWorker(
+        _PollingOutboxRelay(container.command_outbox_to_transport_relay_factory()),
         PollingWorkerConfig(
             worker_id=worker_id,
             poll_interval_seconds=runtime.events.worker_poll_interval,
@@ -132,6 +151,7 @@ def main() -> None:
         runtime.events.worker_max_batch_time_seconds
     )
     configure_user_container(container)
+    install_trace_id_generator()
     app = create_user_app(
         container,
         api_key=api_key if args.api_key is None else args.api_key,
@@ -154,7 +174,11 @@ def main() -> None:
         if service.seed_dev_data:
             await seed_user_dev_data(database_url)
         if args.worker:
-            await asyncio.gather(_run_outbox_relay(container), _run_command_worker(container))
+            await asyncio.gather(
+                _run_outbox_relay(container),
+                _run_command_outbox_relay(container),
+                _run_command_worker(container),
+            )
         else:
             await server.serve()
 

@@ -19,10 +19,9 @@ a SQL poprawne).
 Kolumna bez `unique` może zwracać wiele wierszy. Metoda portu ZWRACAJĄCA POJEDYNCZY rekord
 („`get_by_*` → aggregate | None") musi być deterministyczna:
 
-- **SQL**: `ORDER BY <id>.asc().limit(1)` — nigdy goły `scalar_one_or_none()` po nieunikalnym kluczu
-  (grozi `MultipleResultsFound`).
-- **InMemory**: jawna kolekcja kandydatów + `min(kandydaci, key=id.value)` — nigdy „pierwszy pasujący"
-  w kolejności wstawiania do `dict`.
+- **SQL**: `ORDER BY <id>.asc().limit(1)`; goły `scalar_one_or_none()` po nieunikalnym kluczu grozi `MultipleResultsFound`.
+- **InMemory**: jawna kolekcja kandydatów + `min(kandydaci, key=id.value)`; wybór „pierwszego pasującego"
+  w kolejności `dict` pozostaje poza wzorcem.
 
 ```python
 # SQL — deterministyczny
@@ -39,16 +38,16 @@ matches = [e for e in self._store.values() if e.name == value]
 return min(matches, key=lambda e: e.id.value) if matches else None
 ```
 
-Unikalność w bazie (`unique=True`) zwalnia z tego obowiązku (np. `user.email`); przy braku
-constraintu determinizm jest obowiązkowy.
+Unikalność w bazie (`unique=True`) znosi wymóg deterministycznego wyboru (np. `user.email`);
+przy braku constraintu determinizm jest obowiązkowy.
 
 ## 3. Soft-delete VO (`_deleted_at`)
 
-`_deleted_at` na agregacie to Value Object (`DeletedAt`), **nie** `None` — nawet gdy
-wartość to `DeletedAt(value=None)`. Porównywania muszą zawsze używać `.value`:
+`_deleted_at` na agregacie to Value Object (`DeletedAt`) z wartością domyślną
+`DeletedAt(value=None)`; porównania używają zawsze `.value`:
 
 - poprawne: `entity.deleted_at.value is None`
-- błędne: `entity.deleted_at is None`
+- antywzorzec: `entity.deleted_at is None`
 
 To samo dotyczy generycznego base InMemory:
 
@@ -65,12 +64,12 @@ async def exists(self, id) -> ExistsResult:
 
 ## 4. Kompletność portu po obu stronach
 
-Port (Protocol) może wymagać metod, których adapter nie implementuje. Nie wolno zostawiać
-luki „dostarczy runtime": mypy nie złapie braku metody w adapterze przy strukturów Troubles
-typing (protokół strukturalny). Przy refaktorze portu od razu:
+Port (Protocol) bywa szerszy niż adapter; adapter implementuje **każdą** metodę portu.
+Metody tylko deklarowane („luka dostarczy runtime") skutkują błędem dopiero w runtime, a mypy
+przy strukturalnym Protocol nie wykryje braku metody. Przy refaktorze portu od razu:
 
 1. przeszukaj oba adaptery (SQL + InMemory) pod `get_next_pending`/`delete`/`exists` itd.;
-2. brakująca metoda albo dostaje implementację (nawet gdy nieużywana — port musi być spełniony),
+2. brakująca metoda albo dostaje pełną implementację (port musi być spełniony),
    albo jest usuwana z portu;
 3. dodaj test kontraktowy dla każdej metody portu na obu adapterach.
 
@@ -84,7 +83,7 @@ różni się między SQLite a PostgreSQL i różnymi planami zapytań.
 
 - [ ] Porównaj SQL i InMemory metodę-po-metodzie dla WSZYSTKIEGO portu
 - [ ] Lookup po nieunikalnym kluczu: `ORDER BY id LIMIT 1` (SQL) / `min(by id)` (InMemory)
-- [ ] Soft-delete: porównuj `.value is None`, nie `is None`
-- [ ] Żadna metoda portu nie jest „tylko w jednym adapterze"
+- [ ] Soft-delete: porównuj przez `.value is None`
+- [ ] Każda metoda portu działa w obu adapterach (SQL + InMemory)
 - [ ] Test kontraktowy per metoda (obie ścieżki: znaleziono / nie znaleziono / wiele wyników)
 - [ ] Metoda listująca wybierana przez `[0]` ma deterministyczne sortowanie

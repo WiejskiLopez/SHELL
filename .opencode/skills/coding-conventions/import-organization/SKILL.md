@@ -1,4 +1,11 @@
+---
+name: import-organization
+description: "Zakaz importowania z re-eksportujących modułów, kolejność importów, TYPE_CHECKING, czyste __init__.py, dozwolone kierunki między warstwami. Podzbiór i podporządkowany schematowi enterprise-import-conventions — używany przy każdej edycji importów w pliku."
+---
+
 # Import Organization — Zero-Wyjatkowe Reguły
+
+> **Relacja z `coding-conventions/enterprise-import-conventions`:** niniejszy skill zawiera operacyjne reguły edycji importów (kolejność, TYPE_CHECKING, `__init__.py`, warstwy). W razie sprzeczności nadrzędny jest `enterprise-import-conventions` (kanoniczne źródła stdlib, dyscyplina importów, higiena `__init__.py`, strażnik TYPE_CHECKING).
 
 ## 1. Zawsze Importuj z Definiującego Modułu
 
@@ -6,14 +13,14 @@ Każda nazwa ma dokładnie jeden moduł, w którym jest *zdefiniowana*. Importuj
 
 ```python
 # ŹLE — import z re-eksportującego __init__.py
-from shell.domain.execution import TaskExecutionDto
-from shell.domain.execution.dto.task_execution import TaskExecutionDto, TaskExecutionStatus
+from shell.execution_service.domain.execution import TaskExecutionDto
+from shell.execution_service.domain.execution.dto.task_execution import TaskExecutionDto, TaskExecutionStatus
 
 # ŹLE — import stdlib przez projektowy __init__.py
-from shell.domain.execution import dataclass, field
+from shell.execution_service.domain.execution import dataclass, field
 
 # DOBRZE — import z definiującego modułu
-from shell.domain.execution.dto.task_execution import TaskExecutionDto
+from shell.execution_service.domain.execution.dto.task_execution import TaskExecutionDto
 from dataclasses import dataclass
 ```
 
@@ -41,12 +48,12 @@ from dataclasses import dataclass
 from datetime import datetime
 import uuid
 
-from shell.domain.execution.dto.task_execution import TaskExecutionDto  # 3. projekt: domain
-from shell.application.execution.dto import CreateExecutionCommand       # 4. projekt: application
+from shell.execution_service.domain.execution.dto.task_execution import TaskExecutionDto  # 3. projekt: domain
+from shell.execution_service.application.execution.dto import CreateExecutionCommand       # 4. projekt: application
 
 if TYPE_CHECKING:                            # 5. TYPE_CHECKING blok na końcu
-    from shell.infrastructure.repositories import ExecutionRepository
-    from shell.domain.platform.ports import IdGenerator
+    from shell.execution_service.infrastructure.execution.repositories import ExecutionRepository
+    from shell.platform.domain.ports import IdGenerator
 ```
 
 ## 4. Importy Zawsze na Górze Pliku (Module-Level)

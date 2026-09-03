@@ -1,18 +1,19 @@
 ---
 name: slot-ordering
-description: Obowiązkowa kolejność pól w __slots__ — id, created_at/occurred_at, updated_at, deleted_at, potem biznesowe.
+description: "Obowiązkowa kolejność pól w __slots__ — id, created_at/occurred_at, changed_at, deleted_at, potem biznesowe."
 ---
 
 # Slot Ordering Standards
 
 > Obowiązkowa kolejność pól w `__slots__` — najpierw tożsamość i temporalne, potem biznes.
+> Kolejność testowana przez `shell/tests/architecture/test_slot_temporal_order.py`.
 
 ## Złota zasada
 
-**Kolejność w `__slots__` nie jest dowolna.** Pola muszą występować w ściśle określonej sekwencji:
+**Kolejność w `__slots__` jest ściśle określona** — pola występują w sekwencji:
 
 ```
-_id / _events    →  _created_at / _occurred_at  →  _updated_at  →  _deleted_at  →  _* (biznesowe)
+_id / _events    →  _created_at / _occurred_at  →  _changed_at  →  _deleted_at  →  _* (biznesowe)
 ```
 
 | Pozycja | Pole | Kiedy występuje |
@@ -20,7 +21,7 @@ _id / _events    →  _created_at / _occurred_at  →  _updated_at  →  _delete
 | 1 | `_id` | Tylko w **base class** `Entity` (własne ID) |
 | 1 | `_events` | Tylko w **base class** `AggregateRoot` |
 | 2 | `_created_at` lub `_occurred_at` | Gdy klasa ma pole temporalne utworzenia |
-| 3 | `_updated_at` | Gdy klasa ma pole temporalne aktualizacji |
+| 3 | `_changed_at` | Gdy klasa ma pole temporalne modyfikacji (VO `ChangedAt`; brak `UpdatedAt` w platformie) |
 | 4 | `_deleted_at` | Gdy klasa ma pole temporalnego usunięcia |
 | 5+ | Wszystkie biznesowe | W kolejności logicznej (np. referencje → statusy → dane) |
 
@@ -53,7 +54,7 @@ class AggregateRoot(Entity[TId]):
 class Workflow(AggregateRoot[WorkflowId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_session_id",
         "_status",
@@ -64,7 +65,7 @@ class Workflow(AggregateRoot[WorkflowId]):
 # ŹLE — wymieszana kolejność
 class Workflow(AggregateRoot[WorkflowId]):
     __slots__ = (
-        "_updated_at",      # powinno być po _created_at
+        "_changed_at",      # powinno być po _created_at
         "_session_id",      # biznesowe przed temporalnymi
         "_status",
         "_created_at",      # powinno być pierwsze
@@ -88,7 +89,7 @@ class DomainEventProtocol(ABC):
 class Session(AggregateRoot[SessionId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_user_id",
         "_project_id",
         "_status",
@@ -110,13 +111,13 @@ class Node(Entity[NodeId]):
 
 ## Co z polem `_version`?
 
-`_version` jest polem technicznym — jeśli agregat go definiuje (nie jest dziedziczony), umieść je **przed biznesowymi, po temporalnych**:
+`_version` to pole techniczne definiowane w agregacie; umieszczasz je **przed biznesowymi, po temporalnych**:
 
 ```python
 class Workflow(AggregateRoot[WorkflowId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_version",
         "_session_id",
@@ -126,8 +127,8 @@ class Workflow(AggregateRoot[WorkflowId]):
 
 ## Reguły dla klas pochodnych
 
-- W subclass `Entity`/`AggregateRoot` **nie powtarzaj** `_id` (jest dziedziczony).
-- W subclass `AggregateRoot` **nie powtarzaj** `_events` (jest dziedziczony).
+- W subclass `Entity`/`AggregateRoot` `_id` pozostaje dziedziczony z base `Entity` (bez powtórzenia).
+- W subclass `AggregateRoot` `_events` pozostaje dziedziczony z base `AggregateRoot` (bez powtórzenia).
 - Pola wymienione w `__slots__` klasy pochodnej to **wyłącznie** nowe pola dodane przez tę klasę.
 
 ## Kolejność parametrów w metodach
@@ -137,7 +138,7 @@ class Workflow(AggregateRoot[WorkflowId]):
 ### Kolejność parametrów
 
 ```
-id          →  created_at / occurred_at  →  updated_at  →  deleted_at  →  * (biznesowe)
+id          →  created_at / occurred_at  →  changed_at  →  deleted_at  →  * (biznesowe)
 ```
 
 ### Przykłady
@@ -149,7 +150,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self,
         id: SchedulerJobId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        changed_at: ChangedAt | None = None,
         deleted_at: DeletedAt | None = None,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
@@ -175,7 +176,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         enabled: Enabled,
         config: StateData,
         created_at: CreatedAt,            # powinno być na 2. pozycji
-        updated_at: UpdatedAt | None = None,
+        changed_at: ChangedAt | None = None,
     ) -> None:
 ```
 
@@ -185,7 +186,7 @@ class Workflow(AggregateRoot[WorkflowId]):
     def _delete(self, now: DeletedAt) -> None:
         ...
 
-    def _update(self, now: UpdatedAt) -> None:
+    def _change(self, now: ChangedAt) -> None:
         ...
 ```
 
@@ -231,18 +232,18 @@ def resume(self) -> None: ...
 Konstruktor (`__init__`) przyjmuje parametry w kolejności zgodnej z `__slots__`:
 1. `id`
 2. `created_at` / `occurred_at`
-3. `updated_at`
+3. `changed_at`
 4. `deleted_at`
 5. Biznesowe
 
-W konstruktorze wartości `None` dla `updated_at` i `deleted_at` są ustawiane domyślnie.
+W konstruktorze wartości `None` dla `changed_at` i `deleted_at` są ustawiane domyślnie.
 
 ```python
 # DOBRZE
 class User(AggregateRoot[UserId]):
     __slots__ = (
         "_created_at",
-        "_updated_at",
+        "_changed_at",
         "_deleted_at",
         "_email",
         "_status",
@@ -253,14 +254,14 @@ class User(AggregateRoot[UserId]):
         *,
         id: UserId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        changed_at: ChangedAt | None = None,
         deleted_at: DeletedAt | None = None,
         email: UserEmail,
         status: UserStatus = UserStatus.ACTIVE,
     ) -> None:
         super().__init__(id)
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._changed_at = changed_at
         self._deleted_at = deleted_at
         self._email = email
         self._status = status

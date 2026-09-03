@@ -64,38 +64,35 @@ disallow_untyped_defs = false
 ### 3.1 Port domenowy jako `Protocol`
 
 ```python
-# shell/domain/execution/aggregates/<agregat>/repositories/execution_repository.py
+# shell/<service>/domain/<bc>/aggregates/<agregat>/repositories/<agregat>_repository.py
 from __future__ import annotations
 
 from typing import Protocol
 
-from shell.domain.execution.aggregates.<agregat> import Execution
-from shell.domain.execution.aggregates.<agregat>.value_objects.execution_id import ExecutionId
+from shell.<service>.domain.<bc>.aggregates.<agregat> import Execution
+from shell.<service>.domain.<bc>.aggregates.<agregat>.value_objects.execution_id import ExecutionId
 
 
 class ExecutionRepository(Protocol):
     """Port domenowy — infrastructure implementuje ten protokół."""
 
-    async def add(self, execution: Execution) -> None: ...
-
-    async def get(self, execution_id: ExecutionId) -> Execution: ...
-
-    async def update(self, execution: Execution) -> None: ...
-
-    async def delete(self, execution_id: ExecutionId) -> None: ...
+    async def get_by_id(self, id: ExecutionId) -> Execution | None: ...
+    async def save(self, entity: Execution) -> None: ...
+    async def delete(self, id: ExecutionId) -> None: ...
+    async def exists(self, id: ExecutionId) -> ExistsResult: ...
 ```
 
 ### 3.2 Infrastruktura implementuje protokół
 
 ```python
-# shell/infrastructure/execution/<aggregate>/persistence/sql/repositories/sql_execution_repository.py
+# shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/sql_<agregat>_repository.py
 from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shell.domain.execution.aggregates.<agregat> import Execution
-from shell.domain.execution.aggregates.<agregat>.repositories.execution_repository import ExecutionRepository
-from shell.domain.execution.aggregates.<agregat>.value_objects.execution_id import ExecutionId
+from shell.<service>.domain.<bc>.aggregates.<agregat> import Execution
+from shell.<service>.domain.<bc>.aggregates.<agregat>.repositories.execution_repository import ExecutionRepository
+from shell.<service>.domain.<bc>.aggregates.<agregat>.value_objects.execution_id import ExecutionId
 
 
 class SqlExecutionRepository(ExecutionRepository):
@@ -123,57 +120,46 @@ class SqlExecutionRepository(ExecutionRepository):
 
 ### 4.1 Test pytest, który uruchamia mypy
 
+Realny wzorzec w SHELL (`tests/architecture/test_lint_pass__test_mypy_domain_and_application_zero_errors.py`) iteruje po per-BC warstwach `domain/` i `application/`:
+
 ```python
-# tests/platform/architecture/test_mypy_strict.py
-"""Sprawdza, że mypy --strict przechodzi dla wybranych warstw."""
+# tests/architecture/test_lint_pass__test_mypy_domain_and_application_zero_errors.py
+"""Sprawdza, że mypy --strict przechodzi dla warstw domain/application każdego BC."""
 
 import subprocess
 import sys
 from pathlib import Path
 
 
-class TestMypyStrict:
-    """mypy w CI jako test architektoniczny — blokuje PR jeśli typy nie są zgodne."""
+SHELL_PKG = Path(__file__).resolve().parent.parent.parent
+PROJECT_ROOT = SHELL_PKG.parent
 
-    WARSTWY = [
-        "shell/domain",
-        "shell/application",
-        "shell/infrastructure",
+
+def test_mypy_domain_and_application_zero_errors() -> None:
+    layer_paths = [
+        path
+        for bc_path in SHELL_PKG.iterdir()
+        if bc_path.is_dir()
+        for path in (bc_path / "domain", bc_path / "application")
+        if path.exists()
     ]
-
-    def test_domain_passes_mypy_strict(self) -> None:
-        result = subprocess.run(
-            [sys.executable, "-m", "mypy", "--strict", "shell/domain"],
-            cwd=Path(__file__).resolve().parents[3],
-            capture_output=True,
-            text=True,
-        )
-        assert result.returncode == 0, (
-            f"mypy --strict domain failed:\n{result.stdout}"
-        )
-
-    def test_application_passes_mypy_strict(self) -> None:
-        result = subprocess.run(
-            [sys.executable, "-m", "mypy", "--strict", "shell/application"],
-            cwd=Path(__file__).resolve().parents[3],
-            capture_output=True,
-            text=True,
-        )
-        assert result.returncode == 0, (
-            f"mypy --strict application failed:\n{result.stdout}"
-        )
-
-    def test_infrastructure_passes_mypy(self) -> None:
-        # infrastructure ma luźniejsze reguły (SQLAlchemy declarative)
-        result = subprocess.run(
-            [sys.executable, "-m", "mypy", "shell/infrastructure"],
-            cwd=Path(__file__).resolve().parents[3],
-            capture_output=True,
-            text=True,
-        )
-        assert result.returncode == 0, (
-            f"mypy infrastructure failed:\n{result.stdout}"
-        )
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mypy",
+            "--disable-error-code=type-abstract",
+            *[str(path) for path in layer_paths],
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr, file=sys.stderr)
+        msg = "mypy strict found errors in per-BC domain/application layers"
+        raise AssertionError(msg)
 ```
 
 ### 4.2 Alternatywnie: osobne skrypty CI
@@ -187,32 +173,29 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - run: pip install -e ".[dev]"
-      - run: mypy --strict shell/domain
-      - run: mypy --strict shell/application
-      - run: mypy shell/infrastructure
+      - run: mypy --strict shell/<service>/domain
+      - run: mypy --strict shell/<service>/application
+      - run: mypy shell/<service>/infrastructure
 ```
 
 ## 5. Zaawansowane wzorce
 
-### 5.1 Typy warstwowe jako sentinels
+### 5.1 Typy warstwowe — ID jako ValueObjecty, nie NewType
 
-Zdefiniuj typy, które nie mogą przekraczać granicy warstwy:
+SHELL nie używa `NewType` — identyfikatory domenowe to pełne ValueObjecty dziedziczące po `EntityId` (są walidowane, mają factory `generate()`). Typy proste nie przekraczają granicy warstwy:
 
 ```python
-# shell/domain/types.py
+# shell/<service>/domain/<bc>/aggregates/<agregat>/value_objects/execution_id.py
 from __future__ import annotations
 
-from typing import NewType, TYPE_CHECKING
+from shell.platform.domain.base.entity_id import EntityId
 
-# Domain ID — czysty string/int, żadnego ORM baggage
-ExecutionId = NewType("ExecutionId", str)
-GraphId = NewType("GraphId", str)
-WorkflowId = NewType("WorkflowId", str)
 
-# Domain Money — nie pip install decimal
-from decimal import Decimal
-Money = NewType("Money", Decimal)
+class ExecutionId(EntityId):
+    pass
 ```
+
+Sygnatury portów używają VO (`ExecutionId`), nigdy `str` — mypy zgłasza niezgodność przy próbie przekroczenia granicy typem prostym.
 
 ### 5.2 Typowe naruszenia łapane przez mypy
 
@@ -235,10 +218,13 @@ Protokół w Pythonie (`typing.Protocol`) używa **strukturalnego subtypowania**
 Testy runtime dla protokołów ograniczają się więc do sprawdzeń konwencji nazewniczych i istnienia plików — zgodność typów jest zweryfikowana przez warstwę 3 (mypy).
 
 ```python
-# tests/platform/architecture/infrastructure/test_repository_protocol_convention.py
+# shell/tests/architecture/test_enterprise_patterns__test_repository_port_conventions.py
 """Sprawdza konwencje nazewnicze portów i implementacji."""
 
 from pathlib import Path
+
+
+SHELL_PKG = Path(__file__).resolve().parent.parent.parent
 
 
 class TestRepositoryProtocolConvention:
@@ -247,29 +233,25 @@ class TestRepositoryProtocolConvention:
 
     def test_port_files_end_with_repository(self) -> None:
         violations: list[str] = []
-        domain_root = Path(__file__).resolve().parents[3] / "shell" / "domain"
-        for repo_file in domain_root.rglob("*repository*.py"):
+        for repo_file in SHELL_PKG.rglob("*repositories/*_repository.py"):
             if repo_file.name == "__init__.py":
-                continue
-            if not repo_file.name.endswith("_repository.py"):
                 continue
             class_name = repo_file.stem.replace("_", " ").title().replace(" ", "")
             if not class_name.endswith("Repository"):
                 violations.append(
-                    f"{repo_file.relative_to(domain_root)} — expected class name ending with Repository"
+                    f"{repo_file} — expected class name ending with Repository"
                 )
         assert not violations, "\n".join(violations)
 
     def test_every_infra_implementation_follows_naming(self) -> None:
         violations: list[str] = []
-        infra = Path(__file__).resolve().parents[3] / "shell" / "infrastructure"
-        for impl_file in infra.rglob("*repository*.py"):
+        for impl_file in SHELL_PKG.rglob("infrastructure/*/*/**/*_repository.py"):
             if impl_file.name == "__init__.py":
                 continue
             stem = impl_file.stem.lower()
             if not (stem.startswith("sql_") or stem.startswith("in_memory_")):
                 violations.append(
-                    f"{impl_file.relative_to(infra)} — expected sql_ or in_memory_ prefix"
+                    f"{impl_file} — expected sql_ or in_memory_ prefix"
                 )
         assert not violations, "\n".join(violations)
 ```
@@ -301,34 +283,29 @@ Jeśli wolisz testy w formacie pytest, użyj `pytest-mypy-plugins`:
 
 ## 6. Struktura testów
 
+Realna lokalizacja: **flat** `shell/tests/architecture/` (bez podfolderów per warstwa), a własne reguły mypy uruchamia się przez wrapper jak w sekcji 4.1:
+
 ```
-tests/platform/architecture/
-├── application/
-│   └── test_handler_type_safety.py     # pytest + mypy subprocess
-├── domain/
-│   ├── test_domain_types.py            # NewType, Protocol
-│   └── test_repository_port_protocol.py
-├── infrastructure/
-│   └── test_repository_conformance.py  # Protocol conformance
-└── test_mypy_strict.py                 # mypy --strict dla każdej warstwy
+shell/tests/architecture/
+├── test_lint_pass__test_mypy_domain_and_application_zero_errors.py   # mypy --strict per-BC domain/application
+├── test_enterprise_patterns__test_repository_port_conventions.py     # Protocol/convention (AST)
+└── ... (pozostałe testy architektury flat)
 ```
 
 ## 7. Uruchamianie
 
 ```bash
-# całość
-pytest tests/platform/architecture/ -v
+# całość (realny katalog)
+pytest shell/tests/architecture/ -v
 
-# tylko mypy subprocess test
-pytest tests/platform/architecture/test_mypy_strict.py -v
+# tylko mypy wrapper
+pytest shell/tests/architecture/test_lint_pass__test_mypy_domain_and_application_zero_errors.py -v
 
-# mypy bezpośrednio
-mypy --strict shell/domain
-mypy --strict shell/application
-mypy shell/infrastructure
+# mypy bezpośrednio (per-BC warstwy)
+mypy --strict shell/<service>/domain shell/<service>/application
 
-# CI — osobna matryca
-mypy --strict shell/domain shell/application
+# CI — osobna matryca (jak w run_tests.ps1)
+.venv\Scripts\python -m mypy --disable-error-code=type-abstract shell/<service>/domain shell/<service>/application
 ```
 
 ## 8. Integracja z innymi narzędziami

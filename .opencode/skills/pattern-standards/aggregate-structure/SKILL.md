@@ -19,10 +19,10 @@ class Workflow(AggregateRoot[WorkflowId]):
 
 ## Klasa
 
-- **Nie używać `@dataclass`** dla agregatu — tożsamość to nie równość strukturalna.
-- Obowiązkowo `__slots__` ze wszystkimi polami. Nie powtarzać `_id` (dziedziczony z `AggregateRoot`).
-- `__eq__` i `__hash__` bazują wyłącznie na ID — nigdy na stanie.
-- **Primitive Obsession**: wszystkie pola agregatu muszą być ValueObject, Entity lub ID. `str`, `int`, `bool`, `dict`, `list` są ZABRONIONE.
+- Agregat bazuje na tożsamości ID; `@dataclass` (równość strukturalna) pozostaje poza agregatem.
+- Obowiązkowo `__slots__` ze wszystkimi polami; `_id` pozostaje dziedziczony z `AggregateRoot`.
+- `__eq__` i `__hash__` bazują wyłącznie na ID; stan pozostaje poza porównaniem.
+- **Primitive Obsession**: wszystkie pola agregatu są ValueObject, Entity lub ID; typy `str`, `int`, `bool`, `dict`, `list` pozostają poza agregate.
 
 ```python
 class Workflow(AggregateRoot[WorkflowId]):
@@ -82,7 +82,7 @@ def start(self) -> None:
 
 - **Guard clause zawsze pierwszy** — mutacja stanu zachodzi po potwierdzeniu invariantu.
 - **Mutacja przed eventem** — event rejestruje fakt po zmianie stanu.
-- **Event bezwarunkowo** — jeśli metoda reprezentuje przejście stanu, event musi być zawsze emitowany. Nie uzależniaj emisji od parametrów.
+- **Event bezwarunkowo** — metoda reprezentująca przejście stanu emituje event zawsze; emisja niezależna od parametrów.
 
 ```python
 # Dobrze
@@ -102,8 +102,8 @@ def complete(self, result: Result, emit_event: bool = True) -> None:
 
 ### Proste gettery
 
-- Metody które nie modyfikują stanu nie wymagają guard clauses ani eventów.
-- Po prostu zwracają wartość.
+- Guard clauses i eventy dotyczą metod modyfikujących stan; metody odczytowe wykonują wyłącznie odczyt.
+- Metody odczytowe po prostu zwracają wartość.
 
 ```python
 def can_start(self) -> bool:
@@ -122,16 +122,16 @@ def can_start(self) -> bool:
 ## Encje dziecięce
 
 - Modyfikowane wyłącznie przez metody agregatu.
-- Nie mają własnego repozytorium — zapisywane i odczytywane przez repozytorium agregatu.
+- Zapis i odczyt encji prowadzi repozytorium agregatu root (bez własnego repozytorium).
 - Mają lokalną tożsamość tylko w kontekście agregatu.
 
 ## Lokalizacja
 
-- `shell/domain/<bc>/aggregates/<nazwa>/<nazwa>.py`
+- `shell/<service>/domain/<bc>/aggregates/<nazwa>/<nazwa>.py`
 - W folderze agregatu znajduje się wyłącznie plik agregatu.
-- Wszystkie VO (w tym ID) należą do podfolderu `value_objects/` w BC.
+- Wszystkie VO (w tym ID) należą do podfolderu `value_objects/` agregatu (w BC).
 
 ## Bezpieczeństwo
 
-- Importy tylko z `shell.domain.*`, biblioteka standardowa, zewnętrzne biblioteki dozwolone w domenie.
-- Brak importów ORM, frameworków, `shell.infrastructure.*`, `shell.application.*`.
+- Importy tylko z `shell.<service>.domain.*` i biblioteka standardowa.
+- Brak importów ORM, frameworków, `shell.*.infrastructure.*`, `shell.*.application.*`.

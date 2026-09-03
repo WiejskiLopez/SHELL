@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import shutil
@@ -40,6 +41,43 @@ def _package_metadata(package_name: str) -> dict[str, Any]:
     manifest = REPOSITORY_ROOT / "packaging" / package_name / "pyproject.toml"
     with manifest.open("rb") as stream:
         return tomllib.load(stream)
+
+
+def _migration_head(service_name: str) -> str:
+    """Return the single head revision of the service's Alembic chain."""
+
+    versions_dir = REPOSITORY_ROOT / "shell" / service_name / "migrations" / "versions"
+    revisions: set[str] = set()
+    referenced: set[str] = set()
+    for path in versions_dir.glob("*.py"):
+        if path.name == "__init__.py":
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        revision: str | None = None
+        down_revision: str | None = None
+        for node in tree.body:
+            if not isinstance(node, ast.Assign):
+                continue
+            for target in node.targets:
+                if (
+                    not isinstance(target, ast.Name)
+                    or not isinstance(node.value, ast.Constant)
+                    or not isinstance(node.value.value, str)
+                ):
+                    continue
+                if target.id == "revision":
+                    revision = node.value.value
+                elif target.id == "down_revision":
+                    down_revision = node.value.value
+        if revision is None:
+            raise RuntimeError(f"Missing revision in {path}")
+        revisions.add(revision)
+        if down_revision is not None:
+            referenced.add(down_revision)
+    heads = sorted(revisions - referenced)
+    if len(heads) != 1:
+        raise RuntimeError(f"Expected a single migration head for {service_name}, got {heads!r}")
+    return heads[0]
 
 
 def _require_clean_tree() -> None:
@@ -216,7 +254,7 @@ def build_release_manifest(
         "image_digest_type": "local-image-id" if image_id else None,
         "independence_filesystem_digest": independence_digest,
         "platform_version": str(_package_metadata("shell-platform")["project"]["version"]),
-        "migration_head": f"0001_{service_name.removesuffix('_service')}_baseline",
+        "migration_head": _migration_head(service_name),
         "artifact_sha256": artifact_hashes,
         "verified_at": datetime.now(UTC).isoformat(),
         "status": "candidate" if allow_dirty else "verified",

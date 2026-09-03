@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-from shell.platform.infrastructure.messaging.command.sql_command_outbox_publisher import (
-    SqlCommandOutboxPublisher,
+from shell.platform.infrastructure.messaging.command.sql_command_outbox_writer import (
+    SqlCommandDeliveryDispatcher,
+    SqlCommandOutboxWriter,
 )
 
-__all__ = ["SqlCommandOutboxPublisher"]
+__all__ = [
+    "SqlCommandDeliveryDispatcher",
+    "SqlCommandOutboxWriter",
+]

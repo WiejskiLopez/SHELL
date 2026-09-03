@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.edge_execution.commands.create_edge_execution_command import (
+    CreateEdgeExecutionCommand,
+)
 from shell.execution_service.domain.execution.aggregates.edge_execution.edge_execution import (
     EdgeExecution,
 )
@@ -14,18 +17,16 @@ from shell.execution_service.domain.execution.aggregates.edge_execution.value_ob
 from shell.execution_service.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.edge_execution.commands.create_edge_execution_command import (
-        CreateEdgeExecutionCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
 
 
-class CreateEdgeExecutionHandler:
+class CreateEdgeExecutionHandler(CommandHandler[CreateEdgeExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

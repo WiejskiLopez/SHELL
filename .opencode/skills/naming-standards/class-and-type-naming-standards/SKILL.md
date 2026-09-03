@@ -11,11 +11,13 @@ description: Reguły nazewnictwa klas i typów — PascalCase, pełne nazwy bizn
 
 **PascalCase** dla wszystkich klas, typów i interfejsów. **Żadnych skrótów** — każda klasa ma pełną, biznesową nazwę.
 
-## Zakaz skróconych nazw klas
+## Pełne nazwy klas
 
-Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekcie (np. "Definition", "Execution", "Node", "Output"), musi zawierać pełny kwalifikator domenowy. Nie polegaj na kontekście pakietu — klasa może być używana poza swoim pakietem.
+Jeśli nazwa klasy używa słowa domenowego o wielu znaczeniach (np. "Definition", "Execution",
+"Node", "Output"), niesie pełny kwalifikator domenowy; kontekst pakietu pozostaje pomocniczy,
+bo klasa działa też poza swoim pakietem.
 
-| SKRÓCONA (ZABRONIONA) | PRAWIDŁOWA |
+| SKRÓCONA | PRAWIDŁOWA |
 |------------------------|------------|
 | `DefinitionProvider` | `GraphDefinitionProvider` |
 | `ExecutionChecker` | `SchedulerExecutionChecker` |
@@ -129,7 +131,7 @@ Eventy i komendy opisują **fakty biznesowe** w języku domeny:
 | SQL Repository | `Sql + PascalCase` | `SqlWorkflowRepository`, `SqlGraphDefinitionRepository` |
 | InMemory Repository | `InMemory + PascalCase` | `InMemoryWorkflowRepository` |
 | SQL Query Service | `Sql + PascalCase` | `SqlGraphDefinitionQueryService` |
-| Adapter | `PascalCase + Adapter` | `GraphDefinitionProviderAdapter`, `InvoiceAdapter` |
+| Adapter (cross-BC) | `<Port><Transport>Adapter` | `GraphDefinitionProviderHttpAdapter`, `SessionQueryProviderHttpAdapter` |
 | ORM Model | `PascalCase + Model` | `GraphDefinitionModel`, `TaskExecutionModel` |
 
 ## Wzorce dla ID
@@ -163,12 +165,12 @@ Zasady:
 
 ## Dziedziczenie i base klasy
 
-- Entity: `Entity[TId]` z `shell/domain/platform/base/entity.py`
-- Aggregate Root: `AggregateRoot[TId]` z `shell/domain/platform/base/aggregate_root.py`
-- Value Object: `ValueObject` z `shell/domain/platform/base/value_object.py`
-- Entity ID: `EntityId` z `shell/domain/platform/base/entity_id.py`
-- Domain Event: `DomainEvent` z `shell/domain/platform/events/domain_event.py`
-- Domain Exception: `DomainError` z `_base.py`
+- Entity: `Entity[TId]` z `shell/platform/domain/base/entity.py`
+- Aggregate Root: `AggregateRoot[TId]` z `shell/platform/domain/base/aggregate_root.py`
+- Value Object: `ValueObject` z `shell/platform/domain/base/value_object.py`
+- Entity ID: `EntityId` z `shell/platform/domain/base/entity_id.py`
+- Domain Event: `DomainEvent` z `shell/platform/domain/events/domain_event.py`
+- Domain Exception: `DomainError` z `shell/platform/domain/exceptions/domain_error.py`
 
 ## Standard nazewnictwa
 

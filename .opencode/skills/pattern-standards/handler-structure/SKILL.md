@@ -72,7 +72,9 @@ Command Handlery i Event Handlery stosują analogiczne reguły struktury:
 
 ## Koordynacja wielu agregatów — gdy 1 handler to za mało
 
-Gdy logika wymaga modyfikacji więcej niż jednego agregatu, nigdy nie robimy tego w jednym handlerze/transakcji. Koordynację wieloagregatową opisuje `pattern-standards/saga-structure`:
+Koordynacja wieloagregatowa realizowana jest w warstwie `process/`, a każdy handler
+modyfikuje maksymalnie jeden agregat w jednej transakcji. Wzorce koordynacji opisuje
+`pattern-standards/saga-structure`:
 
 - Event Chain (choreografia) — prosta sekwencja A → B.
 - Saga / Process Manager (orkiestracja) — proces wieloagregatowy, kompensacja, timeout, cross-BC.
@@ -97,6 +99,6 @@ Wszystkie handlery stosują następujące reguły obsługi błędów:
 
 ## Lokalizacja
 
-- Command handlers: `shell/application/<bc>/command_handlers/`
-- Query handlers: `shell/application/<bc>/query_handlers/`
-- Event handlers: `shell/application/<bc>/event_handlers/`
+- Command handlers: `shell/<service>/application/<bc>/<aggregate>/command_handlers/`
+- Query handlers: `shell/<service>/application/<bc>/<aggregate>/query_handlers/`
+- Event handlers: `shell/<service>/application/<bc>/<aggregate>/event_handlers/`

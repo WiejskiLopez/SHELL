@@ -16,14 +16,12 @@ from typing import get_type_hints
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.schema_version import SchemaVersion
 from shell.platform.infrastructure.serialization.errors import UnresolvableTypeHintError
 from shell.platform.types import JsonStr
 
 _PLATFORM_TYPES: dict[str, object] = {
     "CreatedAt": CreatedAt,
     "OccurredAt": OccurredAt,
-    "SchemaVersion": SchemaVersion,
     "JsonStr": JsonStr,
     "datetime": datetime,
 }

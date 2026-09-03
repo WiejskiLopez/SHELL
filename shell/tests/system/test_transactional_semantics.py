@@ -19,10 +19,13 @@ from typing import Any
 import pytest
 from sqlalchemy import select
 
+from shell.platform.application.ports.transport.event_transport import (
+    IntegrationEventDeliveryEnvelope,
+)
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.transport.envelope_codec import EnvelopeCodec
+from shell.platform.infrastructure.messaging.event_transport import EnvelopeCodec
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.session_service.bootstrap.session.container.session_core_container import (
     SessionCoreContainer,
@@ -65,9 +68,11 @@ async def test_duplicate_delivery_opens_exactly_one_session(tmp_path) -> None:
     track_session_factory(container.session_factory())
     event_bus = container.event_bus()
 
-    from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer
+    from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+        RabbitEventInboxConsumer,
+    )
 
-    consumer = RabbitInboxConsumer(
+    consumer = RabbitEventInboxConsumer(
         RABBIT_TEST_URL,
         session_factory,
         SESSION_DELIVERY_MODELS.events,
@@ -102,7 +107,7 @@ async def test_duplicate_delivery_opens_exactly_one_session(tmp_path) -> None:
             (
                 await session.execute(
                     select(_OUTBOX_MODEL).where(
-                        _OUTBOX_MODEL.event_type == "SessionOpenedIntegrationEvent"
+                        _OUTBOX_MODEL.integration_event_name == "SessionOpenedIntegrationEvent"
                     )
                 )
             )
@@ -139,9 +144,11 @@ async def test_session_and_outbox_commit_atomically(tmp_path) -> None:
     track_session_factory(container.session_factory())
     event_bus = container.event_bus()
 
-    from shell.platform.infrastructure.messaging.transport.rabbit import RabbitInboxConsumer
+    from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+        RabbitEventInboxConsumer,
+    )
 
-    consumer = RabbitInboxConsumer(
+    consumer = RabbitEventInboxConsumer(
         RABBIT_TEST_URL,
         session_factory,
         SESSION_DELIVERY_MODELS.events,
@@ -171,7 +178,7 @@ async def test_session_and_outbox_commit_atomically(tmp_path) -> None:
             (
                 await session.execute(
                     select(_OUTBOX_MODEL).where(
-                        _OUTBOX_MODEL.event_type == "SessionOpenedIntegrationEvent"
+                        _OUTBOX_MODEL.integration_event_name == "SessionOpenedIntegrationEvent"
                     )
                 )
             )
@@ -181,7 +188,7 @@ async def test_session_and_outbox_commit_atomically(tmp_path) -> None:
     assert len(outbox) == 1, "outbox event must be present alongside the session"
 
 
-async def _publish_event(envelope: object) -> None:
+async def _publish_event(envelope: IntegrationEventDeliveryEnvelope) -> None:
     import aio_pika
 
     connection = await aio_pika.connect_robust(RABBIT_TEST_URL)
@@ -189,23 +196,21 @@ async def _publish_event(envelope: object) -> None:
     exchange = await channel.declare_exchange("shell.delivery", type="topic", durable=True)
     await exchange.publish(
         aio_pika.Message(
-            body=EnvelopeCodec().encode(envelope),  # type: ignore[arg-type]
+            body=EnvelopeCodec().encode(envelope),
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
         ),
-        routing_key=f"{envelope.kind}.{envelope.contract_type}",  # type: ignore[attr-defined]
+        routing_key=f"{envelope.kind}.{envelope.integration_event_name}",
     )
     await connection.close()
 
 
-def _login_envelope() -> object:
+def _login_envelope() -> IntegrationEventDeliveryEnvelope:
     from datetime import UTC, datetime
 
-    from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
-
-    return DeliveryEnvelope(
+    return IntegrationEventDeliveryEnvelope(
         kind="event",
         outbox_id="outbox-duplicate-login-1",
-        contract_type="AuthSessionCreatedIntegrationEvent",
+        integration_event_name="AuthSessionCreatedIntegrationEvent",
         occurred_at=datetime.now(tz=UTC),
         payload={
             "auth_session_id": "auth-1",
@@ -214,8 +219,8 @@ def _login_envelope() -> object:
         correlation_id="corr-dup",
         causation_id="cause-0",
         event_id="event-dup-1",
+        source_service="user_service",
         aggregate_id="auth-1",
-        aggregate_name="AuthSession",
         schema_version=1,
     )
 

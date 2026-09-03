@@ -22,7 +22,7 @@ description: Reguły wzorca Guard Clause — fail-fast, warunki wstępne w metod
 def assign_user(self, user_id: UserId) -> None:
     if self._status is not WorkflowStatus.IDLE:
         raise WorkflowAlreadyStarted(self._id)
-    if self._assigned_users.count >= self._max_users:
+    if len(self._assigned_users) >= self._max_users:
         raise MaxUsersExceeded(self._id, self._max_users)
     if self._assigned_users.contains(user_id):
         raise UserAlreadyAssigned(self._id, user_id)
@@ -52,7 +52,7 @@ class WorkflowCanAssignUserRule:
 
 | Miejsce | Przykład |
 |---------|----------|
-| `VO.__post_init__()` | `if not self.value: raise ValueError(...)` |
+| `VO.__post_init__()` | `if not self.value: raise EmailEmptyError()` |
 | `Entity` metoda | `if self._status is not WorkflowStatus.ACTIVE: raise ...` |
 | `Aggregate` metoda | `if not self._nodes: raise WorkflowHasNoNodes(...)` |
 | `Factory` metoda | `if template.is_empty(): raise InvalidTemplate(...)` |
@@ -60,7 +60,7 @@ class WorkflowCanAssignUserRule:
 
 ## Dedykowane wyjątki
 
-- Nigdy ogólny `ValueError` czy `RuntimeError` dla reguł biznesowych.
+- Infantry biznesowe podnoszą dedykowane wyjątki domenowe (`...Error` po `DomainError`).
 - Każdy invariant ma swoją klasę wyjątku.
 
 ```python

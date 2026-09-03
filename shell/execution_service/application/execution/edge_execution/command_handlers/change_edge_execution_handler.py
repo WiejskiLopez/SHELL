@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.edge_execution.commands.change_edge_execution_command import (
+    ChangeEdgeExecutionCommand,
+)
 from shell.execution_service.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
     EdgeExecutionRepository,
 )
 from shell.execution_service.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.edge_execution.commands.change_edge_execution_command import (
-        ChangeEdgeExecutionCommand,
-    )
     from shell.platform.application.ports.logger import Logger
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
@@ -23,7 +24,7 @@ from shell.execution_service.domain.execution.aggregates.edge_execution.exceptio
 )
 
 
-class ChangeEdgeExecutionHandler:
+class ChangeEdgeExecutionHandler(CommandHandler[ChangeEdgeExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

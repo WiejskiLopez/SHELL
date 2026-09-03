@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell.platform.application.commands.command import Command
+
 
 @dataclass(frozen=True, slots=True)
-class CreateProjectCommand:
+class CreateProjectCommand(Command):
     name: str
     repo_url: str | None = None
 

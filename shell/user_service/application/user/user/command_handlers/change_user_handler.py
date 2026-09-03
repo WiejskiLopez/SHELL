@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.user_service.application.user.user.commands.change_user_command import (
+    ChangeUserCommand,
+)
 from shell.user_service.domain.user.aggregates.user.repositories.user_repository import (
     UserRepository,
 )
@@ -12,9 +16,6 @@ from shell.user_service.domain.user.value_objects.user_id import UserId
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.user_service.application.user.user.commands.change_user_command import (
-        ChangeUserCommand,
-    )
 
 
 from shell.user_service.application.user.user.exceptions.user_not_found_error import (
@@ -22,7 +23,7 @@ from shell.user_service.application.user.user.exceptions.user_not_found_error im
 )
 
 
-class ChangeUserHandler:
+class ChangeUserHandler(CommandHandler[ChangeUserCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

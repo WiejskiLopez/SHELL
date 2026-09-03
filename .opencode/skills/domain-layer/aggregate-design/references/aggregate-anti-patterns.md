@@ -237,7 +237,7 @@ class Order(AggregateRoot):
 - [ ] Wszystkie mutacje stanu idą przez metody domenowe?
 - [ ] Żadnych publicznych setterów dla stanu domenowego?
 - [ ] Każda metoda mutująca emituje bezwarunkowo event?
-- [ ] Agregat nie robi zapytań (to rola repository)?
+- [ ] Agregat zleca zapytania do repository, a sam wyłącznie modeluje stan i interakcje?
 - [ ] Pojedyncza transakcja zapisuje dokładnie jeden agregat?
 - [ ] Agregat ma optymistyczne blokowanie (`_version`)?
 - [ ] Property zwracające kolekcje dają kopie?

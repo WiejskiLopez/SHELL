@@ -29,7 +29,7 @@ def create(cls, name: WorkflowName, owner_id: UserId, nodes: list[NodeConfig]) -
 
 ## Factory Class
 
-- Osobna klasa w `shell/domain/<bc>/factories/`.
+- Osobna klasa (opcjonalnie) w `shell/<service>/domain/<bc>/aggregates/<agregat>/services/` — SHELL preferuje factory methods `_new`/`create`/`restore` na agregacie (patrz `domain-layer/factory`).
 - Używany gdy: tworzenie wymaga zewnętrznych danych (konfiguracja, polityki); należy wygenerować wiele encji dziecięcych; potrzebna jest walidacja krzyżowa przed utworzeniem; agregat wymaga wstrzyknięcia usług domenowych.
 
 ```python
@@ -48,19 +48,20 @@ class WorkflowFactory:
 
 ## restore()
 
-- Każdy agregat ma factory method `restore()` (lub osobną klasę) do rekonstrukcji z persistance.
-- `restore()` pomija walidację biznesową — zakłada że dane są spójne.
+- Każdy agregat ma factory method `restore()` do rekonstrukcji z persistance.
+- `restore()` pomija walidację biznesową i emisję eventów — zakłada że dane są spójne.
 
 ```python
 @classmethod
-def restore(cls, workflow_id: WorkflowId, name: WorkflowName, status: WorkflowStatus, nodes: list[Node], version: Version) -> Workflow:
-    workflow = cls.__new__(cls)
-    super(Workflow, workflow).__init__(workflow_id)
-    workflow._name = name
-    workflow._status = status
-    workflow._nodes = nodes
-    workflow._version = version
-    return workflow
+def restore(cls, *, id: WorkflowId, created_at: CreatedAt, name: WorkflowName, status: WorkflowStatus) -> Self:
+    return cls(
+        id=id,
+        name=name,
+        status=status,
+        created_at=created_at,
+        changed_at=NONE_CHANGED_AT,
+        deleted_at=NONE_DELETED_AT,
+    )
 ```
 
 ## Zależności
@@ -70,4 +71,5 @@ def restore(cls, workflow_id: WorkflowId, name: WorkflowName, status: WorkflowSt
 
 ## Lokalizacja
 
-- `shell/domain/<bc>/factories/`
+- Factory methods `_new`/`create`/`restore` na klasie agregatu: `shell/<service>/domain/<bc>/aggregates/<agregat>/<agregat>.py`
+- Osobna klasa Factory (opcjonalnie): `shell/<service>/domain/<bc>/aggregates/<agregat>/services/`

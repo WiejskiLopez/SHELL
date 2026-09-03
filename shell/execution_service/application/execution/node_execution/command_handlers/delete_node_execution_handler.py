@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.node_execution.commands.delete_node_execution_command import (
+    DeleteNodeExecutionCommand,
+)
 from shell.execution_service.application.execution.node_execution.exceptions.node_execution_not_found_error import (
     NodeExecutionNotFoundError,
 )
@@ -11,17 +14,15 @@ from shell.execution_service.domain.execution.aggregates.node_execution.reposito
 from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.node_execution.commands.delete_node_execution_command import (
-        DeleteNodeExecutionCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
 
 
-class DeleteNodeExecutionHandler:
+class DeleteNodeExecutionHandler(CommandHandler[DeleteNodeExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

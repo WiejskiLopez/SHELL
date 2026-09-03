@@ -9,7 +9,7 @@ description: Reguły struktury Port i Adapter — port w domenie należy do potr
 
 ## Definicja
 
-- Port to interfejs (Protocol/ABC) zdefiniowany w warstwie domenowej (lub aplikacyjnej). Definiuje **co** system robi, nie **jak**.
+- Port to interfejs (Protocol/ABC) zdefiniowany w warstwie domenowej (lub aplikacyjnej). Definiuje **co** system robi; **jak** realizuje adapter.
 - Adapter implementuje port w warstwie infrastruktury.
 
 ## Port
@@ -23,10 +23,10 @@ class Clock(Protocol):
 ```
 
 - Granulacja: jeden port na operację (złożona), jeden port na serwis (wiele powiązanych operacji), jeden port = jedna metoda (prosta, izolowana).
-- Port jest stabilny — zmiany przez dodawanie, nie modyfikacje.
+- Port jest stabilny — ewolucja przez dodawanie metod; istniejące sygnatury pozostają bez zmian.
 
 ```python
-# Stabilność: dodajemy nową metodę, nie zmieniamy istniejących
+# Stabilność: nowe metody dodawane, istniejące sygnatury bez zmian
 class NotificationPort(Protocol):
     async def send_email(self, to: EmailAddress, subject: str, body: str) -> None: ...
     async def send_sms(self, to: PhoneNumber, message: str) -> None: ...  # nowa metoda
@@ -36,8 +36,8 @@ class NotificationPort(Protocol):
 
 - Implementuje port w infrastrukturze.
 - Jedyny komponent który zna zewnętrzny system.
-- Adapter mapuje: typy źródłowe → typy docelowe (nigdy nie przepuszcza surowych DTO źródła).
-- Adapter nie zawiera logiki biznesowej — tylko tłumaczenie.
+- Adapter mapuje typy źródłowe na typy docelowe; surowe DTO źródła pozostają po stronie źródła.
+- Adapter wykonuje tłumaczenie typów; logika biznesowa pozostaje w domenie.
 - Wyjątki z adaptera mapowane na domenowe.
 
 ```python
@@ -63,8 +63,9 @@ class EmailNotificationAdapter:
 
 ## Lokalizacja
 
-- Porty: `shell/domain/platform/ports/` (uniwersalne porty platformy)
-- Adaptery: `shell/infrastructure/platform/time/`, `shell/infrastructure/platform/identity/`, `shell/infrastructure/<bc>/http/`, `shell/infrastructure/<bc>/acl/`
+- Porty platformy: `shell/platform/domain/ports/` (Clock, IdGenerator, RepositoryPort)
+- Adaptery platformy: `shell/platform/infrastructure/time/`, `shell/platform/infrastructure/identity/`
+- Adaptery BC: `shell/<service>/infrastructure/<bc>/<aggregate>/adapters/<port_name>/` (wzorce Provider / Command Port) oraz `shell/<service>/infrastructure/<bc>/acl/`
 
 Lokalizację portów wyjściowych konkretnego agregatu (katalogi `repositories/`,
 `ports/`) i ich adapterów opisują dedykowane wzorce: Repository, Aggregate Provider i Command Port.

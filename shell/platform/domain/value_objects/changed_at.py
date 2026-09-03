@@ -18,9 +18,6 @@ class ChangedAt(ValueObject):
         if self.value is not None and self.value.tzinfo is None:
             raise DomainError("ChangedAt must be timezone-aware (UTC)")
 
-    def __str__(self) -> str:
-        return self.value.isoformat() if self.value is not None else ""
-
     @classmethod
     def none(cls) -> ChangedAt:
         return cls(value=None)

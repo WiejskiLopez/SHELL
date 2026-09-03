@@ -5,7 +5,11 @@ description: Reguły struktury Middleware i Pipeline — kolejność middleware,
 
 # Middleware / Pipeline Structure
 
-> Reguły struktury klas Middleware i Pipeline we wszystkich bounded contextach.
+> Reguły struktury klas Middleware i Pipeline w warstwie aplikacyjnej.
+
+## Status implementacji w SHELL
+
+Warstwa HTTP korzysta z natywnych middleware FastAPI w `shell/platform/framework/api/middleware/` (`api_key`, `api_version`, `audit_log`, `correlation_id`, `error_handler`). **Pipeline middleware dla handlerów CQRS nie jest jeszcze zaimplementowany w SHELL** — poniższe reguły definiują wzorzec docelowy, do którego ma się stosować przyszła implementacja (patrz `application-layer/middleware-pipeline`).
 
 ## Definicja
 
@@ -39,7 +43,7 @@ class LoggingMiddleware:
 command_pipeline = Pipeline(
     middlewares=[
         LoggingMiddleware(),
-        TransactionMiddleware(unit_of_factory),
+        TransactionMiddleware(unit_of_work),
         AuthorizationMiddleware(auth_service),
         ValidationMiddleware(),
     ],
@@ -49,7 +53,7 @@ command_pipeline = Pipeline(
 ## Pipeline
 
 - Pipeline konfigurowany w Composition Root.
-- Middleware nie modyfikuje handlera — otacza go.
+- Middleware opakowuje handler (dekoracyjna otoczka); logika handlera pozostaje bez zmian.
 - Middleware może przerywać łańcuch (np. błąd autoryzacji).
 
 ```python
@@ -84,4 +88,4 @@ class Pipeline:
 
 ## Lokalizacja
 
-- `shell/infrastructure/platform/pipeline/`
+- Docelowo: `shell/platform/infrastructure/pipeline/` (katalog wymaga utworzenia).

@@ -20,5 +20,4 @@ class IntegrationEvent:
     causation_id: str
     occurred_at: datetime
     aggregate_id: str
-    aggregate_name: str
     schema_version: int

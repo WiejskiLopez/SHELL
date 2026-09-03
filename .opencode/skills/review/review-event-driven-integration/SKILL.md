@@ -55,7 +55,7 @@ Patrz `tracing-context`.
 | Weryfikacja | Złamanie | Severity |
 |-------------|----------|----------|
 | Handler subskrybuje event i jest bezstanowy | handler z pamięcią między eventami | HIGH |
-| Handler nie robi side-effectów poza kontraktem | handler pisze do 3 agregatów bez koordynacji | MEDIUM |
+| Handler realizuje wyłącznie efekty w kontrakcie swojego agregatu | handler pisze do 3 agregatów bez koordynacji | MEDIUM |
 | Powtórny event (duplicate) nie produkuje drugiego efektu | podwójny zapis/drugi email | **CRITICAL** |
 
 ## 6. Checklista finalna

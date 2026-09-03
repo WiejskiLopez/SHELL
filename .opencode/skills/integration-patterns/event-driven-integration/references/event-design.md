@@ -1,21 +1,18 @@
 # Projektowanie eventów domenowych i integracyjnych
 
+> Uwaga: poniższe przykłady są ilustracyjne (uproszczone identyfikatory i typy). Realna klasa bazowa `DomainEvent` w SHELL ma **trzy** pola ValueObject: `event_id`, `aggregate_id`, `occurred_at`. Osobne metadane koperty (`correlation_id`, `causation_id`, `schema_version`, `integration_event_name`) dodaje platforma dopiero w outbox/inbox i kopercie transportu — nie są polami klasy domenowej.
+
 ## Struktura eventu
 
-Każdy event domenowy i integracyjny ma obowiązkowe metadane:
+Event domenowy i integracyjny mają jasno rozdzielone części — payload biznesowy oraz metadane:
 
 ```python
-@dataclass(frozen=True)
-class OrderConfirmedEvent(DomainEvent):
-    # ─── Obowiązkowe metadane (z base class) ───
-    event_id: str
-    aggregate_id: str
-    aggregate_type: str
-    occurred_at: datetime
-    correlation_id: str | None
-    causation_id: str | None
-    schema_version: int
+# Metadane koperty (nadawane przez platformę, nie przez klasę eventu):
+#   integration_event_name, event_id, occurred_at, schema_version,
+#   correlation_id, causation_id, aggregate_id
 
+@dataclass(frozen=True)
+class OrderConfirmedIntegrationEvent:
     # ─── Payload domenowy ───
     order_id: str
     customer_id: str
@@ -23,13 +20,13 @@ class OrderConfirmedEvent(DomainEvent):
     items: tuple[OrderItemSnapshot, ...]
 ```
 
-### Obowiązkowe pola każdego eventu
+### Pola koperty (envelope)
 
 | Pole | Typ | Opis |
 |------|-----|------|
-| `event_id` | UUID / str | Unikalny identyfikator tego wystąpienia eventu |
+| `integration_event_name` | str | Stabilna nazwa publicznego kontraktu (np. `OrderConfirmed`) |
+| `event_id` | str | Unikalny identyfikator tego wystąpienia eventu |
 | `aggregate_id` | str | ID agregatu który wyemitował event |
-| `aggregate_type` | str | Typ agregatu (np. `"Order"`) |
 | `occurred_at` | datetime | Kiedy zdarzenie zaszło (czas domenowy) |
 | `correlation_id` | str \| None | ID procesu biznesowego (łączy eventy w jeden łańcuch) |
 | `causation_id` | str \| None | ID eventu który bezpośrednio to spowodował |
@@ -60,10 +57,10 @@ class DoProcessPaymentEvent(DomainEvent):
 
 ### Domain Event
 
-Emitowany przez agregat, konsumowany wewnątrz tego samego bounded context. Leży w `domain/<bc>/aggregates/<agregat>/events/`.
+Emitowany przez agregat, konsumowany wewnątrz tego samego bounded context. Leży w `shell/<service>/domain/<bc>/aggregates/<agregat>/events/`.
 
 ```python
-# shell/domain/ordering/aggregates/order/events/order_confirmed_event.py
+# shell/<service>/domain/ordering/aggregates/order/events/order_confirmed_event.py
 @dataclass(frozen=True)
 class OrderConfirmedEvent(DomainEvent):
     order_id: str
@@ -72,10 +69,10 @@ class OrderConfirmedEvent(DomainEvent):
 
 ### Integration Event
 
-Publikowany poza bounded context. Leży w `application/<bc>/event_handlers/` lub w shared kernel. Różnica: integration event jest kontraktem między BC — nie zmieniasz go bez zgody konsumentów.
+Publikowany poza bounded context. Leży w `shell/<service>/application/<bc>/<aggregate>/integration_events/`. Różnica: integration event jest kontraktem między BC — nie zmieniasz go bez zgody konsumentów.
 
 ```python
-# shell/application/ordering/event_handlers/order_completed_integration_event.py
+# shell/<service>/application/ordering/order/integration_events/order_completed_integration_event.py
 @dataclass(frozen=True)
 class OrderCompletedIntegrationEvent:
     """Publikowany do innych BC po zakończeniu zamówienia."""
@@ -91,7 +88,10 @@ class OrderCompletedIntegrationEvent:
 Domain Event: wewnątrz BC, niestabilny kontrakt, możesz go zmieniać.
 Integration Event: między BC, stabilny kontrakt, zmiana wymaga wersjonowania.
 
-Handler subskrybuje Domain Event → przetwarza → publikuje Integration Event (do innych BC).
+**Aplikacyjny Event Handler obsługuje Integration Events.** Domain Event jest
+wewnętrznym faktem agregatu: `append_event()` → UoW stage'uje →
+`ReflectiveIntegrationMapper` mapuje na **Integration Event** → `outbox_event`.
+W ramach reakcji handler może publikować kolejne Integration Events (do innych BC).
 
 ## Wersjonowanie eventów
 
@@ -120,28 +120,15 @@ class OrderConfirmedEventV2(DomainEvent):
 
 ### Backward compatibility — deserializacja
 
-Event musi dać się zdeserializować ze starego formatu:
+Event musi dać się zdeserializować ze starego formatu. W SHELL deserializację integration eventów obsługuje `IntegrationEventDeserializer` (z rejestrem `integration_event_name` → klasa) oraz upcaster — klasa eventu domenowego NIE posiada `from_payload()`:
 
 ```python
-@classmethod
-def from_payload(cls, payload: dict) -> "OrderConfirmedEvent":
-    version = payload.get("schema_version", 1)
-    if version == 1:
-        return cls(
-            event_id=payload["event_id"],
-            aggregate_id=payload["aggregate_id"],
-            aggregate_type=payload["aggregate_type"],
-            occurred_at=payload["occurred_at"],
-            correlation_id=payload.get("correlation_id"),
-            causation_id=payload.get("causation_id"),
-            schema_version=2,  # upgrade do najnowszej wersji
-            order_id=payload["order_id"],
-            customer_id=payload["customer_id"],
-            confirmed_by=payload.get("confirmed_by"),  # brak w V1 → None
-        )
-    if version == 2:
-        return cls(...)
-    raise UnknownSchemaVersion(version)
+# Realny mechanizm:
+IntegrationEventDeserializer.deserialize(
+    integration_event_name, occurred_at, payload, schema_version, **envelope_metadata,
+)
+    -> upcast(stary payload do aktualnego modelu)
+    -> IntegrationEvent / DomainEvent
 ```
 
 ### Zasady ewolucji
@@ -198,10 +185,10 @@ W praktyce stosuj grube eventy dla integracji między BC. Konsument nie może po
 
 ## Konwencje dla eventów
 
-- Event rozszerza `DomainEvent` (base class z metadanymi)
+- Event rozszerza `DomainEvent` (base class z metadanymi `event_id`, `aggregate_id`, `occurred_at`)
 - `@dataclass(frozen=True)` — niemutowalny
 - Nazwa w czasie przeszłym dokonanym
 - Jeden event = jeden plik
-- `from_payload()` obsługuje stare wersje schematu
+- Ewolucję schematu obsługuje `IntegrationEventDeserializer` + upcaster (NIE `from_payload()` na klasie)
 - Payload zawiera tylko fakty, nigdy instrukcje
 - `schema_version` inkrementowane przy każdej zmianie struktury

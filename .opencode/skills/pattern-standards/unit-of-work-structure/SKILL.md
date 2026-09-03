@@ -5,62 +5,35 @@ description: Reguły struktury Unit of Work — async context manager, transakcj
 
 # Unit of Work Structure
 
-> Reguły struktury Unit of Work we wszystkich bounded contextach.
+> Reguły struktury Unit of Work w warstwie infrastruktury platformy.
 
 ## Definicja
 
 - Unit of Work zarządza transakcjami i koordynuje zapis eventów do outboxa.
 
-## Klasa
+## Port
 
-- UnitOfWork jest zawsze async context managerem.
+- Port `UnitOfWork` (`shell/platform/application/ports/persistence/unit_of_work.py`) to Protocol używany przez handlery:
 
 ```python
-class UnitOfWork(ABC):
-    @abstractmethod
-    async def __aenter__(self) -> Self: ...
-
-    @abstractmethod
-    async def __aexit__(self, exc_type: type[BaseException] | None, ...) -> None: ...
-
-    @abstractmethod
-    def stage_events(self, events: list[DomainEvent]) -> None: ...
+class UnitOfWork(Protocol):
+    def repository(self, repo_type: type[Any]) -> Any ...
+    def stage_events(self, events: Sequence[object]) -> None ...
+    async def save(self, repo_type: type, aggregate: object) -> None ...
+    @property
+    def events(self) -> Sequence[object] ...
+    async def commit(self) -> None ...
+    async def rollback(self) -> None ...
+    async def __aenter__(self) -> UnitOfWork ...
+    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None ...
 ```
 
 ## Implementacja
 
-- `commit()` na `__aexit__` jeśli brak wyjątku.
-- `rollback()` jeśli wyjątek.
+- Bazą implementacji SQL jest `SqlAlchemyUnitOfWorkBase` w `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`; każdy BC dostarcza własną podklasę z mapą portów repozytoriów → klas SQL (per BC, z własną sesją DATABASE_URL).
+- `commit()` na `__aexit__` jeśli brak wyjątku; `rollback()` jeśli wyjątek.
 - Outbox zapisywany w tej samej transakcji co zmiany domenowe.
-
-```python
-class SqlUnitOfWork:
-    def __init__(self, session_factory: Callable[[], AsyncGenerator[AsyncSession, None]]) -> None:
-        self._session_factory = session_factory
-        self._session: AsyncSession | None = None
-        self._events: list[DomainEvent] = []
-
-    async def __aenter__(self) -> Self:
-        self._session = await anext(self._session_factory())
-        return self
-
-    async def __aexit__(self, exc_type: type[BaseException] | None, ...) -> None:
-        try:
-            if exc_type is None:
-                await self._commit()
-            else:
-                await self._session.rollback()
-        finally:
-            await self._session.close()
-
-    async def _commit(self) -> None:
-        for event in self._events:
-            self._session.add(OutboxEvent.from_domain_event(event))
-        await self._session.commit()
-
-    def stage_events(self, events: list[DomainEvent]) -> None:
-        self._events.extend(events)
-```
+- `save(repo_type, aggregate)` zapisuje agregat, wyciąga `aggregate.pull_events()` i woła `stage_events` — eventy domowe trafiają do outboxa automatycznie.
 
 ## Użycie w handlerze
 
@@ -68,8 +41,7 @@ class SqlUnitOfWork:
 async def handle(self, command: StartWorkflowCommand) -> None:
     async with self._unit_of_work as unit_of_work:
         workflow = Workflow.create(...)
-        unit_of_work.workflow_repository.save(workflow)
-        unit_of_work.stage_events(workflow.pull_events())
+        await unit_of_work.save(WorkflowRepository, workflow)
 ```
 
 ## Two-phase UoW
@@ -81,18 +53,20 @@ async def handle(self, command: StartWorkflowCommand) -> None:
 ```python
 async def handle(self, command: ProcessWorkflowCommand) -> None:
     async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflow_repository.get_by_id(command.workflow_id)
+        workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(command.workflow_id)
         workflow.mark_processing()
-        unit_of_work.stage_events(workflow.pull_events())
+        await unit_of_work.save(WorkflowRepository, workflow)
 
     result = await self._external_service.run(workflow.id)
 
     async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflow_repository.get_by_id(command.workflow_id)
+        workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(command.workflow_id)
         workflow.complete(result)
-        unit_of_work.stage_events(workflow.pull_events())
+        await unit_of_work.save(WorkflowRepository, workflow)
 ```
 
 ## Lokalizacja
 
-- `shell/infrastructure/platform/unit_of_work.py`
+- Port: `shell/platform/application/ports/persistence/unit_of_work.py`
+- Baza implementacji: `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`
+- Modele dostarczania (outbox/inbox): `shell/platform/infrastructure/persistence/sql/models/event_delivery.py` i `command_delivery.py`

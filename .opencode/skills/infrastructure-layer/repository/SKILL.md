@@ -13,39 +13,39 @@ cykl życia: zapis, odczyt po ID, usuwanie, istnienie.
 Każdy agregat definiuje swoje porty wyjściowe w dwóch katalogach domeny:
 
 ```
-shell/<bc>/domain/<bc>/aggregates/<aggregate>/
+shell/<service>/domain/<bc>/aggregates/<aggregate>/
 ├── repositories/   # PERSYSTENCJA WŁASNYCH danych agregatu (ten wzorzec)
 └── ports/          # POZOSTAŁE PORTY ZEWNĘTRZNE — odczyt (Provider) i operacje (Command Port)
 ```
 
-Repository to **nie** provider (cudze dane, tylko odczyt) i **nie** port operacyjny (mutacje po
-stronie źródła). Provider i porty operacyjne opisują komunikację międzyagregatową i żyją razem w
-`ports/` (rozróżnia je nazwa: `<Dane>Provider` vs `<Czasownik><Obiekt>Port`); repository opisuje
-wyłącznie własną persystencję.
+Repository obsługuje **wyłącznie persystencję własnych danych agregatu**. Provider
+(odczyt cudzych danych) i port operacyjny (mutacje po stronie źródła) opisują komunikację
+międzyagregatową i żyją w `ports/` — rozróżnia je nazwa (`<Dane>Provider` vs
+`<Czasownik><Obiekt>Port`); repository obejmuje własną persystencję.
 
 ## 2. Lokalizacja
 
 ```
-shell/<bc>/domain/<bc>/aggregates/<agregat>/repositories/   # Porty (Protocol) per agregat
+shell/<service>/domain/<bc>/aggregates/<agregat>/repositories/   # Porty (Protocol) per agregat
 ├── execution_repository.py                             # Port
 └── graph_execution_repository.py                       # Port
 ```
 
 ```
-shell/<bc>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/  # Adaptery (SQL) per agregat
+shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/  # Adaptery (SQL) per agregat
 ├── sql_execution_repository.py
 └── sql_graph_execution_repository.py
 ```
 
 ```
-shell/<bc>/infrastructure/<bc>/<aggregate>/persistence/memory/            # InMemory (testy) per agregat
+shell/<service>/infrastructure/<bc>/<aggregate>/persistence/memory/            # InMemory (testy) per agregat
 ├── in_memory_execution_repository.py
 └── in_memory_graph_execution_repository.py
 ```
 
 ## 3. Port (domena)
 
-- Protocol/ABC w `shell/<bc>/domain/<bc>/aggregates/<agregat>/repositories/`.
+- Protocol/ABC w `shell/<service>/domain/<bc>/aggregates/<agregat>/repositories/`.
 - Operacje na poziomie agregatu, nie encji dziecięcych.
 - Command side: `get`, `save`, `delete`, `exists` są zdefiniowane w generycznym
   `RepositoryPort[TAggregate, TId_co]` (`shell/platform/domain/ports/repository_port.py`).
@@ -69,7 +69,7 @@ Dziedziczone z `RepositoryPort`:
 
 - Implementuje port.
 - Mapuje ORM Model ↔ Domain Aggregate.
-- `shell/<bc>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`.
+- `shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`.
 
 ```python
 class SqlWorkflowRepository:
@@ -138,9 +138,9 @@ async def list_by(self, specification: Specification[Workflow], options: QueryOp
 ## 10. Checklista
 
 Projektując repozytorium:
-- [ ] Port (Protocol) w `shell/<bc>/domain/<bc>/aggregates/<agregat>/repositories/`
-- [ ] Adapter SQL w `shell/<bc>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`
-- [ ] Adapter InMemory w `shell/<bc>/infrastructure/<bc>/<aggregate>/persistence/memory/`
+- [ ] Port (Protocol) w `shell/<service>/domain/<bc>/aggregates/<agregat>/repositories/`
+- [ ] Adapter SQL w `shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`
+- [ ] Adapter InMemory w `shell/<service>/infrastructure/<bc>/<aggregate>/persistence/memory/`
 - [ ] Adapter InMemory pełna semantyka, nie no-op
 - [ ] Testy jednostkowe na InMemory
 - [ ] Testy integracyjne na SQL implementacji

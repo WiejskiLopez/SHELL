@@ -18,7 +18,7 @@ class TestEnvelopeValidator:
         )
         error = validator.validate(
             outbox_id="outbox-1",
-            contract_type="SampleEvent",
+            message_name="SampleEvent",
             schema_version=2,
             payload={},
             correlation_id="c",
@@ -32,7 +32,7 @@ class TestEnvelopeValidator:
         )
         error = validator.validate(
             outbox_id="outbox-1",
-            contract_type="SampleEvent",
+            message_name="SampleEvent",
             schema_version=99,
             payload={},
             correlation_id="c",
@@ -45,7 +45,7 @@ class TestEnvelopeValidator:
         assert (
             validator.validate(
                 outbox_id="outbox-1",
-                contract_type="AnyEvent",
+                message_name="AnyEvent",
                 schema_version=1,
                 payload={},
                 correlation_id="c",
@@ -56,7 +56,7 @@ class TestEnvelopeValidator:
         assert (
             validator.validate(
                 outbox_id="outbox-1",
-                contract_type="AnyEvent",
+                message_name="AnyEvent",
                 schema_version=2,
                 payload={},
                 correlation_id="c",
@@ -69,7 +69,7 @@ class TestEnvelopeValidator:
         validator = EnvelopeValidator(EnvelopeValidationPolicy(require_outbox_id=True))
         error = validator.validate(
             outbox_id=None,
-            contract_type="AnyEvent",
+            message_name="AnyEvent",
             schema_version=1,
             payload={},
             correlation_id="c",
@@ -81,7 +81,7 @@ class TestEnvelopeValidator:
         validator = EnvelopeValidator(EnvelopeValidationPolicy(max_payload_bytes=10))
         error = validator.validate(
             outbox_id="outbox-1",
-            contract_type="AnyEvent",
+            message_name="AnyEvent",
             schema_version=1,
             payload={"big": "x" * 100},
             correlation_id="c",

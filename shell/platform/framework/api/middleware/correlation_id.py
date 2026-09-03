@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.platform.application.context import (
+    get_or_create_correlation_id,
     reset_correlation_id,
     set_correlation_id,
 )
@@ -24,6 +25,10 @@ class CorrelationIdMiddleware:
 
         headers: dict[bytes, bytes] = dict(scope.get("headers", []))
         cid = headers.get(b"x-correlation-id", b"").decode()
+        if not cid:
+            # Brak nagłówka — generuj identyfikator u źródła, aby każde żądanie
+            # (nawet bez nagłówka) miało stabilny trace od początku.
+            cid = get_or_create_correlation_id()
         token = set_correlation_id(cid)
 
         async def send_wrapper(message: Message) -> None:

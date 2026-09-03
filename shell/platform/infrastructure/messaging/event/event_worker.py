@@ -23,8 +23,18 @@ async def run_delivery_workers(
     poll_interval_seconds: float,
     outbox_relay: Any | None = None,
     outbox_worker_id: str = "outbox-relay",
+    command_outbox_relay: Any | None = None,
+    command_outbox_worker_id: str = "command-outbox-relay",
+    extra_processors: Sequence[tuple[Any, str]] | None = None,
 ) -> None:
-    """Run multiple inbox workers and close all consumers on shutdown."""
+    """Run multiple inbox workers (eventy i komendy) oraz relaje outboxu.
+
+    ``outbox_relay`` publikuje ``outbox_event``; ``command_outbox_relay``
+    publikuje ``outbox_command`` (komendy delivery). Oba startują jako własne
+    PollingWorkery z heartbeatem. ``extra_processors`` uruchamia dodatkowe
+    procesory pollingowane (np. ``SagaTimeoutProcessor``), które nie mają
+    konsumenta brokera — tylko claimują rekordy z bazy.
+    """
     for consumer, _, _ in workers:
         await consumer.start()
     try:
@@ -57,6 +67,35 @@ async def run_delivery_workers(
                     heartbeat=heartbeat.beat,
                 ).run()
             )
+        if command_outbox_relay is not None:
+            heartbeat = WorkerHeartbeatRecorder(
+                session_factory,
+                heartbeat_model,
+                command_outbox_worker_id,
+            )
+            tasks.append(
+                PollingWorker(
+                    command_outbox_relay,
+                    PollingWorkerConfig(
+                        worker_id=command_outbox_worker_id,
+                        poll_interval_seconds=poll_interval_seconds,
+                    ),
+                    heartbeat=heartbeat.beat,
+                ).run()
+            )
+        if extra_processors is not None:
+            for processor, worker_id in extra_processors:
+                heartbeat = WorkerHeartbeatRecorder(session_factory, heartbeat_model, worker_id)
+                tasks.append(
+                    PollingWorker(
+                        processor,
+                        PollingWorkerConfig(
+                            worker_id=worker_id,
+                            poll_interval_seconds=poll_interval_seconds,
+                        ),
+                        heartbeat=heartbeat.beat,
+                    ).run()
+                )
         await asyncio.gather(*tasks)
     finally:
         for consumer, _, _ in workers:

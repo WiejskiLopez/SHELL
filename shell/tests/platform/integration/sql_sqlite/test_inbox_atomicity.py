@@ -35,7 +35,9 @@ from shell.platform.infrastructure.messaging.event.processor.event_inbox_process
 from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
-from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
+    IntegrationEventSerializer,
+)
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
     PERSISTENCE_DELIVERY_MODELS,
@@ -46,13 +48,24 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
+    from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
+        TaskExecutionCreatedIntegrationEvent,
+    )
+
 _INBOX_MODEL: Any = EVENT_DELIVERY_MODELS.inbox
 
 
-def _event() -> TaskExecutionCreatedEvent:
+def _outbound_domain_event() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+    )
+
+
+def _event() -> TaskExecutionCreatedIntegrationEvent:
+    return cast(
+        "TaskExecutionCreatedIntegrationEvent",
+        ReflectiveIntegrationMapper().map(_outbound_domain_event()),
     )
 
 
@@ -73,20 +86,19 @@ async def _add_event(
     session_factory: async_sessionmaker,
     event_id: str,
     *,
-    event: TaskExecutionCreatedEvent,
+    event: TaskExecutionCreatedIntegrationEvent,
 ) -> None:
-    serializer = DomainEventSerializer()
+    serializer = IntegrationEventSerializer()
     async with session_factory() as session:
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
                 outbox_id=f"outbox-{event_id.removeprefix('evt-')}",
-                event_id=str(event.event_id.value),
+                event_id=event.event_id,
                 source_service="execution_service",
-                event_type=type(event).__name__,
-                occurred_at=event.occurred_at.value,
-                aggregate_id=str(event.aggregate_id.value),
-                aggregate_name=str(event.aggregate_name.value),
+                integration_event_name=type(event).__name__,
+                occurred_at=event.occurred_at,
+                aggregate_id=event.aggregate_id,
                 payload=serializer.to_payload(event),
                 correlation_id="corr",
                 causation_id="cause",
@@ -101,7 +113,7 @@ def _processor(
     session_factory: async_sessionmaker,
     bus: StagingBus,
     *,
-    event: TaskExecutionCreatedEvent,
+    event: TaskExecutionCreatedIntegrationEvent,
     consumer_name: str | None = None,
 ) -> EventInboxProcessor:
     return EventInboxProcessor(
@@ -148,7 +160,7 @@ class TestAtomicity:
 
             async def handle(self, item: object) -> None:
                 async with self._uow as uow:
-                    uow.stage_events([item])
+                    uow.stage_events([_outbound_domain_event()])
 
         uow = SqlAlchemyUnitOfWorkBase(
             session_factory,
@@ -178,7 +190,7 @@ class TestAtomicity:
 
             async def handle(self, item: object) -> None:
                 async with self._uow as uow:
-                    uow.stage_events([item])
+                    uow.stage_events([_outbound_domain_event()])
                     await uow.rollback()
 
         uow = SqlAlchemyUnitOfWorkBase(
@@ -377,11 +389,11 @@ class _NoopHandler:
 
 
 class _CommitHandler:
-    """Stages the dispatched item into the processing UoW (shared session)."""
+    """Stages a fresh outbound domain event into the processing UoW (shared session)."""
 
     def __init__(self, uow: SqlAlchemyUnitOfWorkBase) -> None:
         self._uow = uow
 
     async def handle(self, item: object) -> None:
         async with self._uow as uow:
-            uow.stage_events([item])
+            uow.stage_events([_outbound_domain_event()])

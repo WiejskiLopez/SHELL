@@ -10,12 +10,12 @@
 - **Queries** nie zmieniają stanu, zwracają DTO
 - Każda komenda/kwerenda w osobnej klasie w `application/<bc>/<aggregate>/commands/` lub `application/<bc>/<aggregate>/queries/`
 - Każdy handler w osobnej klasie w `application/<bc>/<aggregate>/command_handlers/` lub `application/<bc>/<aggregate>/query_handlers/`
-- Handler spełnia kontrakt: `handle(command: TCommand) -> Any`
+- Handler spełnia kontrakt: `handle(command: <CommandName>) -> Any`
 
 ### Command / Query / Event Bus
-- `CommandBus` → rejestracja `command_type → handler_factory`
-- `QueryBus` → rejestracja `query_type → handler_factory`
-- `EventBus` → rejestracja `event_type → handler_factory` (1:N — jeden event może mieć wielu subskrybentów)
+- `CommandBus` → rejestracja `<CommandName> → handler_factory` (kluczem jest klasa komendy, np. `CreateWorkflowCommand`)
+- `QueryBus` → rejestracja `<QueryName> → handler_factory` (kluczem jest klasa query, np. `GetWorkflowByIdQuery`)
+- `EventBus` → rejestracja `<EventName> → handler_factory` (1:N — jeden event może mieć wielu subskrybentów)
 - Bus jest tylko dispatcherem — nie zawiera logiki biznesowej
 - Busy konfigurowane w `bootstrap/`
 

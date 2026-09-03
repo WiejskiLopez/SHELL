@@ -515,7 +515,12 @@ dto: UserDto | None = await query_bus.dispatch(
 
 ### Migracje
 
-Migracje Alembic: `platform/infrastructure/persistence/migrations/sql/versions/` (56 migracji).
+Migracje są statyczne per tabela: tabele delivery (outbox/inbox/audit/processed_delivery/
+worker_heartbeat/saga) definiuje wspólny łańcuch platformy w
+`platform/infrastructure/persistence/migrations/sql/versions/` (`platform_0001_...`),
+a każdy serwis ma własny łańcuch domenowy `*_service/migrations/versions/`
+(`<serwis>_000N_<tabela>.py`). Baseline serwisu najpierw aplikuje łańcuch platformy,
+potem własny. Wzorzec dynamiczny (`apply_baseline`/`create_service_tables`) jest zakazany.
 
 ### Unit of Work
 

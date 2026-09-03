@@ -56,16 +56,16 @@ Patrz `repository-contract-symmetry`.
 
 | Weryfikacja | Złamanie | Severity |
 |-------------|----------|----------|
-| Iterator testu faktycznie rozwiązuje istniejące katalogi | test iteruje `(BASE / "application")`, `(BASE / "domain")` itd., gdy kod leży w `shell/<bc>/<warstwa>` (po migracji monolit → per-BC) — pusty skan | **CRITICAL** |
+| Iterator testu faktycznie rozwiązuje istniejące katalogi | test iteruje `(BASE / "application")`, `(BASE / "domain")` itd., gdy kod leży w `shell/<bc>_service/<warstwa>/<bc>` (po migracji monolit → per-BC) — pusty skan | **CRITICAL** |
 | Helper `BASE`/ścieżki zgodne z rzeczywistą topologią | `BASE = ...parent.parent.parent.parent` (repo root) zamiast katalogu źródłowego; skan repo root, gdzie warstw nie ma | **CRITICAL** |
 | Strażnik faktycznie jest uruchamiany w CI | test w katalogu poza `testpaths` / niewołany przez żaden workflow | **CRITICAL** |
 | Zanim "naprawisz" próżny test, zweryfikuj, że reguła jest spełniona na realnym kodzie | przestawienie iteracji na realne ścieżki, gdy kod od dawna łamie regułę → strażnik pada od pierwszego dnia | HIGH |
 | Zakres reguły doprecyzowany do intencji, nie rozmyty | zasada round-trip stosowana do jednokierunkowych map (ACL/adaptery) zamiast do persistence mapperów | MEDIUM |
 
 **Weryfikacja próżności:** dla każdego testu sprawdź, czy jego iteratory istnieją i czy zwracają niepuste zbiory:
-- `BASE / "<warstwa>"` istnieje? Po rozbiciu na BC warstwy żyją per-BC — `shell/<bc>/application`, `shell/<bc>/domain`.
+- `BASE / "<warstwa>"` istnieje? Po rozbiciu na BC warstwy żyją per-BC — `shell/<bc>_service/application/<bc>`, `shell/<bc>_service/domain/<bc>`.
 - Test, który przechodzi natychmiast i "bezpiecznie", wymaga obejrzenia — ile plików faktycznie przejrzał?
-- Prefiksy w regułach (np. `shell.application`, `shell.infrastructure`) muszą odpowiadać realnej formie per-BC (`shell.<bc>.application`).
+- Prefiksy w regułach (np. `shell.application`, `shell.infrastructure`) muszą odpowiadać realnej formie per-BC (`shell.<bc>_service.application`).
 
 **Metodyka naprawy:**
 1. Zidentyfikuj puste iteracje (skan, który niczego nie zwraca = 0 naruszeń = 0 wartości).

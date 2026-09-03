@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.workflow.commands.change_workflow_command import (
+    ChangeWorkflowCommand,
+)
 from shell.execution_service.application.execution.workflow.exceptions.workflow_not_found_error import (
     WorkflowNotFoundError,
 )
@@ -11,17 +14,15 @@ from shell.execution_service.domain.execution.aggregates.workflow.repositories.w
 from shell.execution_service.domain.execution.aggregates.workflow.value_objects.workflow_id import (
     WorkflowId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.workflow.commands.change_workflow_command import (
-        ChangeWorkflowCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
 
 
-class ChangeWorkflowHandler:
+class ChangeWorkflowHandler(CommandHandler[ChangeWorkflowCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

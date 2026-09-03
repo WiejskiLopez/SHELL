@@ -1,9 +1,9 @@
 # Warstwy i reguły zależności
 
-Architektura: **Clean Architecture + DDD + Hexagonal + CQRS**. Kierunek zależności jest jednokierunkowy — warstwa wewnętrzna nie wie o istnieniu zewnętrznych.
+Architektura: **Clean Architecture + DDD + Hexagonal + CQRS**. Kierunek zależności jest jednokierunkowy — warstwa wewnętrzna nie wie o istnieniu zewnętrznych. Topologia per-BC: `shell/<service>/{domain,application,process,infrastructure,framework,bootstrap}/<bc>/...` (brak top-level pakietów `shell/domain` itd.).
 
 ```
-domain/ ← application/ ← infrastructure/ ← framework/ ← bootstrap/
+domain/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
 ```
 
 ## Tabela warstw
@@ -12,18 +12,19 @@ domain/ ← application/ ← infrastructure/ ← framework/ ← bootstrap/
 |---------|----------------|----------------------|
 | `domain/` | Tylko stdlib | Entities, Value Objects, Aggregate Roots, Domain Events, Repository porty (Protocol), Domain Services, Domain Exceptions |
 | `application/` | `domain/` + stdlib | Atomowe Command/Query/Event Handlers (1 event → 1 agregat), CommandBus/QueryBus/EventBus, DTO, Mapper, Application Ports |
+| `process/` | `domain/` + `application/` | Orkiestracja i sagi (docelowa warstwa) |
 | `infrastructure/` | `domain/` + `application/` (implementuje porty) + biblioteki zewn. | SQLAlchemy ORM modele, SQL Reposytoria, InMemory adapters, logging, messaging (outbox/inbox), serializacja, system clock |
 | `framework/` | Wszystkie niższe warstwy | FastAPI app + routers + middleware, CLI (argparse), entrypointy, orchestration runner |
 | `bootstrap/` | Wszystkie warstwy (Composition Root) | DI Containery, Factory klasy, konfiguracja — jedyne miejsce gdzie tworzone są konkretne implementacje |
 
 ## Kluczowe zakazy
 
-- `domain/` nigdy nie importuje: `sqlalchemy`, `pydantic`, `fastapi`, `motor`, `shell.application`, `shell.infrastructure`, `shell.framework`, `shell.bootstrap`
-- `application/` nigdy nie importuje: `sqlalchemy`, `fastapi`, `motor`, `shell.infrastructure`, `shell.framework`, `shell.bootstrap`
+- `domain/` nigdy nie importuje: `sqlalchemy`, `pydantic`, `fastapi`, `motor`, `shell.*.application`, `shell.*.infrastructure`, `shell.*.framework`, `shell.*.bootstrap`
+- `application/` nigdy nie importuje: `sqlalchemy`, `fastapi`, `motor`, `shell.*.infrastructure`, `shell.*.framework`, `shell.*.bootstrap`
 - Kazda warstwa korzysta z zaleznosci zgodnie z dozwolonym kierunkiem architektury
 - Wszystkie zależności między warstwami idą przez porty (Protocol) — nigdy przez konkretne implementacje
 
-Reguły te są egzekwowane statycznie przez `tests/platform/architecture/` i `import-linter`. Zanim zaproponujesz import, który przekracza warstwę, sprawdź czy nie istnieje już port dla tej zależności.
+Reguły te są egzekwowane statycznie przez `shell/tests/architecture/` i `import-linter`. Zanim zaproponujesz import, który przekracza warstwę, sprawdź czy nie istnieje już port dla tej zależności.
 
 ## Dlaczego to ma znaczenie
 

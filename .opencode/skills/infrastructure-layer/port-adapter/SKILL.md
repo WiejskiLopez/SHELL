@@ -7,20 +7,20 @@ description: Zasady projektowania Portów i Adapterów w architekturze hexagonal
 
 ## 1. Port — Kontrakt w Domenie
 
-**Port** to interfejs (Protocol/ABC) zdefiniowany w warstwie domenowej (lub aplikacyjnej). Definiuje **co** system robi, nie **jak**.
+**Port** to interfejs (Protocol/ABC) zdefiniowany w warstwie domenowej (lub aplikacyjnej). Definiuje **co** system robi; **jak** realizuje to adapter (implementacja portu w infrastrukturze).
 
 ```python
-# shell/domain/platform/ports/clock.py — Port w domenie
+# shell/platform/domain/ports/clock.py — Port w domenie
 class Clock(Protocol):
     """Port — dostarcza bieżący czas."""
     def now(self) -> Timestamp: ...
 
-# shell/domain/platform/ports/id_generator.py
+# shell/platform/domain/ports/id_generator.py
 class IdGenerator(Protocol):
     """Port — generuje unikalne identyfikatory."""
     def generate(self) -> str: ...
 
-# shell/domain/execution/aggregates/<agregat>/repositories/execution_repository.py — Port repozytorium
+# shell/<service>/domain/execution/aggregates/<agregat>/repositories/execution_repository.py — Port repozytorium
 class ExecutionRepository(ABC):
     @abstractmethod
     async def get(self, id: ExecutionId) -> Execution: ...
@@ -33,19 +33,19 @@ class ExecutionRepository(ABC):
 **Adapter** implementuje port w warstwie infrastruktury.
 
 ```python
-# shell/infrastructure/platform/time/system_clock.py
+# shell/platform/infrastructure/time/system_clock.py
     class SystemClock:
         """Adapter — implementuje Clock przez systemowy zegar."""
         def now(self) -> Timestamp:
             return Timestamp.now()
 
-# shell/infrastructure/platform/identity/uuid_id_generator.py
+# shell/platform/infrastructure/identity/uuid_id_generator.py
     class UuidIdGenerator:
         """Adapter — implementuje IdGenerator przez UUID."""
         def generate(self) -> str:
             return str(uuid4())
 
-# shell/infrastructure/execution/<aggregate>/persistence/sql/repositories/sql_execution_repository.py
+# shell/<service>/infrastructure/execution/<aggregate>/persistence/sql/repositories/sql_execution_repository.py
     class SqlExecutionRepository(ExecutionRepository):
         """Adapter — implementuje ExecutionRepository przez SQLAlchemy."""
         ...
@@ -57,12 +57,12 @@ Port jest własnością tego, kto GO POTRZEBUJE. Jeśli domena potrzebuje czasu 
 
 ```python
 # Port jest w domenie, bo to DOMENA potrzebuje czasu
-# shell/domain/platform/ports/clock.py
+# shell/platform/domain/ports/clock.py
 class Clock(Protocol):
     def now(self) -> Timestamp: ...
 
 # Adapter w infrastrukturze
-# shell/infrastructure/platform/time/system_clock.py
+# shell/platform/infrastructure/time/system_clock.py
 class SystemClock:
     def now(self) -> Timestamp:
         return Timestamp(datetime.now(tz=UTC))
@@ -147,14 +147,14 @@ class FileStorage(Protocol):
 
 ```
 # Porty
-shell/domain/platform/ports/                        # Uniwersalne porty platformy (Clock, IdGenerator)
-shell/application/<bc>/ports/                       # Porty aplikacyjne
+shell/platform/domain/ports/                        # Uniwersalne porty platformy (Clock, IdGenerator)
+shell/<service>/application/<bc>/<aggregate>/ports/                       # Porty aplikacyjne
 
 # Adaptery
-shell/infrastructure/platform/time/                 # Adaptery uniwersalne (zegar)
-shell/infrastructure/platform/identity/             # Adaptery uniwersalne (IdGenerator)
-shell/infrastructure/<bc>/http/                     # HTTP adaptery
-shell/infrastructure/<bc>/acl/                      # Anti-Corruption Layer
+shell/platform/infrastructure/time/                 # Adaptery uniwersalne (zegar)
+shell/platform/infrastructure/identity/             # Adaptery uniwersalne (IdGenerator)
+shell/<service>/infrastructure/<bc>/http/                     # HTTP adaptery
+shell/<service>/infrastructure/<bc>/acl/                      # Anti-Corruption Layer
 ```
 
 Porty wyjściowe konkretnego agregatu (katalogi `repositories/` i `ports/`) i ich

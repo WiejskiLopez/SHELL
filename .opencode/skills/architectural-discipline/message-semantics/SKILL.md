@@ -131,6 +131,8 @@ Pole czasu w Message opisuje techniczny czas utworzenia, wyslania lub odebrania 
 
 ## Istniejacy kod i stan docelowy
 
-Fakt: `DomainMessage` (shell/platform/domain/messages/domain_message.py) i `IntegrationMessage` (shell/platform/application/messages/integration_message.py) sa kontraktami tresci platformy. Ich techniczne pola definiuja osobny lifecycle, registry, serializer i deserializer.
+Kanał Message oraz klasy `DomainMessage`, `IntegrationMessage`, `MessageBus` (oraz `append_message`/`pull_messages`/`stage_messages`) **zostały usunięte** z SHELL 2026-08-24 — obecnie nie istnieją w kodzie. Decyzja i pełna lista usuniętych artefaktów: `docs/messages-removed.md`.
 
-Regula docelowa: kontrakt Message uzupelnia sie o adresata (`recipient_aggregate_id`, `recipient_aggregate_name`), pole tresci (`text` i/lub `content_ref`) oraz pole etapu pipeline (`stage`). Mapping Message nie tworzy faktu, tylko przekazuje tresc.
+**Nie odtwarzaj tych artefaktów jako istniejących.** Poniższe zapisy opisują wyłącznie **kształt kontraktu docelowego, gdyby kanał treści został ponownie wprowadzony**. Do tego czasu obowiązuje semantyka z sekcji STATUS: fakt → **event**, prosta adresowana akcja → **Command Port**, a kanał treści pozostaje niedostępny.
+
+Reguła docelowa (tylko jako projekt, nie jako bieżący stan): kontrakt Message uzupełnia się o adresata (`recipient_aggregate_id`, `recipient_aggregate_name`), pole tresci (`text` i/lub `content_ref`) oraz pole etapu pipeline (`stage`). Mapping Message nie tworzy faktu, tylko przekazuje tresc.

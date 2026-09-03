@@ -1,6 +1,6 @@
 ---
 name: noqa-enterprise-policy
-description: Zasady stosowania dyrektywy # noqa w aplikacjach enterprise — kiedy wolno, kiedy nie wolno, obiektywne kryteria uniwersalne. Używaj gdy review'ujesz kod z # noqa, projektujesz politykę lintera dla nowego projektu, lub zastanawiasz się czy dany warning powinien być naprawiony czy stłumiony.
+description: "Zasady stosowania dyrektywy # noqa w aplikacjach enterprise — kiedy wolno, kiedy nie wolno, obiektywne kryteria uniwersalne. Używaj gdy review'ujesz kod z # noqa, projektujesz politykę lintera dla nowego projektu, lub zastanawiasz się czy dany warning powinien być naprawiony czy stłumiony."
 ---
 
 # # noqa w aplikacjach enterprise — polityka zero zaskoczeń

@@ -16,9 +16,9 @@ Handler aplikacyjny **nie może bezpośrednio wołać agregatów, serwisów dome
 Implementacja adaptera dla portu pochodzącego z innej domeny **musi** znajdować się w `infrastructure/` w podkatalogu o nazwie zgodnej z nazwą tej domeny.
 
 Przykład:
-- Handler w `shell/application/execution/` potrzebuje funkcjonalności z domeny `platform`
-- W `shell/domain/platform/ports/` (lub `shell/application/ports/`) istnieje port (protokół) `PlatformPort`
-- Adapter tego portu implementujesz w `shell/infrastructure/platform/`
+- Handler w `shell/<service>/application/<bc>/` potrzebuje funkcjonalności z innego BC (np. `platform`)
+- W `shell/platform/domain/ports/` (lub `shell/<service>/application/<bc>/<aggregate>/ports/`) istnieje port (protokół) `PlatformPort`
+- Adapter tego portu implementujesz w `shell/<service>/infrastructure/<bc>/<aggregate>/adapters/`
 - Handler wstrzykuje port przez DI — nigdy nie tworzy bezpośrednio instancji agregatu z innej domeny
 
 ### Komunikacja poza domenę

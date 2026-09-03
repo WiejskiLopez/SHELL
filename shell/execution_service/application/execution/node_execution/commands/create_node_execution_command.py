@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell.platform.application.commands.command import Command
+
 
 @dataclass(frozen=True, slots=True)
-class CreateNodeExecutionCommand:
+class CreateNodeExecutionCommand(Command):
     graph_execution_id: str
     node_definition_id: str
     node_type: str

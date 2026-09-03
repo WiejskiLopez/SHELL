@@ -146,7 +146,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 | **innego BC** | `{Entity}IdRef` | Izolacja BC — nie możesz importować cudzego `Id` |
 | **tego samego BC** | `{Entity}Id` | Wspolne ID agregatow w ramach wlasnego BC |
 
-**Dlaczego nie robić `IdRef` dla wszystkiego?** Bo tworzysz martwy boilerplate — `GraphExecutionIdRef` który jest 1:1 kopią `GraphExecutionId`, w tym samym BC, bez żadnej wartości architektonicznej. To tylko szum.
+**Kiedy używać `IdRef`:** wyłącznie dla FK do agregatu z **innego BC** (izolacja — pobierasz odwołanie, bo nie importujesz cudzego `Id`). Dla FK w ramach tego samego BC używaj `{Entity}Id`; duplikat `IdRef` 1:1 w jednym BC to martwy boilerplate.
 
 ### 4. Mapper — konwersja między warstwami
 

@@ -17,9 +17,6 @@ class RevokedAt(ValueObject):
         if self.value is not None and self.value.tzinfo is None:
             raise DomainError("RevokedAt must be timezone-aware (UTC)")
 
-    def __str__(self) -> str:
-        return self.value.isoformat() if self.value is not None else ""
-
     @classmethod
     def none(cls) -> RevokedAt:
         return cls(value=None)

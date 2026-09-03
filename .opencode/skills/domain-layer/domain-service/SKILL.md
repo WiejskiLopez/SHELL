@@ -75,7 +75,7 @@ class OrderProcessingService:
 Domain Services są wtryskiwane do handlerów przez DI. Są zazwyczaj **singletonami** (stateless, thread-safe).
 
 ```python
-# bootstrap/<bc>/module.py
+# shell/<service>/bootstrap/<bc>/container/<bc>_core_container.py
 @singleton
 def provide_pricing_service() -> PricingService:
     return PricingService()
@@ -123,12 +123,12 @@ class PaymentAllocationService:
 W architekturze hexagonalnej Domain Service może definiować **Port** (Protocol), który jest implementowany przez adapter w infrastrukturze.
 
 ```python
-# shell/domain/<bc>/services/ports.py — Port w domenie
+# shell/<service>/domain/<bc>/services/ports.py — Port w domenie
 class FileStorageService(Protocol):
     async def store(self, filename: str, content: bytes) -> StoragePath: ...
     async def retrieve(self, path: StoragePath) -> bytes: ...
 
-# shell/infrastructure/<bc>/adapters/s3_storage.py — Adapter w infrastrukturze
+# shell/<service>/infrastructure/<bc>/adapters/s3_storage.py — Adapter w infrastrukturze
 class S3StorageService:
     async def store(self, filename: str, content: bytes) -> StoragePath: ...
     async def retrieve(self, path: StoragePath) -> bytes: ...
@@ -138,5 +138,5 @@ class S3StorageService:
 
 Tworząc Domain Service:
 - [ ] Logika nie pasuje do pojedynczej Entity ani VO
-- [ ] Lokalizacja: `shell/domain/<bc>/aggregates/<agregat>/services/`
+- [ ] Lokalizacja: `shell/<service>/domain/<bc>/services/`
 - [ ] Testowany w isolation (unit testy, mock portów)

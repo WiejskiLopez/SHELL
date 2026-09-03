@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
 
-if TYPE_CHECKING:
-    from pathlib import Path
+_PLATFORM_MIGRATIONS_DIR: Path | None = None
+
+
+def _platform_migrations_dir() -> Path:
+    global _PLATFORM_MIGRATIONS_DIR
+    if _PLATFORM_MIGRATIONS_DIR is None:
+        _PLATFORM_MIGRATIONS_DIR = Path(__file__).resolve().parent / "migrations" / "sql"
+    return _PLATFORM_MIGRATIONS_DIR
 
 
 def _run_upgrade(
@@ -42,5 +48,17 @@ async def run_versioned_migrations(
         migrations_dir=migrations_dir,
         service_package=service_package,
         base_class=base_class,
+        reset_db=reset_db,
+    )
+
+
+async def run_platform_baseline(*, url: str, reset_db: bool = False) -> None:
+    """Apply the shared platform delivery-migrations chain (``platform_0001_..``)."""
+    await asyncio.to_thread(
+        _run_upgrade,
+        url=url,
+        migrations_dir=_platform_migrations_dir(),
+        service_package="",
+        base_class="",
         reset_db=reset_db,
     )

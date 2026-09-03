@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.ingestion_service.application.ingestion.ingestion.commands.create_ingestion_command import (
+    CreateIngestionCommand,
+)
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.ingestion import Ingestion
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.repositories.ingestion_repository import (
     IngestionRepository,
@@ -15,19 +18,17 @@ from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects
 from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_id import (
     IngestionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
-    from shell.ingestion_service.application.ingestion.ingestion.commands.create_ingestion_command import (
-        CreateIngestionCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
 
 
-class CreateIngestionHandler:
+class CreateIngestionHandler(CommandHandler[CreateIngestionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

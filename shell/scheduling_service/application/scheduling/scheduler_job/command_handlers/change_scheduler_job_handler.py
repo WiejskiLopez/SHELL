@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.changed_at import ChangedAt
+from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
+    ChangeSchedulerJobCommand,
+)
 from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.repositories.scheduler_job_repository import (
     SchedulerJobRepository,
 )
@@ -13,9 +17,6 @@ from shell.scheduling_service.domain.scheduling.aggregates.scheduler_job.value_o
 if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
-    from shell.scheduling_service.application.scheduling.scheduler_job.commands.change_scheduler_job_command import (
-        ChangeSchedulerJobCommand,
-    )
 
 
 from shell.scheduling_service.application.scheduling.scheduler_job.exceptions.scheduler_job_not_found_error import (
@@ -23,7 +24,7 @@ from shell.scheduling_service.application.scheduling.scheduler_job.exceptions.sc
 )
 
 
-class ChangeSchedulerJobHandler:
+class ChangeSchedulerJobHandler(CommandHandler[ChangeSchedulerJobCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

@@ -1,4 +1,4 @@
-"""Unit tests for RabbitDeliveryTransport delivery semantics.
+"""Unit tests for RabbitEventDeliveryTransport delivery semantics.
 
 Verifies the adapter-level contract that protects transactional outbox
 at-least-once delivery:
@@ -16,30 +16,31 @@ from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
-from shell.platform.application.ports.transport.delivery_transport import DeliveryEnvelope
-from shell.platform.infrastructure.messaging.transport.rabbit import (
-    rabbit_delivery_transport as transport_module,
+from shell.platform.application.ports.transport.event_transport import (
+    IntegrationEventDeliveryEnvelope,
 )
-from shell.platform.infrastructure.messaging.transport.rabbit.rabbit_delivery_transport import (
-    RabbitDeliveryTransport,
+from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+    rabbit_event_delivery_transport as transport_module,
+)
+from shell.platform.infrastructure.messaging.event_transport.rabbit.rabbit_event_delivery_transport import (
+    RabbitEventDeliveryTransport,
 )
 
 if TYPE_CHECKING:
     from aio_pika.abc import AbstractChannel
 
 
-def _envelope() -> DeliveryEnvelope:
-    return DeliveryEnvelope(
+def _envelope() -> IntegrationEventDeliveryEnvelope:
+    return IntegrationEventDeliveryEnvelope(
         kind="event",
         outbox_id="outbox-1",
-        contract_type="TaskExecutionCreatedEvent",
+        integration_event_name="TaskExecutionCreatedEvent",
         occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
         payload={"task_execution_id": "abc"},
         correlation_id="corr-1",
         causation_id="cause-1",
         event_id="event-1",
         aggregate_id="aggregate-1",
-        aggregate_name="TaskExecution",
     )
 
 
@@ -89,9 +90,9 @@ class _FakeConnection:
         return _FakeChannel(_FakeExchange())
 
 
-class TestRabbitDeliveryTransport:
-    async def _transport(self, channel: _FakeChannel) -> RabbitDeliveryTransport:
-        transport = RabbitDeliveryTransport(url="amqp://fake")
+class TestRabbitEventDeliveryTransport:
+    async def _transport(self, channel: _FakeChannel) -> RabbitEventDeliveryTransport:
+        transport = RabbitEventDeliveryTransport(url="amqp://fake")
         transport._channel = cast("AbstractChannel", channel)
         return transport
 
@@ -132,7 +133,7 @@ class TestRabbitDeliveryTransport:
             return connection
 
         monkeypatch.setattr(transport_module, "connect_robust", fake_connect_robust)
-        transport = RabbitDeliveryTransport(url="amqp://fake")
+        transport = RabbitEventDeliveryTransport(url="amqp://fake")
 
         channel: Any = await transport._get_channel()
 

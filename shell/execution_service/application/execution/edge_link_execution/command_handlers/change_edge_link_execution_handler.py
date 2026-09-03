@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.edge_link_execution.commands.change_edge_link_execution_command import (
+    ChangeEdgeLinkExecutionCommand,
+)
 from shell.execution_service.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
     EdgeLinkExecutionRepository,
 )
 from shell.execution_service.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
     EdgeLinkExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.edge_link_execution.commands.change_edge_link_execution_command import (
-        ChangeEdgeLinkExecutionCommand,
-    )
     from shell.platform.application.ports.logger import Logger
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
@@ -23,7 +24,7 @@ from shell.execution_service.domain.execution.aggregates.edge_link_execution.exc
 )
 
 
-class ChangeEdgeLinkExecutionHandler:
+class ChangeEdgeLinkExecutionHandler(CommandHandler[ChangeEdgeLinkExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

@@ -16,6 +16,7 @@ from shell.definition_service.bootstrap.definition.container.definition_core_con
 from shell.definition_service.framework.definition.api.app import create_definition_app
 from shell.definition_service.infrastructure.definition.seed import seed_definition_dev_data
 from shell.definition_service.migrations.baseline import run_definition_baseline
+from shell.platform.bootstrap.tracing import install_trace_id_generator
 from shell.platform.framework.bootstrap.server import build_service_uvicorn_config
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
 from shell.platform.infrastructure.messaging.polling_worker import (
@@ -58,6 +59,7 @@ def main() -> None:
         runtime.events.worker_max_batch_time_seconds
     )
     configure_definition_container(container)
+    install_trace_id_generator()
     app = create_definition_app(container, api_key=api_key)
     server = uvicorn.Server(
         build_service_uvicorn_config(

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -23,12 +24,12 @@ from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
-from shell.platform.infrastructure.messaging.transport.rabbit import (
-    RabbitDeliveryTransport,
-    RabbitInboxConsumer,
+from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
+from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+    RabbitEventDeliveryTransport,
+    RabbitEventInboxConsumer,
 )
-from shell.platform.infrastructure.serialization.event.integration_event_serializer import (
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
     IntegrationEventSerializer,
 )
 from shell.tests.platform.integration.platform_delivery_models import (
@@ -66,7 +67,6 @@ def _event() -> TaskExecutionCreatedIntegrationEvent:
         causation_id="causation-rabbit-1",
         occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
         aggregate_id="task-execution-rabbit-1",
-        aggregate_name="TaskExecution",
         schema_version=1,
         task_execution_id="task-execution-rabbit-1",
     )
@@ -85,7 +85,7 @@ async def test_live_outbox_rabbit_inbox_processor(
     await purge_connection.close()
 
     # Bind the durable consumer queue first so published messages are routed to it.
-    consumer = RabbitInboxConsumer(
+    consumer = RabbitEventInboxConsumer(
         RABBIT_TEST_URL,
         session_factory,
         EVENT_DELIVERY_MODELS,
@@ -107,10 +107,9 @@ async def test_live_outbox_rabbit_inbox_processor(
                 id=envelope["outbox_id"],
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                event_type=envelope["event_type"],
+                integration_event_name=envelope["integration_event_name"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
-                aggregate_name=envelope["aggregate_name"],
                 schema_version=envelope["schema_version"],
                 payload=envelope["payload"],
                 correlation_id=envelope["correlation_id"],
@@ -119,8 +118,8 @@ async def test_live_outbox_rabbit_inbox_processor(
         )
         await session.commit()
 
-    transport = RabbitDeliveryTransport(RABBIT_TEST_URL)
-    relay = OutboxToTransportRelay(session_factory, EVENT_DELIVERY_MODELS, transport, kind="event")
+    transport = RabbitEventDeliveryTransport(RABBIT_TEST_URL)
+    relay = EventOutboxToTransportRelay(session_factory, EVENT_DELIVERY_MODELS, transport)
     assert await relay.run_once() == 1
     await transport.close()
 
@@ -136,7 +135,7 @@ async def test_live_outbox_rabbit_inbox_processor(
 
     assert len(rows) == 1, "expected one inbox row from the broker"
     assert rows[0].status == InboxStatus.PENDING.value
-    assert rows[0].event_type == type(event).__name__
+    assert rows[0].integration_event_name == type(event).__name__
 
     processor = EventInboxProcessor(
         session_factory,
@@ -177,7 +176,10 @@ async def test_unroutable_delivery_raises_and_is_retried(
     await engine.dispose()
     isolated = build_session_factory(url)
 
-    exchange_name = "shell.delivery.unroutable-test"
+    # Unikalna nazwa wymiany per run — trwałe leftoverowe bindingi z poprzednich
+    # przebiegów (auto-delete nigdy nie odpala, bo kolejka nie miała konsumenta)
+    # uczyniłyby routing-key routowalnym i test deterministycznie nie rzucił.
+    exchange_name = f"shell.delivery.unroutable-test-{uuid.uuid4().hex[:8]}"
 
     event = _event()
     envelope = IntegrationEventSerializer().to_envelope(
@@ -191,10 +193,9 @@ async def test_unroutable_delivery_raises_and_is_retried(
                 id=envelope["outbox_id"],
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                event_type=envelope["event_type"],
+                integration_event_name=envelope["integration_event_name"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
-                aggregate_name=envelope["aggregate_name"],
                 schema_version=envelope["schema_version"],
                 payload=envelope["payload"],
                 correlation_id=envelope["correlation_id"],
@@ -203,8 +204,8 @@ async def test_unroutable_delivery_raises_and_is_retried(
         )
         await session.commit()
 
-    transport = RabbitDeliveryTransport(RABBIT_TEST_URL, exchange_name=exchange_name)
-    relay = OutboxToTransportRelay(isolated, EVENT_DELIVERY_MODELS, transport, kind="event")
+    transport = RabbitEventDeliveryTransport(RABBIT_TEST_URL, exchange_name=exchange_name)
+    relay = EventOutboxToTransportRelay(isolated, EVENT_DELIVERY_MODELS, transport)
 
     # No queue is bound on the dedicated exchange yet → publish must raise.
     with pytest.raises(PublishError):

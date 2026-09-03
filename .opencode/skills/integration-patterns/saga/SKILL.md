@@ -84,3 +84,17 @@ Projektując Sagę:
 - [ ] Idempotentność — wielokrotne wykonanie tego samego eventu
 - [ ] Testy jednostkowe dla każdego przejścia stanu (`tests/process/unit/`)
 - [ ] Testy integracyjne dla pełnego flow (`tests/process/integration/sql_sqlite/`)
+
+## 6. Koncepcje przyszłościowe (future concept)
+
+> **Status:** pozycje roadmap, NIE są zaimplementowane w produkcji.
+
+- **Wzorzec pilota sagi** — istnieje jeden działający wzorzec referencyjny
+  (`ProjectProvisionSaga` w `project_service`); propagacja na kolejne BC jest
+  świadomą, przyszłościową decyzją (jeden działający wzorzec wystarcza).
+- **Readiness w kontekście sag** — `SagaTimeoutReadinessProbe` (backlog
+  `saga_timeout`) do podpięcia w `CompositeReadinessProbe` per BC.
+
+Szczegóły obu koncepcji, struktura pilota i sposób powielania wzorca:
+`shell-specific/saga-pilot-and-readiness` (skill). Pełny status realizacji:
+`saga.md` (root repo).

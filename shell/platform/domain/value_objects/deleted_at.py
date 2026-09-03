@@ -18,9 +18,6 @@ class DeletedAt(ValueObject):
         if self.value is not None and self.value.tzinfo is None:
             raise DomainError("DeletedAt must be timezone-aware (UTC)")
 
-    def __str__(self) -> str:
-        return self.value.isoformat() if self.value is not None else ""
-
     @classmethod
     def none(cls) -> DeletedAt:
         return cls(value=None)

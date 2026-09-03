@@ -10,7 +10,7 @@ description: Reguły nazewnictwa metod i funkcji — snake_case, intencja biznes
 ## Podstawowa zasada
 
 - Wszystkie metody i funkcje: `snake_case`
-- Wyrażają **intencję biznesową**, nie operację techniczną
+- Wyrażają **intencję biznesową**; operacja techniczna pozostaje poza nazwą metody.
 
 ```python
 # POPRAWNIE — intencja biznesowa
@@ -53,14 +53,14 @@ Repository to **element techniczny** (warstwa infrastruktury), dlatego metody re
 ```python
 # POPRAWNIE — konwencja nazewnicza (techniczna):
 get_by_id(id)        # zwraca 1 agregat lub None
-save(aggregate)      # zapisuje nowy lub aktualizuje — NIE store()
-delete(id)           # usuwa agregat — NIE remove()
+save(aggregate)      # zapisuje nowy lub aktualizuje (metoda: save)
+delete(id)           # usuwa agregat (metoda: delete)
 list_by_*(...)       # zwraca listę
 find_latest_by_*(...) # zwraca najnowszy
 exists(id)           # zwraca bool
 ```
 
-**UWAGA:** Nazwa metody to `save()`, nigdy `store()`, `persist()`, `add()` ani `update()`.
+**UWAGA:** Metoda zapisu nosi nazwę `save()` (bez wariantów `store()`, `persist()`, `add()`, `update()`).
 
 ## Metody factory
 

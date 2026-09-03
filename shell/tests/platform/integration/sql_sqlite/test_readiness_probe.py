@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -17,8 +17,13 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
+    IntegrationEventSerializer,
+)
 from shell.platform.observability.infrastructure.health.rabbit_readiness_probe import (
     RabbitReadinessProbe,
 )
@@ -30,6 +35,10 @@ from shell.tests.platform.integration.platform_delivery_models import (
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
+        TaskExecutionCreatedIntegrationEvent,
+    )
 
 _INBOX_MODEL: Any = EVENT_DELIVERY_MODELS.inbox
 _WORKER_HEARTBEAT_MODEL: Any = PERSISTENCE_DELIVERY_MODELS.worker_heartbeat
@@ -43,15 +52,19 @@ skip_no_rabbit = pytest.mark.skipif(
 )
 
 
-def _event() -> TaskExecutionCreatedEvent:
-    return TaskExecutionCreatedEvent.now(
+def _event() -> TaskExecutionCreatedIntegrationEvent:
+    domain_event = TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+    )
+    return cast(
+        "TaskExecutionCreatedIntegrationEvent",
+        ReflectiveIntegrationMapper().map(domain_event),
     )
 
 
 async def _seed_pending(session_factory: async_sessionmaker, count: int) -> None:
-    serializer = DomainEventSerializer()
+    serializer = IntegrationEventSerializer()
     async with session_factory() as session:
         for index in range(count):
             event = _event()
@@ -59,12 +72,11 @@ async def _seed_pending(session_factory: async_sessionmaker, count: int) -> None
                 _INBOX_MODEL(
                     id=f"evt-ready-{index}",
                     outbox_id=f"outbox-evt-ready-{index}",
-                    event_id=str(event.event_id.value),
+                    event_id=event.event_id,
                     source_service="execution_service",
-                    event_type=type(event).__name__,
-                    occurred_at=event.occurred_at.value,
-                    aggregate_id=str(event.aggregate_id.value),
-                    aggregate_name=str(event.aggregate_name.value),
+                    integration_event_name=type(event).__name__,
+                    occurred_at=event.occurred_at,
+                    aggregate_id=event.aggregate_id,
                     payload=serializer.to_payload(event),
                     correlation_id="corr",
                     causation_id="cause",
@@ -138,22 +150,18 @@ class TestWorkerHeartbeatReadiness:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        serializer = DomainEventSerializer()
-        event = TaskExecutionCreatedEvent.now(
-            task_execution_id=TaskExecutionId.generate(),
-            now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-        )
+        serializer = IntegrationEventSerializer()
+        event = _event()
         async with session_factory() as session:
             session.add(
                 _INBOX_MODEL(
                     id="evt-hb-pending",
                     outbox_id="outbox-evt-hb-pending",
-                    event_id=str(event.event_id.value),
+                    event_id=event.event_id,
                     source_service="execution_service",
-                    event_type=type(event).__name__,
+                    integration_event_name=type(event).__name__,
                     occurred_at=datetime.now(tz=UTC),
-                    aggregate_id=str(event.aggregate_id.value),
-                    aggregate_name=str(event.aggregate_name.value),
+                    aggregate_id=event.aggregate_id,
                     payload=serializer.to_payload(event),
                     correlation_id="corr",
                     causation_id="cause",

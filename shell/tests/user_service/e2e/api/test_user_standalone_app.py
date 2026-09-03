@@ -90,6 +90,7 @@ async def test_user_baseline_creates_required_tables(tmp_path: pathlib.Path) -> 
 
     assert tables == {
         "alembic_version",
+        "platform_alembic_version",
         "user",
         "auth_sessions",
         "user_skill",
@@ -101,4 +102,6 @@ async def test_user_baseline_creates_required_tables(tmp_path: pathlib.Path) -> 
         "inbox_command",
         "processed_delivery",
         "worker_heartbeat",
+        "saga_instance",
+        "saga_timeout",
     }

@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import insert, select
 
+from shell.execution_service.application.execution.task_execution.integration_events.task_execution_created_integration_event import (
+    TaskExecutionCreatedIntegrationEvent,
+)
 from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -16,6 +19,9 @@ from shell.execution_service.domain.execution.aggregates.task_execution.value_ob
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
     EventInboxProcessor,
 )
@@ -24,7 +30,9 @@ from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     EnvelopeValidationPolicy,
     EnvelopeValidator,
 )
-from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.platform.infrastructure.serialization.integration_event.integration_event_serializer import (
+    IntegrationEventSerializer,
+)
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
@@ -38,10 +46,17 @@ if TYPE_CHECKING:
 _INBOX_MODEL: Any = EVENT_DELIVERY_MODELS.inbox
 
 
-def _event() -> TaskExecutionCreatedEvent:
+def _outbound_domain_event() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+    )
+
+
+def _event() -> TaskExecutionCreatedIntegrationEvent:
+    return cast(
+        "TaskExecutionCreatedIntegrationEvent",
+        ReflectiveIntegrationMapper().map(_outbound_domain_event()),
     )
 
 
@@ -60,22 +75,21 @@ async def _add_event(
     session_factory: async_sessionmaker,
     event_id: str,
     *,
-    event: TaskExecutionCreatedEvent | None = None,
+    event: TaskExecutionCreatedIntegrationEvent | None = None,
     status: str = InboxStatus.PENDING.value,
 ) -> None:
     event = event or _event()
-    serializer = DomainEventSerializer()
+    serializer = IntegrationEventSerializer()
     async with session_factory() as session:
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
                 outbox_id=f"outbox-{event_id}",
-                event_id=str(event.event_id.value),
+                event_id=event.event_id,
                 source_service="execution_service",
-                event_type=type(event).__name__,
-                occurred_at=event.occurred_at.value,
-                aggregate_id=str(event.aggregate_id.value),
-                aggregate_name=str(event.aggregate_name.value),
+                integration_event_name=type(event).__name__,
+                occurred_at=event.occurred_at,
+                aggregate_id=event.aggregate_id,
                 payload=serializer.to_payload(event),
                 correlation_id="corr",
                 causation_id="cause",
@@ -251,7 +265,7 @@ class TestEventInboxProcessorRefactored:
         session_factory: async_sessionmaker,
     ) -> None:
         event = _event()
-        serializer = DomainEventSerializer()
+        serializer = IntegrationEventSerializer()
         payload = serializer.to_payload(event)
         now = datetime.now(tz=UTC)
         async with session_factory() as session:
@@ -259,12 +273,11 @@ class TestEventInboxProcessorRefactored:
                 EVENT_DELIVERY_MODELS.inbox(
                     id="evt-dup",
                     outbox_id="outbox-evt-dup",
-                    event_id=str(event.event_id.value),
+                    event_id=event.event_id,
                     source_service="execution_service",
-                    event_type=type(event).__name__,
-                    occurred_at=event.occurred_at.value,
-                    aggregate_id=str(event.aggregate_id.value),
-                    aggregate_name=str(event.aggregate_name.value),
+                    integration_event_name=type(event).__name__,
+                    occurred_at=event.occurred_at,
+                    aggregate_id=event.aggregate_id,
                     payload=payload,
                     correlation_id="corr",
                     causation_id="cause",
@@ -278,12 +291,11 @@ class TestEventInboxProcessorRefactored:
                 .values(
                     id="evt-dup",
                     outbox_id="outbox-evt-dup",
-                    event_id=str(event.event_id.value),
+                    event_id=event.event_id,
                     source_service="execution_service",
-                    event_type=type(event).__name__,
-                    occurred_at=event.occurred_at.value,
-                    aggregate_id=str(event.aggregate_id.value),
-                    aggregate_name=str(event.aggregate_name.value),
+                    integration_event_name=type(event).__name__,
+                    occurred_at=event.occurred_at,
+                    aggregate_id=event.aggregate_id,
                     payload=payload,
                     correlation_id="corr",
                     causation_id="cause",
@@ -366,7 +378,7 @@ class TestEventInboxProcessorConcurrency:
     ) -> None:
         event_a = _event()
         event_b = _event()
-        serializer = DomainEventSerializer()
+        serializer = IntegrationEventSerializer()
         async with session_factory() as session:
             for event_id, event, causation in (
                 ("evt-a", event_a, "cause-a"),
@@ -376,12 +388,11 @@ class TestEventInboxProcessorConcurrency:
                     EVENT_DELIVERY_MODELS.inbox(
                         id=event_id,
                         outbox_id=f"outbox-{event_id}",
-                        event_id=str(event.event_id.value),
+                        event_id=event.event_id,
                         source_service="execution_service",
-                        event_type=type(event).__name__,
-                        occurred_at=event.occurred_at.value,
-                        aggregate_id=str(event.aggregate_id.value),
-                        aggregate_name=str(event.aggregate_name.value),
+                        integration_event_name=type(event).__name__,
+                        occurred_at=event.occurred_at,
+                        aggregate_id=event.aggregate_id,
                         payload=serializer.to_payload(event),
                         correlation_id=f"corr-{event_id}",
                         causation_id=causation,
@@ -458,10 +469,9 @@ class TestEventInboxProcessorUpcasting:
                     outbox_id="outbox-evt-upcast-v1",
                     event_id="event-upcast-v1",
                     source_service="execution_service",
-                    event_type=TaskExecutionCreatedEvent.__name__,
+                    integration_event_name=TaskExecutionCreatedIntegrationEvent.__name__,
                     occurred_at=now,
                     aggregate_id=str(task_id.value),
-                    aggregate_name="TaskExecution",
                     payload={"task_execution_id": str(task_id.value)},
                     correlation_id="corr",
                     causation_id="cause",
@@ -476,10 +486,9 @@ class TestEventInboxProcessorUpcasting:
                     outbox_id="outbox-evt-upcast-future",
                     event_id="event-upcast-future",
                     source_service="execution_service",
-                    event_type=TaskExecutionCreatedEvent.__name__,
+                    integration_event_name=TaskExecutionCreatedIntegrationEvent.__name__,
                     occurred_at=now,
                     aggregate_id=str(task_id.value),
-                    aggregate_name="TaskExecution",
                     payload={"task_execution_id": str(task_id.value)},
                     correlation_id="corr",
                     causation_id="cause",
@@ -492,10 +501,10 @@ class TestEventInboxProcessorUpcasting:
 
         upcaster = PayloadUpcaster(
             {
-                TaskExecutionCreatedEvent.__name__: {
+                TaskExecutionCreatedIntegrationEvent.__name__: {
                     1: (
                         lambda p: {
-                            "task_execution_id": TaskExecutionId(str(p["task_execution_id"]))
+                            "task_execution_id": str(p["task_execution_id"]),
                         }
                     ),
                 }
@@ -505,12 +514,16 @@ class TestEventInboxProcessorUpcasting:
             session_factory,
             CollectingBus(),
             models=EVENT_DELIVERY_MODELS,
-            registry={TaskExecutionCreatedEvent.__name__: TaskExecutionCreatedEvent},
+            registry={
+                TaskExecutionCreatedIntegrationEvent.__name__: (
+                    TaskExecutionCreatedIntegrationEvent
+                )
+            },
             upcaster=upcaster,
             envelope_validator=EnvelopeValidator(
                 EnvelopeValidationPolicy(
                     supported_schema_versions={
-                        TaskExecutionCreatedEvent.__name__: frozenset({1, 2})
+                        TaskExecutionCreatedIntegrationEvent.__name__: frozenset({1, 2})
                     }
                 )
             ),

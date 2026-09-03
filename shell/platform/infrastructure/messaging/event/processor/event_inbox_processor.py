@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Protocol, cast
 from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
     InboxProcessorBase,
 )
-from shell.platform.infrastructure.serialization.event.event_deserializer import EventDeserializer
+from shell.platform.infrastructure.serialization.integration_event.integration_event_deserializer import (
+    IntegrationEventDeserializer,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -32,13 +34,12 @@ class _EventRow(Protocol):
     outbox_id: str
     event_id: str
     source_service: str
-    event_type: str
+    integration_event_name: str
     occurred_at: object
     payload: dict[str, object]
     correlation_id: str
     causation_id: str
     aggregate_id: str
-    aggregate_name: str
     schema_version: int
 
 
@@ -86,12 +87,12 @@ class EventInboxProcessor(InboxProcessorBase):
             id_generator=id_generator,
         )
         self._event_bus = event_bus
-        self._deserializer = EventDeserializer(registry=registry or {}, upcaster=upcaster)
+        self._deserializer = IntegrationEventDeserializer(registry=registry or {}, upcaster=upcaster)
 
     def _deserialize(self, row: object) -> object | None:
         event_row = cast("_EventRow", row)
         return self._deserializer.deserialize(
-            event_row.event_type,
+            event_row.integration_event_name,
             event_row.occurred_at,
             event_row.payload,
             schema_version=getattr(row, "schema_version", 1),
@@ -99,7 +100,6 @@ class EventInboxProcessor(InboxProcessorBase):
             correlation_id=event_row.correlation_id,
             causation_id=event_row.causation_id,
             aggregate_id=event_row.aggregate_id,
-            aggregate_name=event_row.aggregate_name,
         )
 
     async def _dispatch(self, domain_object: object) -> None:
@@ -109,5 +109,5 @@ class EventInboxProcessor(InboxProcessorBase):
         event_id = getattr(domain_object, "event_id", None)
         return str(getattr(event_id, "value", event_id))
 
-    def _type_name(self, row: object) -> str:
-        return cast("_EventRow", row).event_type
+    def _message_name(self, row: object) -> str:
+        return cast("_EventRow", row).integration_event_name

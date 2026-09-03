@@ -8,7 +8,9 @@ import re
 from typing import Any
 
 from shell.platform.application.context.causation_id import get_causation_id
-from shell.platform.application.context.correlation_id import get_correlation_id
+from shell.platform.application.context.correlation_id import (
+    get_or_create_correlation_id,
+)
 from shell.platform.application.events import IntegrationEvent
 from shell.platform.infrastructure.mapping.integration_mapping_error import (
     IntegrationMappingError,
@@ -23,12 +25,11 @@ class ReflectiveIntegrationMapper:
 
         kwargs: dict[str, Any] = {
             "event_id": str(domain_event.event_id.value),  # type: ignore[attr-defined]
-            "correlation_id": get_correlation_id(),
+            "correlation_id": get_or_create_correlation_id(),
             "causation_id": get_causation_id(),
             "occurred_at": domain_event.occurred_at.value,  # type: ignore[attr-defined]
             "aggregate_id": str(domain_event.aggregate_id.value),  # type: ignore[attr-defined]
-            "aggregate_name": str(domain_event.aggregate_name.value),  # type: ignore[attr-defined]
-            "schema_version": int(domain_event.schema_version.value),  # type: ignore[attr-defined]
+            "schema_version": 1,
         }
 
         for f in dataclasses.fields(int_cls):

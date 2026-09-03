@@ -111,7 +111,7 @@ Test kontraktu dla pustych fallbackow pozostaje elementem planu walidacji.
 
 ## Przykład z projektu (znaleziony i naprawiony)
 
-**Plik:** `shell/application/project/project/command_handlers/create_project_handler.py`
+**Plik:** `shell/project_service/application/project/project/command_handlers/create_project_handler.py`
 
 ```python
 # PRZED (błąd):
@@ -122,3 +122,5 @@ repo_url=RepoUrl(command.repo_url) if command.repo_url else None,
 ```
 
 `RepoUrl("")` tworzyło pozornie poprawny URL który był pusty. Przechodziło testy, kompilowało się, ale w runtime zwracało martwe dane.
+
+> Uwaga: bieżący kod mógł już ewoluować (np. `RepoUrl` przyjmuje `None` i sam rzuca `DomainError`). Zasada pozostaje ta sama — zero pustych fallbacków (`""`, `[]`, `0`, `false`) w miejscu braku wartości.

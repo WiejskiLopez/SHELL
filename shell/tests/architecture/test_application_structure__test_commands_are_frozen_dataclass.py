@@ -21,10 +21,19 @@ _KNOWN_HANDLER_EXCEPTIONS: frozenset[str] = frozenset({})
 _KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
 
+_MARKER_BASE_FILES = frozenset(
+    {
+        "platform/application/commands/command.py",
+    }
+)
+
+
 def test_commands_are_frozen_dataclass() -> None:
     violations: list[str] = []
     for cmd_dir in iter_named_dirs("application", "commands"):
         for path in iter_py_files(cmd_dir):
+            if path.relative_to(BASE).as_posix() in _MARKER_BASE_FILES:
+                continue
             tree = parse_file(path)
             if tree is None:
                 continue

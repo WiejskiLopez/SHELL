@@ -19,13 +19,13 @@ description: Zasady projektowania mapperów w architekturze hexagonalnej — kon
 
 ```
 # Mapper ORM (infrastructure) — per agregat w persistence
-shell/infrastructure/<bc>/<aggregate>/persistence/sql/mappers/<aggregate>_mapper.py
+shell/<service>/infrastructure/<bc>/<aggregate>/persistence/sql/mappers/<aggregate>_mapper.py
 
 # Mapper DTO (application) — per agregat
-shell/application/<bc>/<aggregate>/mappers/<aggregate>_dto_mapper.py
+shell/<service>/application/<bc>/<aggregate>/mappers/<aggregate>_dto_mapper.py
 
 # Mapper Command (application) — per agregat
-shell/application/<bc>/<aggregate>/mappers/<command>_mapper.py
+shell/<service>/application/<bc>/<aggregate>/mappers/<command>_mapper.py
 ```
 
 ## 3. Podsumowanie — Checklista

@@ -17,23 +17,28 @@ SERIALIZATION = ROOT / "platform" / "infrastructure" / "serialization"
 
 def test_serialization_has_canonical_grouped_topology() -> None:
     expected = (
-        SERIALIZATION / "event" / "domain_event_serializer.py",
-        SERIALIZATION / "event" / "event_deserializer.py",
-        SERIALIZATION / "event" / "event_envelope_serializer.py",
+        SERIALIZATION / "integration_event" / "integration_event_deserializer.py",
+        SERIALIZATION / "integration_event" / "integration_event_serializer.py",
+        SERIALIZATION / "command" / "deserializer.py",
         SERIALIZATION / "payload" / "payload_object_deserializer.py",
         SERIALIZATION / "payload" / "payload_type_hints_resolver.py",
         SERIALIZATION / "payload" / "payload_value_deserializer.py",
         SERIALIZATION / "payload" / "payload_value_serializer.py",
-        SERIALIZATION / "command" / "deserializer.py",
         SERIALIZATION / "registries" / "type_registry.py",
         SERIALIZATION / "registries" / "event_registry.py",
         SERIALIZATION / "registries" / "command_registry.py",
         SERIALIZATION / "upcaster.py",
-        SERIALIZATION / "uow_serializer.py",
     )
     old_paths = (
+        SERIALIZATION / "event",
+        SERIALIZATION / "envelope",
+        SERIALIZATION / "event" / "domain_event_serializer.py",
+        SERIALIZATION / "event" / "event_deserializer.py",
+        SERIALIZATION / "event" / "event_envelope_serializer.py",
         SERIALIZATION / "event" / "serializer.py",
         SERIALIZATION / "event" / "deserializer.py",
+        SERIALIZATION / "envelope" / "envelope_engine.py",
+        SERIALIZATION / "uow_serializer.py",
         SERIALIZATION / "message" / "serializer.py",
         SERIALIZATION / "message" / "deserializer.py",
         SERIALIZATION / "event_serializer.py",
@@ -65,6 +70,9 @@ def test_serialization_has_canonical_grouped_topology() -> None:
         "infrastructure.serialization." + "message_registry",
         "infrastructure.serialization." + "command_registry",
         "infrastructure.messaging.serialization." + "command_deserializer",
+        "infrastructure.serialization." + "event.",
+        "infrastructure.serialization." + "envelope.",
+        "infrastructure.serialization." + "uow_serializer",
     )
     for source in ROOT.rglob("*.py"):
         content = source.read_text(encoding="utf-8")

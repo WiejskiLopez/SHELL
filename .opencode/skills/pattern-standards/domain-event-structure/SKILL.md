@@ -14,21 +14,36 @@ description: Reguły struktury Domain Event — frozen dataclass, rozszerza Doma
 
 ## Klasa
 
-- `@dataclass(frozen=True, slots=True, kw_only=True)` — niemutowalny, oszczędny, wymagane nazwane parametry.
+- `@dataclass(frozen=True, slots=True)` — niemutowalny, oszczędny; `kw_only=True` dziedziczy się z bazy `DomainEvent`.
 - Rozszerza `DomainEvent` (klasa bazowa z metadanymi).
 
 ```python
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(frozen=True, slots=True)
 class WorkflowStartedEvent(DomainEvent):
     workflow_id: WorkflowId
     started_by: UserId
     started_at: Timestamp
+
+    @classmethod
+    def now(
+        cls,
+        workflow_id: WorkflowId,
+        started_by: UserId,
+        started_at: Timestamp,
+        now: OccurredAt,
+    ) -> WorkflowStartedEvent:
+        return cls(
+            occurred_at=now,
+            workflow_id=workflow_id,
+            started_by=started_by,
+            started_at=started_at,
+        )
 ```
 
 ## Metadane
 
-- Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_name`, `occurred_at`, `schema_version`.
-- Metadane envelope (transport, tracing) opisuje `integration-patterns/integration-event` i `shell-specific/tracing-context`.
+- Klasa bazowa dostarcza: `event_id` (`EventId`), `aggregate_id` (`AggregateId`), `occurred_at` (`OccurredAt`) — wszystkie jako ValueObjecty platformy.
+- Metadane envelope (tracing, dostarczanie, `schema_version`) opisuje `integration-patterns/integration-event` i `shell-specific/tracing-context`.
 
 ## ⚠️ Primitive Obsession
 
@@ -38,10 +53,10 @@ Przyklad pol prymitywnych:
 ```python
 @dataclass
 class TaskCreatedEvent(DomainEvent):
-    reason: str           # ZŁO: str zamiast Reason
-    details: dict         # ZŁO: dict zamiast StateData
-    goal: str             # ZŁO: str zamiast Goal
-    config: dict[str, object]  # ZŁO: dict zamiast StateData
+    reason: str           # Antywzorzec: str zamiast Reason
+    details: dict         # Antywzorzec: dict zamiast StateData
+    goal: str             # Antywzorzec: str zamiast Goal
+    config: dict[str, object]  # Antywzorzec: dict zamiast StateData
 ```
 
 Przyklad pol Value Object:
@@ -68,7 +83,9 @@ WorkflowStartedEvent(send_email_to=..., notify_admin=...)
 
 ## ⚠️ Antypattern: Nadmiarowe dane w evencie (Event Data Bloat)
 
-Event domenowy ma identyfikować **co się stało i którego agregatu dotyczy** — nie transportować danych, które można dociągnąć serwisem/repozytorium po identyfikatorze agregatu.
+Event domenowy identyfikuje **co się stało i którego agregatu dotyczy**; dane,
+które można dociągnąć serwisem/repozytorium po identyfikatorze agregatu, pozostają po stronie
+źródła.
 
 ### Zasada
 
@@ -76,7 +93,7 @@ Event domenowy ma identyfikować **co się stało i którego agregatu dotyczy** 
 - Wszystkie **pozostałe dane** (property, atrybuty, stany, listy, obiekty wartościowe które nie są identyfikatorem) są **nadmiarowe** — odbiorca eventu może dociągnąć je przez port/repozytorium używając ID agregatu.
 - Wyjątek: ID powiązanych agregatów (referencje) — np. `task_execution_id` w `WorkflowStartedEvent`, `user_id` w `SessionOpenedEvent`.
 
-### Przykład (ZŁO — nadmiarowe dane)
+### Przykład (Antywzorzec — nadmiarowe dane)
 
 ```python
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -97,8 +114,8 @@ class TaskExecutionCreatedEvent(DomainEvent):
 
 ### Dlaczego?
 
-1. **Event to fakt, nie DTO** — im lżejszy, tym łatwiej go przechowywać, replikować, walidować.
-2. **Unikasz rozjechania się danych** — jeśli event niesie kopię stanu, a stan agregatu się zmieni, kopie w eventach są nieaktualne.
+1. **Event to lekki fakt, a nie DTO** — lekkość ułatwia przechowywanie, replikację i walidację.
+2. **Spójność danych** — event niesie identyfikatory; stan dociągany po ID zawsze jest aktualny (kopie stanu w eventach starzeją się razem ze źródłem).
 3. **Mniejszy rozmiar w outboxie/kolejce** — embeddingi, plany, listy skilli to zbędny balast.
 4. **Czysta semantyka** — `TaskExecutionCreatedEvent(task_execution_id=...)` mówi wszystko: zadanie o tym ID zostało utworzone. Resztę dociągnie ten, kto potrzebuje.
 
@@ -124,8 +141,7 @@ class GraphExecutionCreatedEvent(DomainEvent):
 
 ## Emisja
 
-- Jeśli metoda domenowa realizuje przejście stanu agregatu, emituj event przejścia bezwarunkowo.
-- Nie uzależniaj emisji od obecności optionala w parametrach.
+- Jeśli metoda domenowa realizuje przejście stanu agregatu, emisja eventu przejścia jest bezwarunkowa (wykonywana przy każdej mutacji, niezależnie od parametrów).
 
 ```python
 # Dobrze — bezwarunkowo
@@ -143,17 +159,17 @@ def start(self, now: OccurredAt, emit_event: bool = True) -> None:
 ## Serializacja
 
 - Serializacja/deserializacja eventów NIE jest robiona przez `from_payload()` na klasie eventu.
-- Obsługuje ją `DomainEventSerializer` → `EventDeserializer` w `shell/platform/infrastructure/serialization/`.
-- `to_payload(event)` — serializuje pola dataclass (pomija metadane envelope; szczegoly w `integration-patterns/integration-event`).
-- `from_payload(event_cls, occurred_at, payload, schema_version)` — rekonstruuje event z serializowanych części.
-- Obsługuje zagnieżdżone dataclass, value objects (przez `.value`), listy, dict, daty.
+- Obsługują ją `IntegrationEventSerializer` i `IntegrationEventDeserializer` w `shell/platform/infrastructure/serialization/integration_event/`.
+- Niskopoziomową konwersję dataclass ↔ dict realizują `PayloadObjectSerializer`/`PayloadObjectDeserializer` w `shell/platform/infrastructure/serialization/payload/`.
+- Deserializer przyjmuje `integration_event_name`, `occurred_at`, `payload`, `schema_version` (+ opcjonalne metadane envelope) i rekonstruuje klasę zarejestrowaną w rejestrze; upcaster migruje stare wersje schematu.
+- Obsługuje zagnieżdżone dataclass, value objects (przez `.value`), listy, dict, daty; szczegóły w `integration-patterns/integration-event`.
 
 ## Lokalizacja
 
 - Przy agregacie w podfolderze `events/`.
 
 ```
-shell/domain/<bc>/aggregates/<nazwa>/events/
+shell/<service>/domain/<bc>/aggregates/<nazwa>/events/
 ```
 
 ## Pliki

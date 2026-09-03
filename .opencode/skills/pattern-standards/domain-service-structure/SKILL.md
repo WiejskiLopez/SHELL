@@ -61,12 +61,12 @@ class PricingService:
 
 ## Lokalizacja
 
-- Domain Services: `shell/domain/<bc>/aggregates/<agregat>/services/`
+- Domain Services: `shell/<service>/domain/<bc>/services/` (lub `.../aggregates/<agregat>/services/` gdy służą pojedynczemu agregatowi)
 
 Lokalizację portów komunikacji międzyagregatowej (katalog `ports/`) i ich adapterów
 opisują dedykowane wzorce: Aggregate Provider i Command Port.
 
 ## Bezpieczeństwo
 
-- Importuje tylko z: `shell.domain.*`, biblioteka standardowa, biblioteki zewnętrzne używane w domenie (`decimal`, `dataclasses`).
-- Nigdy z: `shell.infrastructure.*`, `shell.application.*`, ORM / frameworków.
+- Importuje tylko z: `shell.<service>.domain.*` i biblioteka standardowa.
+- Nigdy z: `shell.*.infrastructure.*`, `shell.*.application.*`, ORM / frameworków.

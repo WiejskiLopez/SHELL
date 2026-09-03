@@ -82,12 +82,7 @@ Funkcje dostępu (z tego samego modułu):
 
 ## Envelope (Message system — legacy)
 
-> **Uwaga**: `Envelope` w `shell/domain/platform/envelope.py` należy do **starego systemu messaging** (MessageBus). Nowy system eventów (EventBus) nie używa Envelope — tracing context żyje w osobnych kolumnach outbox/inbox.
-
-`Envelope.correlation_id` jest przekazywane przez `transport_metadata["correlation_id"]`
-- Ustawiane w `SqlAlchemyUnitOfWork.commit()` przy `Envelope.from_message(correlation_id=get_correlation_id())`
-
-> Kanał Message został usunięty — patrz `docs/messages-removed.md`. Tracing context eventów żyje w osobnych kolumnach `outbox_event`/`inbox_event`.
+> **Uwaga**: kanał Message oraz klasy `Envelope`/`MessageBus` zostały **usunięte** z SHELL (patrz `docs/messages-removed.md`). Nowe eventy (EventBus) nie używają koperty legacy — tracing context żyje w osobnych kolumnach `outbox_event`/`inbox_event` (`correlation_id`, `causation_id`) i kopercie `IntegrationEventDeliveryEnvelope`.
 
 ## Reguły (invariants)
 
@@ -98,5 +93,5 @@ Funkcje dostępu (z tego samego modułu):
 ## Testowanie
 
 - `shell/tests/platform/unit/application/test_correlation_id.py` — podstawowy test ContextVar
-- `shell/tests/platform/unit/application/test_outbox.py` — `InMemoryOutboxStore` zapisuje correlation/causation
-- `shell/tests/platform/architecture/test_tracing_context_structure.py` — AST: pilnuje że `OutboxEventModel` ma correlation_id
+- `shell/tests/platform/integration/sql_sqlite/test_outbox_to_transport_relay.py` — relay zapisuje correlation/causation
+- `shell/tests/architecture/test_tracing_context_structure.py` — AST: pilnuje że `OutboxEventModel` ma correlation_id

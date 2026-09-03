@@ -1,131 +1,95 @@
 ---
 name: di-composition-root
-description: Zasady projektowania Composition Root / Dependency Injection w architekturze hexagonalnej — struktura modułów DI per BC, lifecycle (singleton/transient/scoped), rejestracja port-adapter, factory dla handlerów, testowanie z kontenerem. Używaj gdy konfigurujesz DI dla nowego BC, dodajesz nową rejestrację, albo refaktoryzujesz bootstrap.
+description: Zasady projektowania Composition Root / Dependency Injection w architekturze hexagonalnej — struktura modułów DI per BC, lifecycle (singleton/factory), rejestracja port-adapter, factory dla handlerów, testowanie z kontenerem. Używaj gdy konfigurujesz DI dla nowego BC, dodajesz nową rejestrację, albo refaktoryzujesz bootstrap.
 ---
 
 # DI / Composition Root w Enterprise DDD
 
-## 1. Composition Root — Jedno Miejsce
+## 1. Composition Root — jedno miejsce per BC
 
-**Composition Root** to jedyne miejsce w aplikacji, gdzie tworzone są zależności. Znajduje się w `shell/bootstrap/`.
+Composition Root to jedyne miejsce w aplikacji, gdzie tworzone są zależności. W SHELL każdy BC ma **własny** composition root (brak wspólnego `shell/bootstrap/`):
 
 ```
-shell/bootstrap/
-├── main.py                       # Główny composition root / CLI entrypoint
-├── platform/                     # DI dla platformy (cross-cutting)
-│   ├── container/
-│   │   ├── core_container.py
-│   │   ├── domain_container.py
-│   │   ├── application_container.py
-│   │   ├── command_container.py
-│   │   ├── query_container.py
-│   │   ├── event_container.py
-│   │   ├── infrastructure_container.py
-│   │   └── bus_container.py
-│   ├── config/
-│   └── factory/
-│       ├── command_factory.py
-│       ├── query_factory.py
-│       └── event_factory.py
-├── definition/                   # DI per BC
-│   └── container/
-├── execution/
-│   ├── container/
-│   │   └── execution_core_container.py
-│   └── factory/
-│       └── application_factory.py
-├── session/
-│   └── container/
-└── user/
-    └── container/
+shell/<service>/bootstrap/
+├── <bc>/                            # DI dla konkretnego BC (np. shell/user_service/bootstrap/user/)
+│   └── container/<bc>_core_container.py   # np. user_core_container.py, execution_core_container.py
+├── config/
+└── cli/
 ```
+
+Przykład realnej lokalizacji: `shell/user_service/bootstrap/user/container/user_core_container.py`,
+`shell/execution_service/bootstrap/execution/container/execution_core_container.py`.
 
 ## 2. Moduły DI Per Bounded Context
 
-Każdy BC ma własny moduł DI, który rejestruje wszystkie zależności danego kontekstu. Moduły są niezależne.
+Każdy BC ma własny `<bc>_core_container`, który rejestruje wszystkie zależności danego kontekstu. Moduły są niezależne.
 
 ```python
-# shell/bootstrap/execution/container/execution_core_container.py
+# shell/execution_service/bootstrap/execution/container/execution_core_container.py
 from dependency_injector import containers, providers
 
-from shell.domain.execution.repositories.execution_repository import ExecutionRepository
-from shell.domain.execution.services.execution_creation_service import ExecutionCreationService
-from shell.infrastructure.execution.repositories.sql_execution_repository import SqlExecutionRepository
-from shell.infrastructure.execution.mappers.execution_mapper import ExecutionMapper
+from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.event_bus import EventBus
+from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.time.system_clock import SystemClock
+from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 
 
-class ExecutionContainer(containers.DeclarativeContainer):
-    """Kontener DI dla Execution Bounded Context."""
+class ExecutionCoreContainer(containers.DeclarativeContainer):
+    config = providers.Configuration()
 
-    # Port → Adapter
-    execution_repository = providers.Factory(
-        SqlExecutionRepository,
-    )
+    clock_factory = providers.Factory(SystemClock)
+    id_generator_factory = providers.Factory(UuidIdGenerator)
+    session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
-    # Domain Services (singleton — stateless)
-    execution_creation_service = providers.Singleton(
-        ExecutionCreationService,
-    )
-
-    # Mapper (transient — nowa instancja za każdym razem)
-    execution_mapper = providers.Factory(
-        ExecutionMapper,
-    )
+    command_bus = providers.Singleton(CommandBus)
+    query_bus = providers.Singleton(QueryBus)
+    event_bus = providers.Singleton(EventBus)
 ```
 
 ## 3. Rejestracja Port → Adapter
 
-Każdy port (Protocol/ABC) jest rejestrowany z konkretną implementacją. Dzięki temu kod domenowy nie wie o istnieniu adapterów.
+Każdy port (Protocol) rejestruje się z konkretną implementacją; kod domenowy zna
+wyłącznie porty, a wiązanie port→adapter wykonuje Composition Root.
 
 ```python
-# Rejestracja Port → Adapter w kontenerze
-execution_repository = providers.Factory(SqlExecutionRepository)
-
-# Użycie — handler dostaje port, nie adapter
-class CreateExecutionHandler:
-    def __init__(self, repository: ExecutionRepository) -> None:
-        self._repository = repository  # Nie wie czy SQL, InMemory czy mock
+# Rejestracja Port → Adapter w kontenerze BC
+graph_definition_provider = providers.Factory(
+    GraphDefinitionProviderHttpAdapter,
+    client=definition_http_client,
+)
 ```
 
 ## 4. Lifecycle Management
 
-| Scope | Kiedy używać | Przykład |
+Realne konwencje w kontenerach SHELL (`ExecutionCoreContainer`, `UserCoreContainer`):
+
+| Scope | Kiedy używać | Realny przykład w SHELL |
 |-------|-------------|----------|
-| **Singleton** (`providers.Singleton`) | Stateless, thread-safe, współdzielony | Domain Services, Factory, Clock, IdGenerator |
-| **Transient** (`providers.Factory`) | Nowa instancja za każdym razem | Handler, Mapper, Repository |
-| **Scoped** | Jedna instancja na request/transakcję | Unit of Work, Session |
+| **Factory** (`providers.Factory`) | Nowa instancja na każde użycie; UoW per operacja, zegar, IdGenerator, handlery | `clock_factory`, `id_generator_factory`, `workflow_uow_factory`, `create_workflow_handler_factory` |
+| **Singleton** (`providers.Singleton`) | Stateless, współdzielone, konfiguracja, sesja, busy, registry | `session_factory`, `command_bus`, `query_bus`, `event_bus`, `event_registry` |
 
-```python
-# shell/bootstrap/platform/container/core_container.py
-from dependency_injector import containers, providers
-
-from shell.domain.platform.ports.clock import Clock
-from shell.infrastructure.platform.time.system_clock import SystemClock
-from shell.domain.platform.ports.id_generator import IdGenerator
-from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
-
-
-class CoreContainer(containers.DeclarativeContainer):
-    # Singleton — globalnie współdzielone
-    clock = providers.Singleton(SystemClock)
-    id_generator = providers.Singleton(UuidIdGenerator)
-```
+Uwaga: UoW rejestrowane jest jako **`providers.Factory`** (nowa instancja per zapis/operację);
+Query services często są `providers.Singleton` (stateless, read-only).
 
 ## 5. Rejestracja Handlerów przez Factory
 
-Handlery są rejestrowane przez **factory** — kontener tworzy je z wszystkimi zależnościami.
+Handlery są rejestrowane przez provider z sufiksem `_handler_factory`; wstrzykują UoW, zegar i id_generator.
 
 ```python
-class ExecutionContainer(containers.DeclarativeContainer):
-    # Handler — transient (Factory), tworzony na każde wywołanie
-    create_execution_handler = providers.Factory(
-        CreateExecutionHandler,
-        repository=execution_repository,
-    )
+# w ExecutionCoreContainer
+workflow_uow_factory = providers.Factory(
+    WorkflowUnitOfWork,  # per-BC UoW z mapą portów → klas SQL
+    session_factory=session_factory,
+)
 
-# Użycie w main.py
-handler = container.create_execution_handler()
-await handler.handle(command)
+create_workflow_handler_factory = providers.Factory(
+    CreateWorkflowHandler,
+    unit_of_work=workflow_uow_factory,
+    clock=clock_factory,
+    id_generator=id_generator_factory,
+)
 ```
 
 ## 6. Testowanie z Kontenerem
@@ -133,91 +97,50 @@ await handler.handle(command)
 W testach używamy kontenera z nadpisanymi rejestracjami (InMemory zamiast SQL).
 
 ```python
-# tests/conftest.py
-from dependency_injector import containers, providers
-from unittest.mock import MagicMock
-
-
+# tests/<bc>/conftest.py
 @pytest.fixture
-def test_container() -> containers.DeclarativeContainer:
-    class TestContainer(containers.DeclarativeContainer):
-        # Nadpisz porty implementacjami InMemory
-        execution_repository = providers.Factory(InMemoryExecutionRepository)
-        graph_repository = providers.Factory(InMemoryGraphRepository)
-        unit_of_work = providers.Factory(InMemoryUnitOfWork)
-
-        # Domain Services — bez zmian (czysta logika)
-        execution_creation_service = providers.Singleton(ExecutionCreationService)
-
-        # Handler
-        create_execution_handler = providers.Factory(
-            CreateExecutionHandler,
-            repository=execution_repository,
-        )
-
-    return TestContainer()
-
-
-@pytest.mark.integration
-@pytest.fixture
-def real_container(db_session: AsyncSession) -> containers.DeclarativeContainer:
-    class RealContainer(containers.DeclarativeContainer):
-        # Prawdziwe repozytoria z bazą
-        execution_repository = providers.Factory(
-            SqlExecutionRepository,
-            db_session,
-            ExecutionMapper(),
-        )
-
-        # Domain Services — bez zmian
-        execution_creation_service = providers.Singleton(ExecutionCreationService)
-
-        # Handler
-        create_execution_handler = providers.Factory(
-            CreateExecutionHandler,
-            repository=execution_repository,
-        )
-
-    return RealContainer()
+def container() -> ExecutionCoreContainer:
+    c = ExecutionCoreContainer()
+    c.config.from_dict({"db_url": "sqlite:///:memory:"})
+    return c
 ```
 
-## 7. Główny Composition Root (main.py)
+Zamiast ręcznie podmieniać providery: UoW danego BC czyta sesję z `session_factory`; dla testów jednostkowych handlera wstrzykuj `InMemory*Repository` bezpośrednio w konstruktorze handlera (patrz `arch-testing/testing`).
+
+## 7. Główny Composition Root (app factory)
+
+Każdy BC wystawia własną fabrykę aplikacji, która tworzy kontener i podpinuje routery;
+centralny `main.py` montujący wszystkie BC leży poza strukturą SHELL:
 
 ```python
-# shell/bootstrap/main.py
-from dependency_injector import containers, providers
-
-from shell.bootstrap.platform.container.core_container import CoreContainer
-from shell.bootstrap.platform.container.application_container import ApplicationContainer
-from shell.bootstrap.execution.container.execution_core_container import ExecutionContainer
-
-
-class AppContainer(containers.DeclarativeContainer):
-    # Agregacja sub-kontenerów
-    core = providers.Container(CoreContainer)
-    application = providers.Container(ApplicationContainer)
-    execution = providers.Container(ExecutionContainer)
-
-
-def create_container() -> AppContainer:
-    return AppContainer()
+# shell/<service>/framework/<bc>/api/app.py
+def create_<bc>_app(container: <Bc>CoreContainer = Depends(get_core_container)) -> FastAPI:
+    ...
 ```
 
-## 8. Zakaz Service Locator
-
-Nigdy nie używaj kontenera jako Service Locator w kodzie produkcyjnym. Kontener jest używany TYLKO w Composition Root.
+Busy rejestrują handlery w kontenerze lub osobnej funkcji `setup_buses(container)` wywoływanej przy tworzeniu aplikacji:
 
 ```python
-# ŹLE — Service Locator antypattern
-class CreateExecutionHandler:
-    async def handle(self, command: CreateExecutionCommand) -> None:
-        repository = container.execution_repository()  # ŹLE!
-        ...
+command_bus.register(OpenSessionCommand, container.open_session_handler_factory)
+query_bus.register(GetSessionByIdQuery, container.get_session_by_id_handler_factory)
+event_bus.subscribe(AuthSessionCreatedIntegrationEvent, container.auth_session_created_event_handler_factory)
+```
 
-# DOBRZE — Dependency Injection
-class CreateExecutionHandler:
-    def __init__(self, repository: ExecutionRepository) -> None:  # DOBRZE
-        self._repository = repository
+## 8. Serwisy: DI vs Service Locator
+
+Kontener pełni rolę **wyłącznie Composition Root**; kod produkcyjny odbiera zależności
+przez wstrzykiwanie (DI), a nie przez odpytywanie kontenera.
+
+```python
+# Antywzorzec — Service Locator w handlerze
+class CreateWorkflowHandler:
+    async def handle(self, command: CreateWorkflowCommand) -> None:
+        repository = container.workflow_repository()  # Antywzorzec
+
+# Poprawnie — Dependency Injection
+class CreateWorkflowHandler:
+    def __init__(self, unit_of_work: UnitOfWork) -> None:  # Poprawnie
+        self._unit_of_work = unit_of_work
 ```
 
 ## 9. Konfiguracja a DI
@@ -225,26 +148,22 @@ class CreateExecutionHandler:
 Konfiguracja (env, settings) jest ładowana w Composition Root i wstrzykiwana tam, gdzie potrzebna.
 
 ```python
-# shell/bootstrap/execution/container/execution_core_container.py
-class ExecutionContainer(containers.DeclarativeContainer):
+# w <bc>_core_container.py
+class ExecutionCoreContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
 
-    execution_factory = providers.Singleton(
-        ExecutionFactory,
-        max_retries=config.execution.max_retries,
-        default_timeout=config.execution.default_timeout,
-    )
+    session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 ```
 
 ## 10. Podsumowanie — Checklista
 
 Konfigurując DI:
-- [ ] Composition Root w `shell/bootstrap/` — jedyne miejsce tworzenia zależności
-- [ ] Kontener per Bounded Context w `bootstrap/<bc>/container/`
-- [ ] Porty rejestrowane z konkretnymi adapterami (`providers.Factory`)
-- [ ] Singleton (`providers.Singleton`) dla stateless serwisów
-- [ ] Transient (`providers.Factory`) dla handlerów i mapperów
-- [ ] Brak Service Locator w kodzie produkcyjnym
-- [ ] Testy używają kontenera z nadpisanymi rejestracjami
-- [ ] Konfiguracja ładowana w Composition Root
-- [ ] Factory dla handlerów przez kontener
+- [ ] Composition Root per BC w `shell/<service>/bootstrap/<bc>/container/<bc>_core_container.py`
+- [ ] Brak top-level `shell/bootstrap/` — każdy BC samodzielny
+- [ ] Porty rejestrowane z konkretnymi adapterami (`providers.Factory`/`providers.Singleton`)
+- [ ] `providers.Factory` dla UoW, zegara, IdGeneratora i handlerów (`*_handler_factory`)
+- [ ] `providers.Singleton` dla busów, session factory i rejestrów
+- [ ] Di wstrzykuje zależności w kodzie produkcyjnym; kontener pozostaje w Composition Root
+- [ ] Testy używają kontenera z konfiguracją sqlite lub wstrzykują InMemory bezpośrednio
+- [ ] Konfiguracja ładowana w kontenerze BC
+- [ ] Rejestracja handlerów: `bus.register(<CommandName>, container.<X>_handler_factory)` / `bus.subscribe(...)` — spójność z `application-layer/handler-registration-integrity`

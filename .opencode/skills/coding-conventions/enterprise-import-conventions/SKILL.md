@@ -7,9 +7,10 @@ description: Zero-wyjatkowe zasady importów w enterprise Python. Obejmuje dyscy
 
 ## 1. Importy z Biblioteki Standardowej — Zawsze ze Źródła Kanonicznego
 
-Nigdy nie importuj nazw z biblioteki standardowej przez podmoduły, warstwy re-eksportu czy moduły pośredniczące. Importuj je bezpośrednio z kanonicznego modułu.
+Importuj nazwy z biblioteki standardowej bezpośrednio z ich kanonicznego modułu —
+bez pośrednictwa podmodułów, re-eksportów ani modułów pośredniczących.
 
-| Nazwa | Import kanoniczny | NIE RÓB TAK |
+| Nazwa | Import kanoniczny | Przykład błędny (mypy/reexport errors) |
 |-------|-------------------|-------------|
 | `TYPE_CHECKING` | `from typing import TYPE_CHECKING` | `from moj.pakiet.podmodul import TYPE_CHECKING` |
 | `Any` | `from typing import Any` | `from moj.pakiet.podmodul import Any` |
@@ -17,7 +18,7 @@ Nigdy nie importuj nazw z biblioteki standardowej przez podmoduły, warstwy re-e
 | `dataclass` | `from dataclasses import dataclass` | `from moj.pakiet.podmodul import dataclass` |
 | `field` | `from dataclasses import field` | `from moj.pakiet.podmodul import field` |
 | `datetime` | `from datetime import datetime` | `from moj.pakiet.podmodul import datetime` |
-| `annotations` | `from __future__ import annotations` (dyrektywa kompilacji) | Nigdy nie importuj `annotations` jako symbolu |
+| `annotations` | `from __future__ import annotations` (dyrektywa kompilacji) | `annotations` jako symbol — dyrektywa, nie import |
 
 **Uzasadnienie:** Nazwy z biblioteki standardowej istnieją w dokładnie jednym kanonicznym module. Importowanie ich przez łańcuchy re-eksportu psuje analizę granic modułów w mypy, produkuje fałszywie pozytywne błędy "does not explicitly export attribute" i tworzy kruche sprzężenie do pośredniczących plików `__init__.py`.
 
@@ -25,7 +26,7 @@ Nigdy nie importuj nazw z biblioteki standardowej przez podmoduły, warstwy re-e
 
 Każdy `__init__.py` MUSI:
 
-1. **Importować tylko nazwy będące częścią publicznego API pakietu.** Jeśli nazwa jest używana tylko wewnętrznie, nie re-eksportuj jej.
+1. **Importować tylko nazwy będące częścią publicznego API pakietu.** Użycie wyłącznie wewnętrzne pozostaje lokalne (poza re-eksportem).
 
 2. **Importować nazwy z biblioteki standardowej bezpośrednio z ich kanonicznego źródła.** Przykład:
    ```python
@@ -44,11 +45,15 @@ Każdy `__init__.py` MUSI:
 
 4. **Zadeklarować `from __future__ import annotations`** jako pierwszy import.
 
-5. **Nigdy nie re-eksportować nazw, które moduł konsumujący może zaimportować bezpośrednio.** Jeśli każdy konsument już importuje `from dataclasses import dataclass`, re-eksportowanie tego z `__init__.py` nie ma żadnej wartości.
+5. **Re-eksportować wyłącznie nazwy spoza zasięgu bezpośredniego importu.** Nazwy, które
+   konsument importuje bezpośrednio (np. stdlib), pozostają poza `__init__.py` — re-eksport taki
+   nie dodaje wartości i psuje analizę mypy.
 
 ## 3. Zawsze Importuj z Definiującego Modułu
 
-Nigdy nie importuj z warstwy re-eksportu, gdy definiujący moduł jest bezpośrednio dostępny.
+Importujesz z modułu, który definiuje nazwę; import przez hub re-eksportujący stosujesz
+wyłącznie tam, gdzie hub jest granicą publicznego API pakietu, a moduł definiujący
+szczegółem implementacyjnym.
 
 ```
 # ŹLE — importowanie z huba re-eksportującego
@@ -62,7 +67,9 @@ Wyjątki:
 - Adaptery infrastruktury MOGĄ importować z `shell.application.platform.ports.ports` (hub re-eksportujący na poziomie aplikacji), ponieważ moduł portu aplikacyjnego JEST definiującym modułem dla portów warstwy aplikacji.
 - `__init__.py` pakietu POWINIEN re-eksportować publiczne typy pakietu dla zewnętrznych konsumentów; zewnętrzni konsumenci POWINNI importować z `__init__.py`.
 
-**Reguła kciuka:** jeśli nazwa `X` jest zdefiniowana w module `A`, a inny moduł `B` ją re-eksportuje, zawsze używaj `from A import X`, nigdy `from B import X`, chyba że `B` JEST granicą publicznego API pakietu, a `A` jest szczegółem implementacyjnym.
+**Reguła kciuka:** gdy nazwa `X` jest zdefiniowana w module `A`, a inny moduł `B` ją
+re-eksportuje, używasz `from A import X`; zapis `from B import X` uzasadnia wyłącznie
+granica publicznego API pakietu (`B`) ze szczegółem implementacyjnym (`A`).
 
 ## 4. Strażnicy `TYPE_CHECKING` — Spójny Wzorzec
 
@@ -81,10 +88,8 @@ if TYPE_CHECKING:
 ```
 
 **Zasady:**
-- Zawsze używaj `if TYPE_CHECKING:` (nie gołego `TYPE_CHECKING`).
-- Wewnątrz strażnika importuj wszystko, co jest potrzebne tylko dla adnotacji typów.
-- Na zewnątrz strażnika importuj wszystko, co jest faktycznie używane w runtime (w tym w `__init__`, `__slots__` czy property, jeśli klasa jest dekorowana lub rozszerzana w runtime).
-- Używaj `from __future__ import annotations`, aby wszystkie adnotacje były stringami i nie wymagały runtime'owego dostępu do importów objętych strażnikiem.
+- Importy przeznaczone wyłącznie dla adnotacji deklarujesz w bloku `if TYPE_CHECKING:`; importy faktycznie używane w runtime (w tym w `__init__`, `__slots__`, property) deklarujesz poza strażnikiem.
+- `from __future__ import annotations` zamienia wszystkie adnotacje na stringi, więc obiekty ze strażnika nie są potrzebne w runtime.
 
 ## 5. Każdy Plik MUSI Mieć Kompletne Importy
 
@@ -94,7 +99,10 @@ Gdy dodajesz referencję do typu (np. zmieniasz `dict` na `dict[str, Any]`), MUS
 from typing import Any  # ← to jest teraz wymagane
 ```
 
-Kompilator nie sprawdza adnotacji w runtime (dzięki `from __future__ import annotations`), ale mypy TAK. Jeśli plik używa `Any`, `Optional`, `Union`, `List`, `Dict`, `Tuple`, `Callable` itp. w pozycji typu, odpowiedni import MUSI być obecny.
+Walidację typów wykonuje mypy; `from __future__ import annotations` przenosi ewaluację
+adnotacji do narzędzi statycznych (runtime pomija ich analizę). Plik używa typów
+`Any`, `Optional`, `Union`, `List`, `Dict`, `Tuple`, `Callable` itd. w pozycji typu —
+odpowiedni import `from typing import ...` jest wtedy wymagany.
 
 **Lista kontrolna przy modyfikacji hintów typów w pliku:**
 - [ ] Czy używa `Any`? → dodaj `from typing import Any`
@@ -104,7 +112,8 @@ Kompilator nie sprawdza adnotacji w runtime (dzięki `from __future__ import ann
 
 ## 6. Zero Niepotrzebnych Re-Eksportów w `__init__.py`
 
-`__init__.py`, który re-eksportuje `TYPE_CHECKING`, `annotations`, `dataclass`, `field`, `Protocol` itp. z podmodułu jest ZAWSZE błędny. Te nazwy pochodzą z biblioteki standardowej, są już globalnie dostępne dla każdego konsumenta, a ich re-eksportowanie tylko tworzy błędy mypy.
+Re-eksport stdlib (`TYPE_CHECKING`, `annotations`, `dataclass`, `field`, `Protocol` itp.)
+z `__init__.py` generuje błędy mypy; te nazwy importuje się z kanonicznego źródła.
 
 Jeśli `__init__.py` obecnie to robi, poprawka to:
 1. Usuń te nazwy z linii `from podmodul import ...`.
@@ -113,11 +122,11 @@ Jeśli `__init__.py` obecnie to robi, poprawka to:
 
 ## 7. Izolacja Warstwy Domenowej
 
-- **Kod domenowy nigdy nie importuje z `shell.application.*`** ani `shell.infrastructure.*`.
-- **Kod aplikacyjny importuje z `shell.domain.*`**, nigdy z `shell.infrastructure.*`.
-- **Kod infrastruktury importuje zarówno z `shell.domain.*`, jak i `shell.application.*`**.
+- **Domain** importuje wyłącznie z `shell.domain.*` (oraz stdlib).
+- **Application** importuje z `shell.domain.*`.
+- **Infrastructure** importuje z `shell.domain.*` oraz `shell.application.*`.
 
-To gwarantuje, że zasada odwrócenia zależności (Dependency Inversion Principle) nigdy nie jest naruszona na poziomie importów.
+Te kierunki realizują odwrócenie zależności (Dependency Inversion Principle) na poziomie importów.
 
 ## 8. Nadpisywanie Mypy w pyproject.toml
 

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.project_service.application.project.project.commands.create_project_command import (
+    CreateProjectCommand,
+)
 from shell.project_service.domain.project.aggregates.project.project import Project
 from shell.project_service.domain.project.aggregates.project.repositories.project_repository import (
     ProjectRepository,
@@ -19,12 +23,9 @@ if TYPE_CHECKING:
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
-    from shell.project_service.application.project.project.commands.create_project_command import (
-        CreateProjectCommand,
-    )
 
 
-class CreateProjectHandler:
+class CreateProjectHandler(CommandHandler[CreateProjectCommand]):
     def __init__(self, unit_of_work: UnitOfWork, clock: Clock, id_generator: IdGenerator) -> None:
         self._unit_of_work = unit_of_work
         self._clock = clock

@@ -18,7 +18,7 @@ Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI c
 │ Transakcja 1 (UoW)                                               │
 │   aggregate.domain_method() → append_event(DomainEvent)          │
 │   ReflectiveIntegrationMapper → IntegrationEvent                 │
-│   INSERT INTO outbox_event (event_type, payload, correlation_id) │
+│   INSERT INTO outbox_event (integration_event_name, payload, correlation_id) │
 │   COMMIT — atomowo z zapisem agregatu                           │
 └──────────────────────────────────────────────────────────────────┘
                     │
@@ -29,7 +29,7 @@ Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI c
 │     ORDER BY occurred_at LIMIT batch_size                        │
 │     FOR UPDATE SKIP LOCKED  (pomija blokowane wiersze)          │
 │   PUBLISH DeliveryEnvelope TO BROKER                              │
-│   consumer INSERT INTO inbox_event (id, outbox_id, event_type,   │
+│   consumer INSERT INTO inbox_event (id, outbox_id, integration_event_name,   │
 │     payload, metadata)                                            │
 │   UPDATE outbox_event SET published_at = now()                   │
 │   COMMIT                                                         │
@@ -64,7 +64,7 @@ Outbox daje **at-least-once delivery**. Event może być dostarczony więcej ni�
 | `id` | str (PK) | Lokalny identyfikator outbox |
 | `event_id` | str | Tożsamość faktu biznesowego |
 | `source_service` | str | Bounded context nadawcy |
-| `event_type` | str | Klasa eventu (np. `WorkflowCompletedEvent`) |
+| `integration_event_name` | str | Stabilna nazwa kontraktu (np. `WorkflowCompleted`) |
 | `occurred_at` | datetime | Kiedy event wystąpił (UTC) |
 | `payload` | JSONB | Serializowane pola eventu |
 | `correlation_id` | str | Łączy eventy w jeden łańcuch przyczynowy (z ContextVar) |
@@ -88,7 +88,7 @@ Idempotentność na dwóch poziomach:
 | `id` | str (PK) | Lokalny identyfikator inbox |
 | `outbox_id` | str | Referencja do `outbox_event.id` nadawcy |
 | `source_service` | str | Bounded context nadawcy |
-| `event_type` | str | Klasa eventu (np. `WorkflowCompletedEvent`) |
+| `integration_event_name` | str | Stabilna nazwa kontraktu (np. `WorkflowCompleted`) |
 | `occurred_at` | datetime | Kiedy event wystąpił |
 | `payload` | JSONB | Serializowane pola eventu |
 | `correlation_id` | str | Łańcuch przyczynowy (kopiowane z outbox) |
@@ -105,12 +105,12 @@ Idempotentność na dwóch poziomach:
 |-------|-------------|------------------|
 | `SqlAlchemyUnitOfWorkBase` | `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py` | W outbox w tej samej transakcji co agregat |
 | `ReflectiveIntegrationMapper` | `shell/platform/infrastructure/mapping/reflective_integration_mapper.py` | Mapuje domain event → integration event |
-| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/transport/outbox_to_transport_relay.py` | Publikuje każdy outbox do brokera |
+| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/event_transport/outbox_to_transport_relay.py` | Publikuje każdy outbox do brokera |
 | `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Deserializuje, dispatchuje do EventBus, retry/DLQ |
 | `EventBus` | `shell/platform/application/bus/event_bus.py` | In-memory dispatch do handlerów (lazy factories) |
-| `DomainEventSerializer` | `shell/platform/infrastructure/serialization/event_serializer.py` | Serializacja/deserializacja eventów |
-| `EventDeserializer` | `shell/platform/infrastructure/serialization/event_deserializer.py` | Deserializacja z rejestrem klas |
-| `build_event_registry()` | `shell/platform/infrastructure/serialization/event_registry.py` | Auto-generowany rejestr event → klasa |
+| `IntegrationEventSerializer` | `shell/platform/infrastructure/serialization/integration_event/integration_event_serializer.py` | Serializacja integration eventów |
+| `IntegrationEventDeserializer` | `shell/platform/infrastructure/serialization/integration_event/integration_event_deserializer.py` | Deserializacja z rejestrem klas |
+| `build_event_registry()` | `shell/platform/infrastructure/serialization/registries/event_registry.py` | Auto-generowany rejestr integration_event_name → klasa |
 
 ## Event ordering i śledzenie przyczyn
 

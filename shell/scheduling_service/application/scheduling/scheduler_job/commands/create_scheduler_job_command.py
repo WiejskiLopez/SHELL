@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell.platform.application.commands.command import Command
+
 
 @dataclass(frozen=True, slots=True)
-class CreateSchedulerJobCommand:
+class CreateSchedulerJobCommand(Command):
     scheduler_definition_id: str
     name: str
     job_type: str = "messaging"

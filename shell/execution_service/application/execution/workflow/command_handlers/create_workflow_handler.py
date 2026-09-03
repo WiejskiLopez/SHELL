@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.workflow.commands.create_workflow_command import (
+    CreateWorkflowCommand,
+)
 from shell.execution_service.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
     ProjectIdRef,
 )
@@ -15,18 +18,16 @@ from shell.execution_service.domain.execution.aggregates.workflow.value_objects.
     WorkflowId,
 )
 from shell.execution_service.domain.execution.aggregates.workflow.workflow import Workflow
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.workflow.commands.create_workflow_command import (
-        CreateWorkflowCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
 
 
-class CreateWorkflowHandler:
+class CreateWorkflowHandler(CommandHandler[CreateWorkflowCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,

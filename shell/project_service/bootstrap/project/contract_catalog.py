@@ -64,6 +64,24 @@ _CONTRACTS: tuple[ContractEntry, ...] = (
         supported_schema_versions=frozenset({1}),
         producers=(OWNER,),
     ),
+    ContractEntry(
+        type_name="WorkspaceProvisionedIntegrationEvent",
+        owner=OWNER,
+        supported_schema_versions=frozenset({1}),
+        producers=(OWNER,),
+    ),
+    ContractEntry(
+        type_name="WorkspaceProvisionFailedIntegrationEvent",
+        owner=OWNER,
+        supported_schema_versions=frozenset({1}),
+        producers=(OWNER,),
+    ),
+    ContractEntry(
+        type_name="WorkspaceReleasedIntegrationEvent",
+        owner=OWNER,
+        supported_schema_versions=frozenset({1}),
+        producers=(OWNER,),
+    ),
 )
 
 

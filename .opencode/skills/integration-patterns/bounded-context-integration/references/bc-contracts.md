@@ -1,5 +1,7 @@
 # Kontrakty między Bounded Context — porty, QueryService, DTO
 
+> Uwaga o konwencji ścieżek: poniższe przykłady (ordering, invoicing, legacy) są **ilustracyjne**. W SHELL nie ma top-level pakietów `shell/domain`, `shell/application` itd. — realna topologia to `shell/<service>/domain/<bc>/...` oraz `shell/<service>/application/<bc>/<aggregate>/...`. W każdym przykładzie zastąp `<service>` nazwą serwisu BC.
+
 ## Zasada własności
 
 | Element | Własność | Lokalizacja |

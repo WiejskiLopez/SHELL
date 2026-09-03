@@ -9,8 +9,10 @@ from shell.execution_service.infrastructure.execution.persistence.sql.models.bas
 )
 from shell.execution_service.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
-from shell.platform.infrastructure.messaging.transport import OutboxToTransportRelay
-from shell.platform.infrastructure.messaging.transport.rabbit import RabbitDeliveryTransport
+from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
+from shell.platform.infrastructure.messaging.event_transport.rabbit import (
+    RabbitEventDeliveryTransport,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:
@@ -27,12 +29,11 @@ class RelayCommand(RunnableCommand):
         await run_execution_baseline(deployment.database_url)
         sf = build_session_factory(deployment.database_url)
         runtime = LoadedConfiguration.from_environment().platform_runtime
-        transport = RabbitDeliveryTransport(runtime.events.broker_url)
-        relay = OutboxToTransportRelay(
+        transport = RabbitEventDeliveryTransport(runtime.events.broker_url)
+        relay = EventOutboxToTransportRelay(
             sf,
             EVENT_DELIVERY_MODELS,
             transport,
-            kind="event",
         )
         count = await relay.run_once()
         logger.info("processed %s outbox event(s)", count)

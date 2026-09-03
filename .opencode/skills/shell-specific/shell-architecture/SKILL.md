@@ -1,5 +1,6 @@
+---
 name: shell-architecture
-description: Architektura i konwencje projektowe dla repozytorium SHELL (Python, Clean Architecture + DDD + Hexagonal + CQRS, SQLAlchemy async, FastAPI). Używaj zawsze, gdy modyfikujesz, dodajesz lub review'ujesz kod w katalogu `shell/` — dodawanie nowej funkcjonalności, nowe aggregate/entity/VO, handlery command/query/event, mappery, repozytoria SQL/InMemory, migracje Alembic, rejestracja w DI, refaktoryzacja relacji między agregatami. Używaj także przy analizie błędów logicznych, planowaniu refaktoryzacji warstwowej, albo gdy nie jesteś pewien gdzie powinna trafić nowa klasa.
+description: "Architektura i konwencje projektowe dla repozytorium SHELL (Python, Clean Architecture + DDD + Hexagonal + CQRS, SQLAlchemy async, FastAPI). Używaj zawsze, gdy modyfikujesz, dodajesz lub review'ujesz kod w katalogu `shell/` — dodawanie nowej funkcjonalności, nowe aggregate/entity/VO, handlery command/query/event, mappery, repozytoria SQL/InMemory, migracje Alembic, rejestracja w DI, refaktoryzacja relacji między agregatami. Używaj także przy analizie błędów logicznych, planowaniu refaktoryzacji warstwowej, albo gdy nie jesteś pewien gdzie powinna trafić nowa klasa."
 ---
 
 # SHELL — Architektura i konwencje
@@ -20,33 +21,35 @@ overview alone:
     HTTP clients for service-to-service calls;
 - `provider-service-separation` — rozdzielenie portów odczytu (`Provider`) od
     portów operacji i mutacji (`Service`) między BC.
+- `enterprise-over-hacks` — zasada decyzyjna: przy każdym wyborze architekt wybiera
+    rozwiązanie enterprise (jawne, deterministyczne, standardowe, czytelne w PR,
+    niskie zadłużenie) zamiast skrótu bez udokumentowanej przyczyny.
 
-Nie używamy wspólnych top-level pakietów `shell/domain`, `shell/application`,
-`shell/infrastructure`, `shell/framework`, `shell/process` ani `shell/bootstrap`.
+Kod żyje wyłącznie w `shell/platform/` oraz `shell/<bc>_service/{...}/<bc>/`; wspólne
+top-level pakiety `shell/domain`, `shell/application`, `shell/infrastructure`,
+`shell/framework`, `shell/process` i `shell/bootstrap` są poza strukturą repo.
 
-- `shell/platform/` zawiera wyłącznie generyczne, współdzielone prymitywy i kontrakty.
-    Platforma nie importuje żadnego bounded contextu.
-- `shell/<bc>/{domain,application,process,infrastructure,framework,bootstrap}/`
+- `shell/platform/` zawiera generyczne, współdzielone prymitywy i kontrakty platformy;
+    platforma importuje wyłącznie własne moduły (`shell.platform.*`).
+- `shell/<bc>_service/{domain,application,process,infrastructure,framework,bootstrap}/<bc>/`
     zawiera kod i composition root wyłącznie konkretnego BC.
-- Wspólne mechanizmy techniczne implementuj tylko raz w `shell/platform/`.
-    Wszystkie BC korzystają z tych samych platformowych klas i adapterów, np.
-    `InboxEventModel`, `OutboxEventModel`, publishera, processora i relaya.
-    Nie twórz kopii tych klas per BC.
-- Wspólna implementacja platformowa nie oznacza wspólnej bazy danych. Każdy BC
-    używa tych samych klas platformy z własnym `DATABASE_URL`, własną sesją oraz
-    własnymi migracjami. Tabele o tych samych nazwach są wtedy tabelami w różnych
-    bazach.
-- Kazdy bounded context posiada wlasny composition root i samodzielny lifecycle wdrozenia.
+- Wspólne mechanizmy techniczne implementujesz jednokrotnie w `shell/platform/`;
+    wszystkie BC korzystają z tych samych platformowych klas i adapterów (np.
+    `InboxEventModel`, `OutboxEventModel`, publisher, processor, relay) bez kopii per BC.
+- Platformowa implementacja współistnieje z osobnymi bazami per BC: każdy BC używa
+    tych samych klas platformy z własnym `DATABASE_URL`, własną sesją i migracjami;
+    tabele o tej samej nazwie żyją w osobnych bazach.
+- Każdy bounded context posiada własny composition root i samodzielny lifecycle wdrożenia.
 - Komunikacja między BC przebiega przez publiczne kontrakty HTTP lub eventowe.
 
 Testy mają tę samą granicę własności:
 
-- `shell/tests/platform/` — tylko testy `shell.platform`; zero importów BC.
+- `shell/tests/platform/` — tylko testy `shell.platform` (import BC poza tym katalogiem).
 - `shell/tests/<bc>/` — testy jednego BC; dozwolone są własny BC i platforma.
 - `shell/tests/contracts/` — publiczne kontrakty HTTP/event między BC.
-- `shell/tests/system/` — scenariusze wielu osobnych aplikacji BC, bez wspólnego kontenera.
+- `shell/tests/system/` — scenariusze wielu osobnych aplikacji BC.
 - `shell/tests/architecture/` — centralne testy AST/importów i reguł całego repozytorium.
-- `shell/tests/shared/` — wyłącznie helpery generyczne, bez importów BC.
+- `shell/tests/shared/` — helpery generyczne (importy BC poza tym katalogiem).
 
 Test umieszczony w `platform`, który importuje BC, należy zgeneryzować na fake
 platformowy albo przenieść do `shell/tests/<bc>`. Test architektury pozostaje w
@@ -54,20 +57,39 @@ platformowy albo przenieść do `shell/tests/<bc>`. Test architektury pozostaje 
 
 ## Architektura warstwowa
 
-Kierunek zależności jest jednokierunkowy:
+Kierunek zależności jest jednokierunkowy (per pakiet serwisu BC, np. `shell/execution_service/`):
 
 ```
-shell/<bc>/domain/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
+shell/<bc>_service/domain/<bc>/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
 ```
 
-- `shell/<bc>/domain/` — czysty Python i reguły biznesowe BC.
-- `shell/<bc>/application/` — atomowe handlery przypadków użycia BC.
-- `shell/<bc>/process/` — orkiestracja i sagi BC.
-- `shell/<bc>/infrastructure/` — implementacje portów i adaptery BC.
-- `shell/<bc>/framework/` — FastAPI, CLI i entrypointy BC.
-- `shell/<bc>/bootstrap/` — composition root wyłącznie tego BC.
+- `shell/<bc>_service/domain/<bc>/` — czysty Python i reguły biznesowe BC.
+- `shell/<bc>_service/application/<bc>/` — atomowe handlery przypadków użycia BC.
+- `shell/<bc>_service/process/<bc>/` — orkiestracja i sagi BC (warstwa docelowa).
+- `shell/<bc>_service/infrastructure/<bc>/` — implementacje portów i adaptery BC.
+- `shell/<bc>_service/framework/<bc>/` — FastAPI, CLI i entrypointy BC.
+- `shell/<bc>_service/bootstrap/<bc>/` — composition root wyłącznie tego BC.
 
-Reguły importów i zakazy (`domain/` nigdy nie importuje `sqlalchemy`/`pydantic`/`fastapi`) — patrz `references/layers-and-dependencies.md`.
+Reguły importów per warstwa (np. `domain/` importuje wyłącznie stdlib i własne typy;
+sterling stack techniczny używa się w warstwach wyżej) — patrz `references/layers-and-dependencies.md`.
+
+## Struktura katalogów — rodzeństwo i liczba mnoga
+
+Katalog pojęcia i katalog jego handlerów są **rodzeństwem na tym samym poziomie**,
+zawsze w **liczbie mnogiej**:
+
+```
+commands/          +  command_handlers/
+queries/           +  query_handlers/
+events/            +  event_handlers/
+integration_events/ + event_handlers/
+```
+
+- **Zakaz zagnieżdżania**: NIGDY `command/handlers/` ani `event/handlers/` — handlery idą obok pojęcia, nie pod spodem.
+- **Zakaz liczby pojedynczej**: `command/`, `command_handler/`, `event/`, `event_handler/` — używaj mnogiej.
+- Obowiązuje w każdym BC (`shell/<bc>_service/application/<bc>/<aggregate>/`) oraz w platformie (`shell/platform/application/`).
+
+Pełne reguły i przykłady: `naming-standards/directory-naming-standards` (sekcja "Zasada rodzeństwa (siblings)").
 
 ## Krytyczne invariants (czytaj najpierw)
 
@@ -83,9 +105,9 @@ W warstwie `domain/` NIE WOLNO używać typów prostych (`str`, `int`, `float`, 
 - **Repozytoriach (porty)** — parametry i zwracane typy muszą być ValueObject lub ID; `str`, `int`, `bool` są zabronione
 - **Portach domenowych (Protocol)** — jw.
 
-**Dozwolone wyjątki**: `datetime` (tylko jako znacznik czasu w encji/eventach), typy w `TYPE_CHECKING` blokach, parametry w `from_payload()` (deserializacja).
+**Dozwolone wyjątki**: `datetime` (tylko jako znacznik czasu w encji/eventach), typy w `TYPE_CHECKING` blokach, parametry w `PayloadObjectDeserializer` (deserializacja).
 
-**Test weryfikujący**: `shell/tests/platform/architecture/test_domain_structure.py`:
+**Test weryfikujący**: `shell/tests/architecture/test_domain_structure__*.py`:
 - `test_entity_aggregate_fields_have_domain_types` — sprawdza entity/aggregate
 - `test_domain_event_fields_have_domain_types` — sprawdza eventy
 - `test_repository_port_signatures_have_domain_types` — sprawdza porty repozytoriów
@@ -93,9 +115,9 @@ W warstwie `domain/` NIE WOLNO używać typów prostych (`str`, `int`, `float`, 
 Przykład ZŁY:
 ```python
 class Workflow(AggregateRoot[WorkflowId]):
-    _status: str           # ZŁO: str zamiast WorkflowStatus
-    _goal: str             # ZŁO: str zamiast Goal
-    _skills: list          # ZŁO: bare list bez typu
+    _status: str           # Antywzorzec: str zamiast WorkflowStatus
+    _goal: str             # Antywzorzec: str zamiast Goal
+    _skills: list          # Antywzorzec: bare list bez typu
 ```
 
 Przykład DOBRY:
@@ -111,8 +133,8 @@ Przykład ZŁY w evencie:
 ```python
 @dataclass
 class WorkflowFailedEvent(DomainEvent):
-    reason: str           # ZŁO: str zamiast Reason
-    details: dict         # ZŁO: dict zamiast StateData
+    reason: str           # Antywzorzec: str zamiast Reason
+    details: dict         # Antywzorzec: dict zamiast StateData
 ```
 
 Przykład DOBRY w evencie:
@@ -152,12 +174,12 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 - Zaczynasz nową funkcjonalność i nie wiesz gdzie co trafia → `references/checklists.md` (sekcja "Dodawanie nowej funkcjonalności")
 - Piszesz nowy aggregate/entity/VO/event/domain service → `references/domain.md`
 - Piszesz handler, mapper, strategię, port aplikacyjny → `references/application.md`
-- Piszesz Query Service → `shell/<bc>/application/<bc>/query_services/<nazwa_agregatu>/` (patrz [query-handler-structure](../../pattern-standards/query-handler-structure/SKILL.md#query-service--lokalizacja-per-agregat))
+- Piszesz Query Service → port w `shell/<bc>_service/application/<bc>/<aggregate>/ports/<aggregate>_query_service.py` (patrz [query-handler-structure](../../pattern-standards/query-handler-structure/SKILL.md#query-service--lokalizacja-per-agregat))
 - Piszesz handler z zasadami między-domenowymi → `references/application-handlers.md`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
 - Implementujesz adapter danych międzyagregatowych → wzorce Aggregate Provider (odczyt) i Command Port (operacje); porty w `ports/`, adaptery w `infrastructure/<bc>/<aggregate>/adapters/<nazwa>/`
 - Projektujesz integrację tylko do odczytu albo operację na innym BC → `provider-service-separation` (Provider vs Service, lokalne mapowanie kontraktów i własność portu)
-- Piszesz Event Handler → `shell/<bc>/application/<bc>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
+- Piszesz Event Handler → `shell/<bc>_service/application/<bc>/<aggregate>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")
 - Nie jesteś pewien struktury pliku → `references/checklists.md` (sekcja "Cross-cutting")

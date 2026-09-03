@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.execution_service.application.execution.edge_link_execution.commands.create_edge_link_execution_command import (
+    CreateEdgeLinkExecutionCommand,
+)
 from shell.execution_service.domain.execution.aggregates.edge_link_execution.edge_link_execution import (
     EdgeLinkExecution,
 )
@@ -11,18 +14,16 @@ from shell.execution_service.domain.execution.aggregates.edge_link_execution.rep
 from shell.execution_service.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
     EdgeLinkExecutionId,
 )
+from shell.platform.application.command_handlers.command_handler import CommandHandler
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.execution_service.application.execution.edge_link_execution.commands.create_edge_link_execution_command import (
-        CreateEdgeLinkExecutionCommand,
-    )
     from shell.platform.application.ports.persistence.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.identity import IdGenerator
     from shell.platform.domain.ports.time import Clock
 
 
-class CreateEdgeLinkExecutionHandler:
+class CreateEdgeLinkExecutionHandler(CommandHandler[CreateEdgeLinkExecutionCommand]):
     def __init__(
         self,
         unit_of_work: UnitOfWork,
