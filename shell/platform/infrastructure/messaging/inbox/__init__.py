@@ -10,9 +10,6 @@ from shell.platform.infrastructure.messaging.inbox.inbox_metrics_service import 
     InboxMetrics,
     InboxMetricsService,
 )
-from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import (
-    InboxProcessorBase,
-)
 from shell.platform.infrastructure.messaging.inbox.inbox_replay_service import (
     InboxReplayService,
 )
@@ -21,7 +18,6 @@ __all__ = [
     "InboxClaimService",
     "InboxMetrics",
     "InboxMetricsService",
-    "InboxProcessorBase",
     "InboxReplayService",
     "InboxStateModel",
 ]

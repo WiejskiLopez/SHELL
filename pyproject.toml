@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "File-system-driven agent runtime shared library"
 license = "MIT"
 authors = [{ name = "WiejskiLopez" }]
-requires-python = ">=3.11"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "aio-pika>=10.0.1",
     "alembic>=1.18.5",
@@ -102,7 +102,7 @@ forbidden_modules = [
 ]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 strict = true
 explicit_package_bases = true
 exclude = []

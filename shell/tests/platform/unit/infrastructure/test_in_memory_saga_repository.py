@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import pytest
-
-from shell.platform.domain.exceptions.concurrent_modification_error import (
-    ConcurrentModificationError,
+from saga_orchestration.infrastructure.process.saga.in_memory_saga_repository import (
+    InMemorySagaRepository,
 )
-from shell.platform.infrastructure.persistence.memory import InMemorySagaRepository
-from shell.platform.process.saga.base.saga_state import SagaStatus
-from shell.platform.process.saga.saga_instance import SagaInstance
+from saga_orchestration.process.saga.base.saga_state import SagaStatus
+from saga_orchestration.process.saga.errors import ConcurrentModificationError
+from saga_orchestration.process.saga.saga_instance import SagaInstance
 
 
 class TestInMemorySagaRepository:

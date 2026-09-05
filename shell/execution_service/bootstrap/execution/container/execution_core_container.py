@@ -155,6 +155,7 @@ from shell.execution_service.application.execution.workflow.query_handlers.list_
     ListWorkflowsHandler,
 )
 from shell.execution_service.bootstrap.execution.contract_catalog import EXECUTION_CONTRACT_CATALOG
+from shell.execution_service.bootstrap.execution.delivery import build_delivery_config
 from shell.execution_service.bootstrap.execution.event_registry import (
     build_execution_event_registry,
 )
@@ -226,6 +227,7 @@ from shell.execution_service.infrastructure.execution.workflow_state.persistence
     WorkflowStateQueryService,
 )
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.command_bus_publisher import CommandBusPublisher
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.context.client import ResilientAsyncClient
@@ -238,23 +240,19 @@ from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command import CommandInboxConsumer, CommandOutboxRelay
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.command_transport import (
-    CommandOutboxToTransportRelay,
 )
 from shell.platform.infrastructure.messaging.command_transport.rabbit import (
     RabbitCommandDeliveryTransport,
-    RabbitCommandInboxConsumer,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event import EventInboxConsumer, EventOutboxRelay
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     RabbitEventDeliveryTransport,
-    RabbitEventInboxConsumer,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
@@ -327,6 +325,7 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     # Infrastruktura bazodanowa
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
     command_bus = providers.Singleton(CommandBus)
+    command_bus_publisher = providers.Singleton(CommandBusPublisher, command_bus=command_bus)
 
     # Per-aggregate Unit of Work — każdy agregat ma własny UoW
     persistence_delivery_models = providers.Object(PERSISTENCE_DELIVERY_MODELS)
@@ -338,8 +337,6 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         event_bus=event_bus,
         models=persistence_delivery_models.provided.events,
         registry=event_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="execution",
         worker_id=config.worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
@@ -350,7 +347,7 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         RabbitEventDeliveryTransport, url=config.broker_url
     )
     outbox_to_transport_relay_factory = providers.Factory(
-        EventOutboxToTransportRelay,
+        EventOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
         transport=event_delivery_transport,
@@ -359,7 +356,7 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         RabbitCommandDeliveryTransport, url=config.broker_url
     )
     command_outbox_to_transport_relay_factory = providers.Factory(
-        CommandOutboxToTransportRelay,
+        CommandOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         transport=command_delivery_transport,
@@ -372,25 +369,23 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     command_inbox_processor_factory = providers.Factory(
         CommandInboxProcessor,
         session_factory=session_factory,
-        command_bus=command_bus,
+        dispatcher=command_bus_publisher,
         models=persistence_delivery_models.provided.commands,
         registry=command_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="execution-command",
         worker_id=config.command_worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         upcaster=providers.Singleton(PayloadUpcaster),
     )
     rabbit_command_inbox_consumer_factory = providers.Factory(
-        RabbitCommandInboxConsumer,
+        CommandInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         service_name="execution",
     )
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitEventInboxConsumer,
+        EventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
@@ -620,6 +615,17 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         unit_of_work=edge_link_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
+    )
+    delivery_config = providers.Singleton(
+        build_delivery_config,
+        models=persistence_delivery_models,
+        event_registry=event_registry,
+        command_registry=command_registry,
+        event_bus=event_bus,
+        command_bus=command_bus,
+        event_transport=event_delivery_transport,
+        command_transport=command_delivery_transport,
+        session_factory=session_factory,
     )
 
 

@@ -12,8 +12,6 @@ description: Przepływ komendy SYNCHRONICZNEGO (lokalnego, w obrębie jednego BC
 - Zasięg: ten sam proces/BC; komenda żyje jako obiekt w pamięci (poza bazą).
 - Gwarancja: sync request/response. Awaria → wyjątek do API, brak trwałego stanu.
 
-Pełny dokument: `command-flow-sync.md` (root repo).
-
 ## Klasy po kolei (przykład `POST /api/v1/projects/`)
 
 ```
@@ -29,7 +27,7 @@ create_*_app (FastAPI, app.py)                        framework/<bc>/.../api/app
        save(repo_type, aggregate) → aggregate.pull_events()   :111-115
        commit(): _write_staged_outbox() + session.commit()    :142-190
   → Aggregate.create() → append_event(DomainEvent)     domain/<bc>/aggregates/.../aggregate.py; platform/domain/base/aggregate_root.py:27-40
-  → commit atomowy: stan agregatu + outbox_event + audit_event
+  → commit atomowy: stan agregatu + event_outbox + audit_event
   → odpowiedź (DTO) → HTTP 201/204/404
 ```
 
@@ -45,7 +43,7 @@ Rejestracja handlera: `configure_*_container(container)` w `bootstrap/<bc>/conta
 
 ## Granica transakcji
 
-- 1 transakcja: **stan agregatu + outbox_event + audit_event** (`sql_alchemy_uow_base.py:142-190`).
+- 1 transakcja: **stan agregatu + event_outbox + audit_event** (`sql_alchemy_uow_base.py:142-190`).
 - Crash przed commitem → rollback → spójnie: stan w całości albo wcale, bez cząstkowych zapisów.
 - `StaleDataError` → `ConcurrentModificationError` + rollback (:155-157).
 

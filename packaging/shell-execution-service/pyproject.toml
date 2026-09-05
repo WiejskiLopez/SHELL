@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "shell-execution-service"
 version = "0.1.0"
 description = "SHELL Execution bounded context service"
-requires-python = ">=3.11"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "aiosqlite>=0.20.0",
     "alembic>=1.18.5",

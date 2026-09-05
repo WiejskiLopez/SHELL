@@ -20,10 +20,18 @@ Zakazane (legacy, do usunięcia, nigdy nie przywracać):
 - jakakolwiek "stara kompatybilność" w zawartości migracji;
 - mieszanie wzorca statycznego z dynamicznym w jednym pliku.
 
-Każda nowa tabela = nowy statyczny plik `op.create_table`. Tabele delivery (outbox/inbox/
-audit/processed_delivery/worker_heartbeat/saga) są wspólne z platformą: definiuje je łańcuch
-`platform_0001_...` w `shell/platform/infrastructure/persistence/migrations/sql/versions/`,
+Każda nowa tabela = nowy statyczny plik `op.create_table`. Tabele delivery
+(outbox/inbox/audit/worker_heartbeat) są wspólne z platformą: definiuje je
+łańcuch `platform_0001_...` w `shell/platform/infrastructure/persistence/migrations/sql/versions/`,
 a każdy serwis dostaje je przez ten łańcuch przed swoim łańcuchem domenowym.
+
+Tabele **sagi** (`saga_instance`/`saga_timeout`) nie są częścią platformy bazowej — to
+opcjonalna capability biblioteki `saga-orchestration` (`packaging/saga-orchestration`).
+Włącza się ją jawnie (`include_saga=True` w `run_platform_baseline`); serwis adoptuje
+tabele własną migracją adopcyjną (wzorzec `project_0004_saga_capability_adopted`), a
+referencyjny łańcuch migracji żyje w bibliotece (`saga_0001`/`saga_0002`). Historyczne
+`platform_0008_saga_instance`/`platform_0009_saga_timeout` pozostają w platformie wyłącznie
+dla kompatybilności baz, które je już wykonały.
 
 Refaktor na statyczny wzorzec wykonuje się **do końca**: nie zostawia się ani jednego pliku
 w starym wzorcu, ani jednego wyjątku w regułach architektury. Strażnik
@@ -60,7 +68,8 @@ od nowa. Serwis używa domyślnej `alembic_version` — dwa łańcuchy w jednej 
 (aplikacja, `reset_db` = downgrade/upgrade każdego z osobna).
 
 Head serwisu to **ostatnia migracja domenowa** (łamiesz łańcuch serwisu na ostatniej tabeli
-domenowej; serwis NIE zawiera tabel delivery — te zawsze idą z platformy).
+domenowej; serwis NIE zawiera tabel delivery — te zawsze idą z platformy). Serwis z capability
+sagi zawiera w swoim łańcuchu migrację adopcyjną tabel sagowych (`project_0004_saga_capability_adopted`).
 
 ## Dlaczego to jest potrzebne
 

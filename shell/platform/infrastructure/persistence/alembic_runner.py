@@ -23,12 +23,14 @@ def _run_upgrade(
     service_package: str,
     base_class: str,
     reset_db: bool,
+    include_saga: bool,
 ) -> None:
     config = Config()
     config.set_main_option("script_location", str(migrations_dir))
     config.set_main_option("sqlalchemy.url", url.replace("+aiosqlite", "").replace("+asyncpg", ""))
     config.set_main_option("service_package", service_package)
     config.set_main_option("base_class", base_class)
+    config.set_main_option("include_saga", str(include_saga).lower())
     if reset_db:
         command.downgrade(config, "base")
     command.upgrade(config, "head")
@@ -49,10 +51,13 @@ async def run_versioned_migrations(
         service_package=service_package,
         base_class=base_class,
         reset_db=reset_db,
+        include_saga=True,
     )
 
 
-async def run_platform_baseline(*, url: str, reset_db: bool = False) -> None:
+async def run_platform_baseline(
+    *, url: str, reset_db: bool = False, include_saga: bool = False
+) -> None:
     """Apply the shared platform delivery-migrations chain (``platform_0001_..``)."""
     await asyncio.to_thread(
         _run_upgrade,
@@ -61,4 +66,5 @@ async def run_platform_baseline(*, url: str, reset_db: bool = False) -> None:
         service_package="",
         base_class="",
         reset_db=reset_db,
+        include_saga=include_saga,
     )

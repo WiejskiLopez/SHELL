@@ -73,6 +73,12 @@ domain/ ← application/ ← process/ ← infrastructure/ ← framework/
 - `process/<bc>/<nazwa_sagi>/commands/` — komendy produkowane tylko przez tę sagę
 - `process/<bc>/<nazwa_sagi>/ports/` — porty (Protocol) dla repozytorium i command publishingu
 
+> **Generyczne budulce sagi** (`SagaManager`, `SagaInstance`, kroki, porty, repozytoria SQL,
+> worker timeoutów, migracje referencyjne) żyją w bibliotece **`saga-orchestration`**
+> (`packaging/saga-orchestration`) jako opcjonalna capability per serwis (`include_saga`).
+> Konkretna saga (`manager.py`, `steps.py`, `handlers/`) zostaje w serwisie. Stan realizacji:
+> `saga-orkiestration.md` (root repo).
+
 > **Zasada**: Application = atomowe handlery (1 event → 1 agregat). Process = orchestracja (wiele agregatów, stan, koordynacja).
 
 ## 5. Podsumowanie — Checklista

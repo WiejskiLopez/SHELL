@@ -9,7 +9,7 @@ from shell.execution_service.infrastructure.execution.persistence.sql.models.bas
 )
 from shell.execution_service.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.configuration.shell_config import LoadedConfiguration
-from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
+from shell.platform.infrastructure.messaging.event import EventOutboxRelay
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     RabbitEventDeliveryTransport,
 )
@@ -30,7 +30,7 @@ class RelayCommand(RunnableCommand):
         sf = build_session_factory(deployment.database_url)
         runtime = LoadedConfiguration.from_environment().platform_runtime
         transport = RabbitEventDeliveryTransport(runtime.events.broker_url)
-        relay = EventOutboxToTransportRelay(
+        relay = EventOutboxRelay(
             sf,
             EVENT_DELIVERY_MODELS,
             transport,

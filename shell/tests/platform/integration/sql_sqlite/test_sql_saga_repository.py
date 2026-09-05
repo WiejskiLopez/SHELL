@@ -5,15 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
-from shell.platform.domain.exceptions.concurrent_modification_error import (
-    ConcurrentModificationError,
-)
-from shell.platform.infrastructure.process.saga.repositories.sql_saga_repository import (
+from saga_orchestration.infrastructure.process.saga.repositories.sql_saga_repository import (
     SqlSagaRepository,
 )
-from shell.platform.process.saga.base.saga_state import SagaStatus
-from shell.platform.process.saga.saga_instance import SagaInstance
+from saga_orchestration.process.saga.base.saga_state import SagaStatus
+from saga_orchestration.process.saga.errors import ConcurrentModificationError
+from saga_orchestration.process.saga.saga_instance import SagaInstance
+
 from shell.tests.platform.integration.platform_delivery_models import SAGA_DELIVERY_MODELS
 
 if TYPE_CHECKING:

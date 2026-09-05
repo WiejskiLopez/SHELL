@@ -79,7 +79,7 @@ Zasada inwersyjna: jeśli nowa migracja dodaje kolumnę, której model ORM nie m
 ## Outbox / Ingestion
 
 - Transactional Outbox: zapis eventu w tej samej transakcji co domena
-- `outbox_event` tabela → `OutboxRelay` → EventPublisher
+- `event_outbox` tabela → `OutboxRelay` → EventPublisher
 - Gwarancja at-least-once delivery
 - Kompozytowy EventPublisher składa wiele publisherów (log, SQL, audit)
 - Event registry nie używa hardcoded mapy string → klasa. Automatyczna rejestracja przez `__init_subclass__` w base class.

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from shell.platform.process.saga.steps import StepDefinition, StepRegistry
+from saga_orchestration.process.saga.steps import StepDefinition, StepRegistry
+
 from shell.project_service.application.project.project_provision.commands.release_workspace_command import (
     ReleaseWorkspaceCommand,
 )

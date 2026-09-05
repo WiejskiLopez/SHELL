@@ -24,7 +24,7 @@
 
 ## 1. Instalacja i wymagania
 
-**Python 3.11+** wymagany.
+**Python 3.14.x** wymagany.
 
 ```powershell
 # z katalogu głównego repo (SHELL/)
@@ -510,17 +510,22 @@ dto: UserDto | None = await query_bus.dispatch(
 | **execution** | `workflow`, `graph_execution`, `node_execution`, `edge_execution`, `session_execution`, `task_execution`, `envelope`, `node_result`, `prompt` |
 | **project** | `project`, `project_skill`, `project_state` |
 | **scheduling** | `scheduler_definition`, `scheduler_job`, `scheduler_execution` |
-| **ingestion** | `ingestion`, `outbox_event`, `inbox_event`, `outbox_command`, `inbox_command`, `audit_event` |
+| **ingestion** | `ingestion`, `event_outbox`, `event_inbox`, `command_outbox`, `command_inbox`, `audit_event` |
 | **pozostałe BC** | własne tabele domenowe oraz te same lokalne tabele delivery |
 
 ### Migracje
 
-Migracje są statyczne per tabela: tabele delivery (outbox/inbox/audit/processed_delivery/
-worker_heartbeat/saga) definiuje wspólny łańcuch platformy w
+Migracje są statyczne per tabela: tabele delivery (outbox/inbox/audit/
+worker_heartbeat) definiuje wspólny łańcuch platformy w
 `platform/infrastructure/persistence/migrations/sql/versions/` (`platform_0001_...`),
 a każdy serwis ma własny łańcuch domenowy `*_service/migrations/versions/`
 (`<serwis>_000N_<tabela>.py`). Baseline serwisu najpierw aplikuje łańcuch platformy,
 potem własny. Wzorzec dynamiczny (`apply_baseline`/`create_service_tables`) jest zakazany.
+
+Tabele sagi (`saga_instance`/`saga_timeout`) są **opcjonalną capability** biblioteki
+`saga-orchestration` (`packaging/saga-orchestration/`): włącza się je jawnie
+(`include_saga=True`), a serwis adoptuje je własną migracją adopcyjną. Serwisy bez sagi
+nie tworzą tabel sagowych.
 
 ### Unit of Work
 
@@ -587,10 +592,10 @@ set_correlation_id("moj-request-id")
 Każdy opublikowany event domenowy trafia do tabeli `audit_event` (przez `SqlAuditPublisher`).  
 Kolumny: `id`, `event_type`, `occurred_at`, `payload` (JSON).
 
-### Tabela outbox_event
+### Tabela event_outbox
 
-`SqlAlchemyUnitOfWorkBase` zapisuje event oraz `outbox_event` atomowo.  
-`OutboxToTransportRelay.run_once()` publikuje nieopublikowane koperty przez broker, a docelowy `RabbitInboxConsumer` zapisuje je do lokalnego `inbox_event`.
+`SqlAlchemyUnitOfWorkBase` zapisuje event oraz `event_outbox` atomowo.
+`EventOutboxRelay.run_once()` publikuje nieopublikowane koperty przez broker, a docelowy `EventInboxConsumer` zapisuje je do lokalnego `event_inbox`.
 
 ```powershell
 # Relay uruchamiany jest przez proces właściwego BC

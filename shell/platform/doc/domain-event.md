@@ -2,11 +2,11 @@
 
 ## Cel / Co realizuje
 
-`DomainEvent` (w `shell/platform/domain/events/domain_event.py`) jest bazowym, frozen dataclass dla wszystkich zdarzeń domenowych. Reprezentuje fakt, który już nastąpił w agregacie, wraz z metadanymi korelacyjnymi: `event_id`, `aggregate_id`, `aggregate_name`, `occurred_at`, `schema_version`. Zdarzenia są rejestrowane przez `AggregateRoot.append_event()` i odbierane przez `pull_events()` po udanej transakcji.
+`DomainEvent` (w `shell/platform/domain/events/domain_event.py`) jest bazowym, frozen dataclass dla wszystkich zdarzeń domenowych. Reprezentuje fakt, który już nastąpił w agregacie, wraz z metadanymi korelacyjnymi: `event_id`, `aggregate_id`, `occurred_at`. Zdarzenia są rejestrowane przez `AggregateRoot.append_event()` i odbierane przez `pull_events()` po udanej transakcji.
 
 ## Problem
 
-Zmiany stanu agregatu muszą być komunikowane poza granice transakcji (outbox, innym bounded contexts) jako niezmienne, kompletne fakty. Każde zdarzenie potrzebuje: unikalnego identyfikatora, kontekstu agregatu (id i nazwa klasy), czasu wystąpienia oraz wersji schematu (do wersjonowania kontraktu). Brak tych metadanych uniemożliwia deduplikację, korelację i migrację schematów.
+Zmiany stanu agregatu muszą być komunikowane poza granice transakcji (outbox, innym bounded contexts) jako niezmienne, kompletne fakty. Każde zdarzenie potrzebuje: unikalnego identyfikatora, kontekstu agregatu (id) oraz czasu wystąpienia. Brak tych metadanych uniemożliwia deduplikację i korelację. Wersja schematu (`schema_version`) jest nadawana dopiero na granicy kontraktu integracyjnego (mapper → `IntegrationEvent`), nie w zdarzeniu domenowym.
 
 ## Realizacja techniczna
 
@@ -14,34 +14,26 @@ Zmiany stanu agregatu muszą być komunikowane poza granice transakcji (outbox, 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DomainEvent:
     event_id: EventId = field(default_factory=EventId.generate)
-    aggregate_id: AggregateId = field(default_factory=lambda: AggregateId(""))
-    aggregate_name: AggregateName = field(default_factory=lambda: AggregateName(""))
+    aggregate_id: AggregateId = field(default_factory=AggregateId.generate)
     occurred_at: OccurredAt
-    schema_version: SchemaVersion = field(default_factory=lambda: SchemaVersion(1))
 ```
 
 Pola:
 
 - `event_id: EventId` — unikalny identyfikator eventu; generowany automatycznie przez `EventId.generate()` (uuid4).
-- `aggregate_id: AggregateId` — domyślnie puste `AggregateId("")`; nadpisywane przez `AggregateRoot.append_event()` (frozen dataclass wymusza `object.__setattr__`) wartością `AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id))`.
-- `aggregate_name: AggregateName` — domyślnie `AggregateName("")`; nadpisywane jako `AggregateName(type(self).__name__)` (nazwa klasy agregatu).
+- `aggregate_id: AggregateId` — identyfikator agregatu; domyślnie generowany, nadpisywany przez `AggregateRoot.append_event()` (frozen dataclass wymusza `object.__setattr__`) wartością `AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id))`.
 - `occurred_at: OccurredAt` — pole wymagane (`kw_only=True`), czas wystąpienia zdarzenia.
-- `schema_version: SchemaVersion` — domyślnie `SchemaVersion(1)`; używane przy wersjonowaniu i upcastingu kontraktów.
 
 `kw_only=True` wymusza przekazywanie pól po nazwie; `frozen=True, slots=True` daje niezmienność i optymalizację pamięci. Zdarzenia są konfigurowane wyłącznie przez fabryki i metody domenowe agregatu — brak publicznych setterów.
 
 Wbudowane zdarzenia systemowe:
 
-- `AggregateDeletedEvent` (`shell/platform/domain/events/aggregate_deleted_event.py`) — emitowany przy miękkim usunięciu agregatu. Rozszerza `DomainEvent` o pole `deleted_at: DeletedAt`. Fabryka:
+- `AggregateDeletedEvent` (`shell/platform/domain/events/aggregate_deleted_event.py`) — emitowany przy miękkim usunięciu agregatu. Nie dodaje własnych pól; fabryka przyjmuje czas jako `OccurredAt`:
   ```python
   @classmethod
-  def now(cls, deleted_at: DeletedAt) -> AggregateDeletedEvent:
-      return cls(
-          occurred_at=OccurredAt.from_datetime(deleted_at.value),
-          deleted_at=deleted_at,
-      )
+  def now(cls, deleted_at: OccurredAt) -> AggregateDeletedEvent:
+      return cls(occurred_at=deleted_at)
   ```
-  Czas zdarzenia (`occurred_at`) pochodzi z `deleted_at.value` przez `OccurredAt.from_datetime`.
 - `AggregateRestoredEvent` (`shell/platform/domain/events/aggregate_restored_event.py`) — emitowany przy przywróceniu miękkiego usunięcia. Rozszerza `DomainEvent` bez dodatkowych pól. Fabryka:
   ```python
   @classmethod
@@ -49,7 +41,7 @@ Wbudowane zdarzenia systemowe:
       return cls(occurred_at=now)
   ```
 
-Konwencja nazw: konkretne eventy biznesowe (np. `OrderPlaced`) dziedziczą po `DomainEvent` jako `@dataclass(frozen=True, slots=True)`, dodają pola biznesowe i fabrykę `now(...)`.
+Konwencja nazw: konkretne eventy biznesowe (np. `UserCreatedEvent`) dziedziczą po `DomainEvent` jako `@dataclass(frozen=True, slots=True)`, dodają pola biznesowe i fabrykę `now(...)`.
 
 ## Kluczowe pliki
 
@@ -59,8 +51,7 @@ Konwencja nazw: konkretne eventy biznesowe (np. `OrderPlaced`) dziedziczą po `D
 - `shell/platform/domain/base/aggregate_root.py`
 - `shell/platform/domain/value_objects/event_id.py`
 - `shell/platform/domain/value_objects/occurred_at.py`
-- `shell/platform/domain/value_objects/schema_version.py`
-- `shell/platform/domain/value_objects/deleted_at.py`
+- `shell/platform/domain/value_objects/aggregate_id.py`
 
 ## Powiązane koncepcje
 
@@ -69,5 +60,5 @@ Konwencja nazw: konkretne eventy biznesowe (np. `OrderPlaced`) dziedziczą po `D
 - [value-object](value-object.md)
 - [transactional-outbox](transactional-outbox.md)
 - [tracing-context](tracing-context.md)
-- [envelope-versioning](envelope-versioning.md)
+- [integration-contracts](integration-contracts.md)
 - [contract-catalog](contract-catalog.md)

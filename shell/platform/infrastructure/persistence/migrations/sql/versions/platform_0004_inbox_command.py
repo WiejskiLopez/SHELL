@@ -11,9 +11,8 @@ depends_on = None
 
 def upgrade() -> None:
     op.create_table(
-        "inbox_command",
+        "command_inbox",
         sa.Column("id", sa.String(), primary_key=True),
-        sa.Column("outbox_id", sa.String(), nullable=False),
         sa.Column("command_id", sa.String(), nullable=False),
         sa.Column("command_name", sa.String(), nullable=False),
         sa.Column("source_service", sa.String(), nullable=False),
@@ -37,21 +36,21 @@ def upgrade() -> None:
         sa.Column("error_message", sa.String(), nullable=True),
         sa.UniqueConstraint(
             "source_service",
-            "outbox_id",
-            name="uq_inbox_command_source_outbox",
+            "command_id",
+            name="uq_command_inbox_source_command",
         ),
     )
     op.create_index(
-        "ix_inbox_command_status_next_attempt_received",
-        "inbox_command",
+        "ix_command_inbox_status_next_attempt_received",
+        "command_inbox",
         ["status", "next_attempt_at", "received_at"],
     )
     op.create_index(
-        "ix_inbox_command_status_lease_until", "inbox_command", ["status", "lease_until"]
+        "ix_command_inbox_status_lease_until", "command_inbox", ["status", "lease_until"]
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_inbox_command_status_lease_until", table_name="inbox_command")
-    op.drop_index("ix_inbox_command_status_next_attempt_received", table_name="inbox_command")
-    op.drop_table("inbox_command")
+    op.drop_index("ix_command_inbox_status_lease_until", table_name="command_inbox")
+    op.drop_index("ix_command_inbox_status_next_attempt_received", table_name="command_inbox")
+    op.drop_table("command_inbox")

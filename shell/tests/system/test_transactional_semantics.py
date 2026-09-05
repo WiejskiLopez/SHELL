@@ -20,9 +20,9 @@ import pytest
 from sqlalchemy import select
 
 from shell.platform.application.ports.transport.event_transport import (
-    IntegrationEventDeliveryEnvelope,
+    EventDeliveryEnvelope,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
 from shell.platform.infrastructure.messaging.event_transport import EnvelopeCodec
@@ -68,11 +68,11 @@ async def test_duplicate_delivery_opens_exactly_one_session(tmp_path) -> None:
     track_session_factory(container.session_factory())
     event_bus = container.event_bus()
 
-    from shell.platform.infrastructure.messaging.event_transport.rabbit import (
-        RabbitEventInboxConsumer,
+    from shell.platform.infrastructure.messaging.event import (
+        EventInboxConsumer,
     )
 
-    consumer = RabbitEventInboxConsumer(
+    consumer = EventInboxConsumer(
         RABBIT_TEST_URL,
         session_factory,
         SESSION_DELIVERY_MODELS.events,
@@ -144,11 +144,11 @@ async def test_session_and_outbox_commit_atomically(tmp_path) -> None:
     track_session_factory(container.session_factory())
     event_bus = container.event_bus()
 
-    from shell.platform.infrastructure.messaging.event_transport.rabbit import (
-        RabbitEventInboxConsumer,
+    from shell.platform.infrastructure.messaging.event import (
+        EventInboxConsumer,
     )
 
-    consumer = RabbitEventInboxConsumer(
+    consumer = EventInboxConsumer(
         RABBIT_TEST_URL,
         session_factory,
         SESSION_DELIVERY_MODELS.events,
@@ -188,7 +188,7 @@ async def test_session_and_outbox_commit_atomically(tmp_path) -> None:
     assert len(outbox) == 1, "outbox event must be present alongside the session"
 
 
-async def _publish_event(envelope: IntegrationEventDeliveryEnvelope) -> None:
+async def _publish_event(envelope: EventDeliveryEnvelope) -> None:
     import aio_pika
 
     connection = await aio_pika.connect_robust(RABBIT_TEST_URL)
@@ -199,18 +199,17 @@ async def _publish_event(envelope: IntegrationEventDeliveryEnvelope) -> None:
             body=EnvelopeCodec().encode(envelope),
             delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
         ),
-        routing_key=f"{envelope.kind}.{envelope.integration_event_name}",
+        routing_key=f"event.{envelope.contract_type}",
     )
     await connection.close()
 
 
-def _login_envelope() -> IntegrationEventDeliveryEnvelope:
+def _login_envelope() -> EventDeliveryEnvelope:
     from datetime import UTC, datetime
 
-    return IntegrationEventDeliveryEnvelope(
-        kind="event",
-        outbox_id="outbox-duplicate-login-1",
-        integration_event_name="AuthSessionCreatedIntegrationEvent",
+    return EventDeliveryEnvelope(
+        event_id="event-dup-1",
+        contract_type="AuthSessionCreatedIntegrationEvent",
         occurred_at=datetime.now(tz=UTC),
         payload={
             "auth_session_id": "auth-1",
@@ -218,8 +217,8 @@ def _login_envelope() -> IntegrationEventDeliveryEnvelope:
         },
         correlation_id="corr-dup",
         causation_id="cause-0",
-        event_id="event-dup-1",
         source_service="user_service",
+        destination_service="*",
         aggregate_id="auth-1",
         schema_version=1,
     )

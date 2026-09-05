@@ -32,7 +32,7 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
 from shell.platform.infrastructure.messaging.inbox.inbox_claim_service import InboxClaimService
@@ -85,7 +85,6 @@ async def _add_event(
         session.add(
             _INBOX_MODEL(
                 id=event_id,
-                outbox_id=f"outbox-{event_id}",
                 event_id=event.event_id,
                 source_service="execution_service",
                 integration_event_name=type(event).__name__,

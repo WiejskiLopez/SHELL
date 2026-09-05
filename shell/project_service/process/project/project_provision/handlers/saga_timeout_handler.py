@@ -4,14 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from saga_orchestration.process.saga.saga_timed_out import SagaTimedOut
+
 from shell.platform.application.event_handlers.event_handler import EventHandler
-from shell.platform.process.saga.saga_timed_out import SagaTimedOut
 from shell.project_service.process.project.project_provision.manager import SAGA_TYPE
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from shell.platform.process.saga.ports.saga_repository import SagaRepository
+    from saga_orchestration.process.saga.ports.saga_repository import SagaRepository
+
     from shell.project_service.process.project.project_provision.manager import (
         ProjectProvisionSagaManager,
     )

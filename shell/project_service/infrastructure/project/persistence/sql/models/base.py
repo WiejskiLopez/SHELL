@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from saga_orchestration.infrastructure.process.saga.models import build_saga_delivery_models
 from sqlalchemy import MetaData
 from sqlalchemy.orm import registry
 
@@ -15,7 +16,10 @@ class ProjectSqlAlchemyModelBase(SqlAlchemyModelBase):
     registry = registry()
 
 
-PERSISTENCE_DELIVERY_MODELS = build_persistence_delivery_models(ProjectSqlAlchemyModelBase)
+PERSISTENCE_DELIVERY_MODELS = build_persistence_delivery_models(
+    ProjectSqlAlchemyModelBase,
+)
+SAGA_DELIVERY_MODELS = build_saga_delivery_models(ProjectSqlAlchemyModelBase)
 EVENT_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.events
 COMMAND_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.commands
 InboxEventModel = EVENT_DELIVERY_MODELS.inbox

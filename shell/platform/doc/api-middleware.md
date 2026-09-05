@@ -21,16 +21,19 @@ i rozjeżdżałby się w szczegółach.
 
 ### Kolejność i rejestracja
 
-W `setup_api_common` (`shell/platform/framework/api/setup.py`) middleware
-rejestrowane są w kolejności:
+Wspólny szkielet `setup_api_common` (`shell/platform/framework/api/setup.py`) rejestruje middleware w kolejności:
 
 ```python
-app.add_middleware(CORSMiddleware, ...)
+app.add_middleware(CORSMiddleware, ...)  # tylko gdy allowed_origins is not None
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(AuditLogMiddleware)
 app.add_middleware(AuthMiddleware, api_key=api_key, jwt_secret=jwt_secret)
 app.add_middleware(ApiVersionMiddleware, registry=registry)
 ```
+
+> **Uwaga**: `setup_api_common` nie jest aktualnie wywoływany przez żaden BC —
+> fabryki aplikacji BC łączą middleware ręcznie (np. `create_user_app` dodaje
+> `CorrelationIdMiddleware` i handler `DomainError`).
 
 Ze względu na sposób budowania stosu przez Starlette (ostatnio dodany middleware
 jest najbardziej zewnętrzny), `ApiVersionMiddleware` i `AuthMiddleware` działają
@@ -41,12 +44,12 @@ montować middleware samodzielnie, np. `create_execution_app` dodaje
 ### CorrelationIdMiddleware — `shell/platform/framework/api/middleware/correlation_id.py`
 
 - Dla scope `type != "http"` przepuszcza żądanie bez zmian.
-- Czyta nagłówek `X-Correlation-ID` (`x-correlation-id`) z scope; jeśli obecny,
-  ustawia go w ContextVar przez `set_correlation_id(cid)`
+- Czyta nagłówek `X-Correlation-ID` (`x-correlation-id`) z scope; gdy nieobecny,
+  **generuje nowy identyfikator** przez `get_or_create_correlation_id()` — każde
+  żądanie (nawet bez nagłówka) ma stabilny trace od początku.
+- Ustawia go w ContextVar przez `set_correlation_id(cid)`
   (`shell/platform/application/context/correlation_id.py`).
-- W odpowiedzi (`http.response.start`) dokłada nagłówek `X-Correlation-ID`
-  tylko, gdy cid był obecny w żądaniu (bramki generują swój identyfikator po stronie
-  wejściowej).
+- W odpowiedzi (`http.response.start`) **zawsze** dokłada nagłówek `X-Correlation-ID`.
 - W `finally` resetuje ContextVar przez `reset_correlation_id(token)`, więc
   każdy request ma izolowany kontekst (bez wycieków między requestami).
 
@@ -65,6 +68,10 @@ montować middleware samodzielnie, np. `create_execution_app` dodaje
      (`PrincipalKind.USER`).
   3. **API key** — nagłówek `X-API-Key`, porównanie z `self._api_key`;
      sukces → `Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)`.
+  4. **Podpis HMAC-SHA256** — nagłówki `X-Shell-Signature`/`X-Shell-Timestamp`
+     (`application/authentication/request_signing.py`); `verify_signature` z
+     `max_age_seconds=300` (domyślnie) weryfikuje podpis metody+ścieżki z sekretem
+     `api_key` → `Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)`.
 - Brak principala → odpowiedź `401` z `ProblemDetail` (title
   "Unauthorized", `correlation_id` z `get_correlation_id()`).
 - Sukces → `scope.setdefault("state", {})["principal"] = principal` — to jest
@@ -89,7 +96,7 @@ montować middleware samodzielnie, np. `create_execution_app` dodaje
 - Mierzy czas `perf_counter`, przechwytuje status odpowiedzi przez
   `send_wrapper` (domyślne `500` gdy odpowiedź nie nadeszła).
 - Loguje przez `logging.getLogger("shell.api.audit")` rekord `"audit"` z
-  `extra`: `method`, `path`, `query_string`, `status`, `elapsed_ms`,
+  `extra`: `method`, `path`, `status`, `elapsed_ms`,
   `correlation_id` (z `get_correlation_id()`), `user_agent`
   (przez `_get_header(scope, "user-agent")`).
 - Konfiguracja formattera/JSON należy do infrastruktury logowania (por.

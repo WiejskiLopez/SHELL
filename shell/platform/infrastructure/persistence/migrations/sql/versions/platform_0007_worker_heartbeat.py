@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "platform_0007_worker_heartbeat"
-down_revision = "platform_0006_processed_delivery"
+down_revision = "platform_0005_audit_event"
 branch_labels = None
 depends_on = None
 

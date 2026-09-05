@@ -15,11 +15,11 @@ description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie 
 ## Inbox pattern — warstwa infrastruktury
 
 - Idempotentność jest zapewniana przez **EventInboxProcessor** na poziomie infrastruktury.
-- `EventInboxProcessor` odczytuje `inbox_event`, rozpoznaje duplikaty i dispatchuje do handlera wyłącznie nieprzetworzone eventy.
+- `EventInboxProcessor` odczytuje `event_inbox`, rozpoznaje duplikaty i dispatchuje do handlera wyłącznie nieprzetworzone eventy.
 - Sprawdzenie inboxa realizuje infrastruktura (`EventInboxProcessor`); handler korzysta z gotowego dedupu.
 
 ```
-[Outbox] → OutboxToTransportRelay → BrokerInboxConsumer → [InboxEvent] → EventInboxProcessor (dedup) → EventBus → Handler
+[Outbox] → EventOutboxRelay/CommandOutboxRelay → BrokerInboxConsumer → [InboxEvent] → EventInboxProcessor (dedup) → EventBus → Handler
 ```
 
 ## Idempotentność na poziomie domeny

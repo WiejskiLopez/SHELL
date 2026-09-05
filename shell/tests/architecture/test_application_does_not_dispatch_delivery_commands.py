@@ -22,7 +22,7 @@ from _arch_helpers import (
 )
 
 _FORBIDDEN_IMPORT_PREFIXES = (
-    "shell.platform.process.saga.ports.command_delivery_dispatcher",
+    "saga_orchestration.process.saga.ports.command_delivery_dispatcher",
     "shell.platform.infrastructure.messaging.command",
 )
 

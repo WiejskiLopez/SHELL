@@ -41,7 +41,7 @@ def test_each_bc_has_distinct_metadata_with_only_its_tables() -> None:
         for bounded_context, base_path in _BASES.items()
     }
     for bounded_context, metadata in metadata_by_bc.items():
-        assert {"inbox_event", "outbox_event"}.issubset(metadata.tables), (
+        assert {"event_inbox", "event_outbox"}.issubset(metadata.tables), (
             architecture_assertion_message(
                 "reguła testowana przez test_each_bc_has_distinct_metadata_with_only_its_tables",
                 "warunek zapisany w asercji musi być spełniony",

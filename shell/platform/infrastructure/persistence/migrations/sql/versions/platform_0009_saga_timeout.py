@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision = "platform_0009_saga_timeout"
 down_revision = "platform_0008_saga_instance"
@@ -10,6 +10,8 @@ depends_on = None
 
 
 def upgrade() -> None:
+    if context.config.get_main_option("include_saga") != "true":
+        return
     op.create_table(
         "saga_timeout",
         sa.Column("id", sa.String(), primary_key=True),
@@ -46,6 +48,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if context.config.get_main_option("include_saga") != "true":
+        return
     op.drop_index("ix_saga_timeout_status_lease_until", table_name="saga_timeout")
     op.drop_index("ix_saga_timeout_status_next_attempt_received", table_name="saga_timeout")
     op.drop_table("saga_timeout")

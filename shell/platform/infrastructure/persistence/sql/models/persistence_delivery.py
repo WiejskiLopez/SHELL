@@ -15,15 +15,8 @@ from shell.platform.infrastructure.persistence.sql.models.event_delivery import 
     EventDeliveryModels,
     build_event_delivery_models,
 )
-from shell.platform.infrastructure.persistence.sql.models.processed_delivery import (
-    build_processed_delivery_model,
-)
 from shell.platform.infrastructure.persistence.sql.models.worker_heartbeat import (
     build_worker_heartbeat_model,
-)
-from shell.platform.infrastructure.process.saga.models.saga_delivery import (
-    SagaDeliveryModels,
-    build_saga_delivery_models,
 )
 
 if TYPE_CHECKING:
@@ -34,9 +27,7 @@ class PersistenceDeliveryModels(NamedTuple):
     events: EventDeliveryModels
     commands: CommandDeliveryModels
     audit: type[DeclarativeBase]
-    processed_delivery: type[DeclarativeBase]
     worker_heartbeat: type[DeclarativeBase]
-    sagas: SagaDeliveryModels
 
 
 def build_persistence_delivery_models(
@@ -48,7 +39,5 @@ def build_persistence_delivery_models(
         events=build_event_delivery_models(base),
         commands=build_command_delivery_models(base),
         audit=build_audit_event_model(base),
-        processed_delivery=build_processed_delivery_model(base),
         worker_heartbeat=build_worker_heartbeat_model(base),
-        sagas=build_saga_delivery_models(base),
     )

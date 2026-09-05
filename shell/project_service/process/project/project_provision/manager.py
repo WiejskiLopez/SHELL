@@ -10,9 +10,10 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, cast
 
-from shell.platform.process.saga.base.saga_manager import SagaManager
-from shell.platform.process.saga.base.saga_state import SagaStatus
-from shell.platform.process.saga.saga_instance import SagaInstance
+from saga_orchestration.process.saga.base.saga_manager import SagaManager
+from saga_orchestration.process.saga.base.saga_state import SagaStatus
+from saga_orchestration.process.saga.saga_instance import SagaInstance
+
 from shell.project_service.application.project.project_provision.commands.provision_workspace_command import (
     ProvisionWorkspaceCommand,
 )
@@ -30,15 +31,16 @@ from shell.project_service.process.project.project_provision.steps import PROJEC
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from shell.platform.application.events.integration_event import IntegrationEvent
-    from shell.platform.process.saga.ports.command_delivery_dispatcher import (
+    from saga_orchestration.process.saga.ports.command_delivery_dispatcher import (
         CommandDeliveryDispatcher,
     )
-    from shell.platform.process.saga.ports.saga_repository import SagaRepository
-    from shell.platform.process.saga.ports.saga_timeout_repository import (
+    from saga_orchestration.process.saga.ports.saga_repository import SagaRepository
+    from saga_orchestration.process.saga.ports.saga_timeout_repository import (
         SagaTimeoutRepository,
     )
-    from shell.platform.process.saga.saga_timed_out import SagaTimedOut
+    from saga_orchestration.process.saga.saga_timed_out import SagaTimedOut
+
+    from shell.platform.application.events.integration_event import IntegrationEvent
 
 SAGA_TYPE = "project_provision"
 
@@ -89,7 +91,7 @@ class ProjectProvisionSagaManager(SagaManager):
         if (
             instance is None
             or instance.saga_id != event.saga_id
-            or instance.status is not SagaStatus.RUNNING
+            or instance.status.value != SagaStatus.RUNNING.value
             or instance.current_step != event.step
         ):
             return
@@ -99,7 +101,7 @@ class ProjectProvisionSagaManager(SagaManager):
         instance = await self._repository.get_by_key(SAGA_TYPE, project_id)
         if (
             instance is None
-            or instance.status is not SagaStatus.RUNNING
+            or instance.status.value != SagaStatus.RUNNING.value
             or instance.current_step != "provision_workspace"
         ):
             return
@@ -128,7 +130,7 @@ class ProjectProvisionSagaManager(SagaManager):
         instance = await self._repository.get_by_key(SAGA_TYPE, project_id)
         if (
             instance is None
-            or instance.status is not SagaStatus.RUNNING
+            or instance.status.value != SagaStatus.RUNNING.value
             or instance.current_step != failed_step
             or (expected_saga_id is not None and instance.saga_id != expected_saga_id)
         ):
@@ -174,7 +176,7 @@ class ProjectProvisionSagaManager(SagaManager):
         instance = await self._repository.get_by_key(SAGA_TYPE, project_id)
         if (
             instance is None
-            or instance.status is not SagaStatus.COMPENSATING
+            or instance.status.value != SagaStatus.COMPENSATING.value
             or instance.current_step != "compensation:provision_workspace"
         ):
             return

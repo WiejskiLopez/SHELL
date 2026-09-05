@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "shell-project-service"
 version = "0.1.0"
 description = "SHELL Project bounded context service"
-requires-python = ">=3.11"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "aiosqlite>=0.20.0",
     "alembic>=1.18.5",
@@ -15,6 +15,7 @@ dependencies = [
     "pydantic>=2.13.4",
     "sqlalchemy>=2.0.51",
     "shell-platform>=0.1.0,<0.2.0",
+    "saga-orchestration>=0.1.0,<0.2.0",
     "uvicorn[standard]>=0.30.0",
 ]
 
@@ -24,6 +25,7 @@ include = ["shell.project_service*"]
 
 [tool.uv.sources]
 shell-platform = { path = "../shell-platform" }
+saga-orchestration = { path = "../saga-orchestration" }
 
 [tool.setuptools.package-data]
 "shell.project_service.bootstrap.project" = ["config/*.yaml"]

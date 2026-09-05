@@ -8,7 +8,7 @@ description: Wzorce niezawodności w architekturze event-driven — idempotentno
 ## 1. Inbox Pattern — Deduplikacja Eventów
 
 W SHELL deduplikacja jest realizowana przez:
-- **`RabbitEventInboxConsumer`** / **`RabbitCommandInboxConsumer`**: idempotentny insert koperty do inbox po `source_service + outbox_id` — ta sama publikacja nie tworzy drugiego rekordu logicznego
+- **`EventInboxConsumer`** / **`CommandInboxConsumer`**: idempotentny insert koperty do inbox po `source_service + event_id/command_id` — ta sama publikacja nie tworzy drugiego rekordu logicznego
 - **`EventInboxProcessor`**: `SELECT WHERE processed_at IS NULL` — event przetworzony raz nie jest dispatchowany ponownie
 
 ## 2. Retry — fixed backoff (obecna implementacja)
@@ -31,8 +31,8 @@ retry_backoff_seconds: int = 30  # stałe opóźnienie, nie skalowane
 
 | Klasa | Lokalizacja | Opis |
 |-------|-------------|------|
-| `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Retry + backoff + tombstone DLQ |
-| `OutboxToTransportRelay` | `shell/platform/infrastructure/messaging/event_transport/outbox_to_transport_relay.py` | Publikuje outbox przez broker |
+| `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/event_inbox_processor.py` | Retry + backoff + tombstone DLQ |
+| `EventOutboxRelay`/`CommandOutboxRelay` | `shell/platform/infrastructure/messaging/{event,command}/{event,command}_outbox_relay.py` | Publikuje outbox przez broker (baza `OutboxRelayBase`) |
 | `OutboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event_delivery.py` | Model outbox |
 | `InboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event_delivery.py` | Model inbox z kolumnami retry |
 | `RabbitEventInboxConsumer` | `shell/platform/infrastructure/messaging/event_transport/rabbit/` | Konsument kopert eventów z brokera |

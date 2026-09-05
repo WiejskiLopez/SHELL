@@ -11,9 +11,8 @@ depends_on = None
 
 def upgrade() -> None:
     op.create_table(
-        "inbox_event",
+        "event_inbox",
         sa.Column("id", sa.String(), primary_key=True),
-        sa.Column("outbox_id", sa.String(), nullable=False),
         sa.Column("event_id", sa.String(), nullable=False),
         sa.Column("source_service", sa.String(), nullable=False),
         sa.Column("integration_event_name", sa.String(), nullable=False),
@@ -35,17 +34,17 @@ def upgrade() -> None:
         sa.Column("error_code", sa.String(), nullable=True),
         sa.Column("error_message", sa.String(), nullable=True),
         sa.Column("schema_version", sa.Integer(), nullable=False),
-        sa.UniqueConstraint("source_service", "outbox_id", name="uq_inbox_event_source_outbox"),
+        sa.UniqueConstraint("source_service", "event_id", name="uq_event_inbox_source_event"),
     )
     op.create_index(
-        "ix_inbox_event_status_next_attempt_received",
-        "inbox_event",
+        "ix_event_inbox_status_next_attempt_received",
+        "event_inbox",
         ["status", "next_attempt_at", "received_at"],
     )
-    op.create_index("ix_inbox_event_status_lease_until", "inbox_event", ["status", "lease_until"])
+    op.create_index("ix_event_inbox_status_lease_until", "event_inbox", ["status", "lease_until"])
 
 
 def downgrade() -> None:
-    op.drop_index("ix_inbox_event_status_lease_until", table_name="inbox_event")
-    op.drop_index("ix_inbox_event_status_next_attempt_received", table_name="inbox_event")
-    op.drop_table("inbox_event")
+    op.drop_index("ix_event_inbox_status_lease_until", table_name="event_inbox")
+    op.drop_index("ix_event_inbox_status_next_attempt_received", table_name="event_inbox")
+    op.drop_table("event_inbox")

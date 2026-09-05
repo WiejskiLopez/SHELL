@@ -65,25 +65,32 @@ identyfikatory z `shell.platform.infrastructure.context`.
 
 ### Zapis do outboxu — `SqlAlchemyUnitOfWorkBase._write_staged_outbox()`
 
-Podczas commita każde stage'owane zdarzenie jest zapisywane z aktualnymi
-wartościami kontekstu:
+Podczas commita każde stage'owane zdarzenie jest mapowane przez mapper na
+`IntegrationEvent` (mapper wypełnia `correlation_id` przez
+`get_or_create_correlation_id()`) i serializowane do envelope, a następnie
+zapisywane z wartościami z envelope:
 
 ```
 outbox = self._models.events.outbox(
-    id=str(uuid.uuid4()),
-    event_type=event_type,
-    occurred_at=raw_occurred_at,
-    payload=payload,
-    correlation_id=get_correlation_id(),
-    causation_id=get_causation_id(),
+    id=self._id_generator.new_id(),
+    event_id=envelope["event_id"],
+    source_service=envelope["source_service"],
+    integration_event_name=envelope["contract_type"],
+    occurred_at=envelope["occurred_at"],
+    aggregate_id=envelope["aggregate_id"],
+    schema_version=envelope["schema_version"],
+    payload=envelope["payload"],
+    correlation_id=envelope["correlation_id"],
+    causation_id=envelope["causation_id"],
 )
 ```
 
-Kolumny `correlation_id` i `causation_id` (tabela `outbox_event` — model w
-`event_delivery.py`) mają domyślne `""`. Ta sama para ID trafia do modelu
-inboxu (`inbox_event`) przy odbiorze delivery, dzięki czemu ID przeskakuje
-przez granicę BC w `DeliveryEnvelope` (`delivery_transport.py` zawiera pola
-`correlation_id` i `causation_id`).
+Kolumny `correlation_id` i `causation_id` (tabela `event_outbox` — z
+`DeliveryColumnsMixin` w `messaging/delivery/delivery_columns.py`) mają domyślne
+`""`. Ta sama para ID trafia do modelu inboxu (`event_inbox`) przy odbiorze
+delivery, dzięki czemu ID przeskakuje przez granicę BC w `EventDeliveryEnvelope`
+(`ports/transport/event_transport.py` zawiera pola `correlation_id` i
+`causation_id`).
 
 Semantyka: `correlation_id` jest stabilny dla całego łańcucha (wspólny dla
 zdarzenia źródłowego i wszystkich pochodnych), a `causation_id` wskazuje
@@ -96,8 +103,8 @@ konkretne zdarzenie, którego obsługa wyprodukowała dany zapis.
 - `shell/platform/application/context/session_scope.py`
 - `shell/platform/infrastructure/context/__init__.py`
 - `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`
-- `shell/platform/infrastructure/persistence/sql/models/event_delivery.py`
-- `shell/platform/application/ports/delivery_transport.py`
+- `shell/platform/infrastructure/messaging/delivery/delivery_columns.py`
+- `shell/platform/application/ports/transport/event_transport.py`
 
 ## Powiązane koncepcje
 

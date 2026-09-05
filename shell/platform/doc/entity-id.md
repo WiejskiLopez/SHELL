@@ -19,7 +19,7 @@ class EntityId(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError(f"{type(self).__name__} cannot be empty")
+            raise DomainError(f"{type(self).__name__} cannot be empty")
 
     def __str__(self) -> str:
         return self.value
@@ -32,16 +32,14 @@ class EntityId(ValueObject):
 Zachowania:
 
 - `@dataclass(frozen=True, slots=True)` daje niezmienność oraz `__eq__`, `__hash__`, `__repr__` po wartości (dziedziczy kontrakt `ValueObject` — patrz [value-object](value-object.md)).
-- Walidacja w `__post_init__`: pusta wartość rzuca `ValueError("EntityId cannot be empty")`; komunikat zawiera nazwę konkretnej klasy (`type(self).__name__`), więc dla pochodnych brzmi np. "AggregateId cannot be empty".
+- Walidacja w `__post_init__`: pusta wartość rzuca `DomainError("EntityId cannot be empty")`; komunikat zawiera nazwę konkretnej klasy (`type(self).__name__`), więc dla pochodnych brzmi np. "AggregateId cannot be empty".
 - `__str__` zwraca surową wartość — wygodne do logowania i budowania ścieżek.
 - `generate()` zwraca `cls(str(uuid.uuid4()))` — nowy identyfikator jako `uuid4` w formie tekstowej.
 
 Typowane identyfikatory w `shell/platform/domain/value_objects/`:
 
-- `AggregateId` — `@dataclass(frozen=True, slots=True) class AggregateId(ValueObject)` z polem `value: str`; identyfikator agregatu osadzany w eventach domenowych.
+- `AggregateId` — `@dataclass(frozen=True, slots=True) class AggregateId(EntityId)` z polem `value: str`; identyfikator agregatu osadzany w eventach domenowych.
 - `EventId` — jak wyżej, z `generate()` (`uuid.uuid4`); identyfikator eventu domenowego (patrz [domain-event](domain-event.md)).
-
-> `MessageId` został usunięty razem z kanałem Message — patrz `docs/messages-removed.md`.
 
 W portach domenowych typ jest ograniczany przez bound `TId = TypeVar("TId", bound=EntityId)` (port `IdGenerator` w `shell/platform/domain/ports/identity.py`), co wymusza, by generowane identyfikatory były zawsze pochodnymi `EntityId`.
 

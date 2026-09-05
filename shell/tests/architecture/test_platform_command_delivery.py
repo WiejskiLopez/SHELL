@@ -63,8 +63,8 @@ def test_command_models_are_bound_to_consuming_bc_metadata() -> None:
         )
     )
     assert set(DefinitionBase.metadata.tables) == {
-        "inbox_command",
-        "outbox_command",
+        "command_inbox",
+        "command_outbox",
     }, architecture_assertion_message(
         "reguła testowana przez test_command_models_are_bound_to_consuming_bc_metadata",
         "warunek zapisany w asercji musi być spełniony",

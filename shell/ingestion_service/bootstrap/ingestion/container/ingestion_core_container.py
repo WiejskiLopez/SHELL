@@ -27,6 +27,7 @@ from shell.ingestion_service.application.ingestion.ingestion.query_handlers.get_
     GetIngestionByIdHandler,
 )
 from shell.ingestion_service.bootstrap.ingestion.contract_catalog import INGESTION_CONTRACT_CATALOG
+from shell.ingestion_service.bootstrap.ingestion.delivery import build_delivery_config
 from shell.ingestion_service.bootstrap.ingestion.event_registry import (
     build_ingestion_event_registry,
 )
@@ -43,29 +44,26 @@ from shell.ingestion_service.infrastructure.ingestion.persistence.sql.services.i
     IngestionQueryService,
 )
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.command_bus_publisher import CommandBusPublisher
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command import CommandInboxConsumer, CommandOutboxRelay
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.command_transport import (
-    CommandOutboxToTransportRelay,
 )
 from shell.platform.infrastructure.messaging.command_transport.rabbit import (
     RabbitCommandDeliveryTransport,
-    RabbitCommandInboxConsumer,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event import EventInboxConsumer, EventOutboxRelay
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     RabbitEventDeliveryTransport,
-    RabbitEventInboxConsumer,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
@@ -106,6 +104,7 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
     command_bus = providers.Singleton(CommandBus)
+    command_bus_publisher = providers.Singleton(CommandBusPublisher, command_bus=command_bus)
     persistence_delivery_models = providers.Object(PERSISTENCE_DELIVERY_MODELS)
     event_bus = providers.Singleton(EventBus)
     event_registry = providers.Singleton(build_ingestion_event_registry)
@@ -115,8 +114,6 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
         event_bus=event_bus,
         models=persistence_delivery_models.provided.events,
         registry=event_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="ingestion",
         worker_id=config.worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
@@ -127,7 +124,7 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
         RabbitEventDeliveryTransport, url=config.broker_url
     )
     outbox_to_transport_relay_factory = providers.Factory(
-        EventOutboxToTransportRelay,
+        EventOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
         transport=event_delivery_transport,
@@ -136,7 +133,7 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
         RabbitCommandDeliveryTransport, url=config.broker_url
     )
     command_outbox_to_transport_relay_factory = providers.Factory(
-        CommandOutboxToTransportRelay,
+        CommandOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         transport=command_delivery_transport,
@@ -149,25 +146,23 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
     command_inbox_processor_factory = providers.Factory(
         CommandInboxProcessor,
         session_factory=session_factory,
-        command_bus=command_bus,
+        dispatcher=command_bus_publisher,
         models=persistence_delivery_models.provided.commands,
         registry=command_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="ingestion-command",
         worker_id=config.command_worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         upcaster=providers.Singleton(PayloadUpcaster),
     )
     rabbit_command_inbox_consumer_factory = providers.Factory(
-        RabbitCommandInboxConsumer,
+        CommandInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         service_name="ingestion",
     )
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitEventInboxConsumer,
+        EventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
@@ -230,6 +225,17 @@ class IngestionCoreContainer(containers.DeclarativeContainer):
     )
     get_ingestion_by_id_handler_factory = providers.Factory(
         GetIngestionByIdHandler, queries=ingestion_query_service
+    )
+    delivery_config = providers.Singleton(
+        build_delivery_config,
+        models=persistence_delivery_models,
+        event_registry=event_registry,
+        command_registry=command_registry,
+        event_bus=event_bus,
+        command_bus=command_bus,
+        event_transport=event_delivery_transport,
+        command_transport=command_delivery_transport,
+        session_factory=session_factory,
     )
 
 

@@ -75,8 +75,9 @@ Pełny opis: [delivery-overview](delivery-overview.md).
 - **Transactional outbox**: zdarzenia zapisywane w tej samej transakcji co stan
   domeny; relay przenosi je do brokera.
 - **Inbox z lease (at-least-once)**: claim w krótkiej transakcji + lease,
-  processing w osobnej transakcji z ack warunkowym; deduplikacja przez
-  `processed_delivery` tam, gdzie handler nie dzieli sesji procesora.
+  processing w osobnej transakcji z ack warunkowym; deduplikacja przez unikalny
+  `(source_service, event_id|command_id)` na tabelach inbox
+  (`on_conflict_do_nothing` przy insert + warunkowy ack).
 - **Kontrakty jawne i wersjonowane**: `schema_version`, upcaster, jawny katalog.
 - **Obserwowalność**: tracing (`correlation_id`/`causation_id`), metryki przez
   port `MetricsBackend`, readiness przez `ReadinessProbe`.

@@ -32,7 +32,9 @@ top-level pakiety `shell/domain`, `shell/application`, `shell/infrastructure`,
 - `shell/platform/` zawiera generyczne, współdzielone prymitywy i kontrakty platformy;
     platforma importuje wyłącznie własne moduły (`shell.platform.*`).
 - `shell/<bc>_service/{domain,application,process,infrastructure,framework,bootstrap}/<bc>/`
-    zawiera kod i composition root wyłącznie konkretnego BC.
+    zawiera kod i composition root wyłącznie konkretnego BC. Warstwa `process/`
+    (sagi/process managery) istnieje dziś w `project_service` (pilotażowa
+    `ProjectProvisionSaga`); w pozostałych BC jest warstwą docelową.
 - Wspólne mechanizmy techniczne implementujesz jednokrotnie w `shell/platform/`;
     wszystkie BC korzystają z tych samych platformowych klas i adapterów (np.
     `InboxEventModel`, `OutboxEventModel`, publisher, processor, relay) bez kopii per BC.
@@ -60,12 +62,18 @@ platformowy albo przenieść do `shell/tests/<bc>`. Test architektury pozostaje 
 Kierunek zależności jest jednokierunkowy (per pakiet serwisu BC, np. `shell/execution_service/`):
 
 ```
-shell/<bc>_service/domain/<bc>/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
+shell/<bc>_service/domain/<bc>/ ← application/ ← infrastructure/ ← framework/ ← bootstrap/
 ```
+
+Warstwa `process/` (sagi/process managery, obecnie `project_service`) jest
+**dodatkową warstwą zależną wyłącznie od `domain/` i `application/`** — nie
+importuje `infrastructure/`/`framework/`/`bootstrap/` (egzekwuje
+`test_imports__test_process_layer_imports.py`). Mechanizm sagi żyje w bibliotece
+`saga-orchestration` (`packaging/saga-orchestration`).
 
 - `shell/<bc>_service/domain/<bc>/` — czysty Python i reguły biznesowe BC.
 - `shell/<bc>_service/application/<bc>/` — atomowe handlery przypadków użycia BC.
-- `shell/<bc>_service/process/<bc>/` — orkiestracja i sagi BC (warstwa docelowa).
+- `shell/<bc>_service/process/<bc>/` — orkiestracja i sagi BC (warstwa docelowa; zrealizowana w `project_service`).
 - `shell/<bc>_service/infrastructure/<bc>/` — implementacje portów i adaptery BC.
 - `shell/<bc>_service/framework/<bc>/` — FastAPI, CLI i entrypointy BC.
 - `shell/<bc>_service/bootstrap/<bc>/` — composition root wyłącznie tego BC.
@@ -87,7 +95,7 @@ integration_events/ + event_handlers/
 
 - **Zakaz zagnieżdżania**: NIGDY `command/handlers/` ani `event/handlers/` — handlery idą obok pojęcia, nie pod spodem.
 - **Zakaz liczby pojedynczej**: `command/`, `command_handler/`, `event/`, `event_handler/` — używaj mnogiej.
-- Obowiązuje w każdym BC (`shell/<bc>_service/application/<bc>/<aggregate>/`) oraz w platformie (`shell/platform/application/`).
+- Obowiązuje dla `commands/`/`queries/` w każdym BC (`shell/<bc>_service/application/<bc>/<aggregate>/`) oraz w platformie (`shell/platform/application/`). Pary `events/`+`event_handlers/` i `integration_events/`+`event_handlers/` są regułą docelową — dziś `event_handlers/` istnieją w platformie i `session_service`, pozostałe BC mają `integration_events/` bez rodzeństwa handlerów.
 
 Pełne reguły i przykłady: `naming-standards/directory-naming-standards` (sekcja "Zasada rodzeństwa (siblings)").
 

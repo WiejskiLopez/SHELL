@@ -30,7 +30,6 @@ async def _add_event(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
-                outbox_id=f"outbox-{event_id}",
                 event_id=event_id,
                 source_service="execution_service",
                 integration_event_name="SampleEvent",

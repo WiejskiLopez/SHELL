@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "shell-platform"
 version = "0.1.0"
 description = "Generic SHELL platform contracts and technical mechanisms"
-requires-python = ">=3.11"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "aio-pika>=10.0.1",
     "alembic>=1.18.5",

@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Any, cast
 from sqlalchemy import select, update
 
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
+from shell.platform.infrastructure.messaging.delivery.inbox_processor_base import InboxProcessorBase
 from shell.platform.infrastructure.messaging.inbox import InboxClaimService
-from shell.platform.infrastructure.messaging.inbox.inbox_processor_base import InboxProcessorBase
 from shell.tests.platform.integration.platform_delivery_models import (
     EVENT_DELIVERY_MODELS,
 )
@@ -50,7 +50,6 @@ async def _add_event(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=event_id,
-                outbox_id=f"outbox-{event_id}",
                 event_id=event_id,
                 source_service="execution_service",
                 integration_event_name="SampleEvent",

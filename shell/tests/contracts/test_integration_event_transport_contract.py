@@ -12,12 +12,12 @@ from shell.definition_service.application.definition.graph_definition.integratio
 from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event import EventOutboxRelay
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
 from shell.platform.infrastructure.messaging.event_transport import (
     EnvelopeCodec,
-    EventOutboxToTransportRelay,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     EnvelopeValidationPolicy,
@@ -68,9 +68,6 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     async with engine.begin() as connection:
         await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.events.outbox.metadata.create_all)
         await connection.run_sync(PERSISTENCE_DELIVERY_MODELS.events.inbox.metadata.create_all)
-        await connection.run_sync(
-            PERSISTENCE_DELIVERY_MODELS.processed_delivery.metadata.create_all
-        )
     await engine.dispose()
 
     session_factory = build_session_factory(url)
@@ -79,7 +76,6 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     serializer = IntegrationEventSerializer()
     envelope = serializer.to_envelope(
         event,
-        outbox_id="outbox-1",
         source_service="definition_service",
     )
 
@@ -101,10 +97,10 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
     async with session_factory() as session:
         session.add(
             PERSISTENCE_DELIVERY_MODELS.events.outbox(
-                id=envelope["outbox_id"],
+                id="outbox-1",
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                integration_event_name=envelope["integration_event_name"],
+                integration_event_name=envelope["contract_type"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
                 schema_version=envelope["schema_version"],
@@ -116,7 +112,7 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
         await session.commit()
 
     transport = RecordingTransport()
-    relay = EventOutboxToTransportRelay(
+    relay = EventOutboxRelay(
         session_factory,
         PERSISTENCE_DELIVERY_MODELS.events,
         transport,
@@ -127,10 +123,9 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
 
     wire = EnvelopeCodec().encode(delivered)  # type: ignore[arg-type]
     decoded = EnvelopeCodec().decode(wire)
-    assert decoded.outbox_id == "outbox-1"
     assert decoded.event_id == "event-1"
     assert decoded.source_service == "definition_service"
-    assert decoded.integration_event_name == "GraphDefinitionCreatedIntegrationEvent"
+    assert decoded.contract_type == "GraphDefinitionCreatedIntegrationEvent"
     assert decoded.schema_version == 2
     assert decoded.occurred_at == event.occurred_at
     assert decoded.correlation_id == event.correlation_id
@@ -142,10 +137,9 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
         session.add(
             PERSISTENCE_DELIVERY_MODELS.events.inbox(
                 id="inbox-1",
-                outbox_id=decoded.outbox_id,
                 event_id=decoded.event_id,
                 source_service=decoded.source_service,
-                integration_event_name=decoded.integration_event_name,
+                integration_event_name=decoded.contract_type,
                 occurred_at=decoded.occurred_at,
                 aggregate_id=decoded.aggregate_id,
                 schema_version=decoded.schema_version,
@@ -163,7 +157,6 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
         bus,
         models=PERSISTENCE_DELIVERY_MODELS.events,
         registry={type(event).__name__: type(event)},
-        consumer_name="definition-contract-test",
         envelope_policy=EnvelopeValidationPolicy(
             supported_schema_versions={
                 type(event).__name__: frozenset({2}),
@@ -186,5 +179,5 @@ async def test_integration_event_metadata_survives_outbox_transport_inbox_proces
             await session.execute(select(inbox_model).where(inbox_model.id == "inbox-1"))
         ).scalar_one()
     inbox: Any = inbox_row
-    assert inbox.outbox_id == "outbox-1"
+    assert inbox.event_id == "event-1"
     assert inbox.source_service == "definition_service"

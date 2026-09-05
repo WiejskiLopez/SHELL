@@ -89,6 +89,19 @@ def build_service_artifacts(
         source_path=repository_root / "shell" / service_name,
         output_dir=output_dir,
     )
+    if service_name == "project_service":
+        build_single_wheel(
+            package_name="saga-orchestration",
+            manifest_path=repository_root
+            / "packaging"
+            / "saga-orchestration"
+            / "pyproject.toml",
+            source_path=repository_root
+            / "packaging"
+            / "saga-orchestration"
+            / "saga_orchestration",
+            output_dir=output_dir,
+        )
 
 
 def main() -> None:

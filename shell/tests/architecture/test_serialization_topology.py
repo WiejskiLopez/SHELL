@@ -3,7 +3,7 @@
 Reguła: serializer, deserializer i registry sa pogrupowane wedlug rodzaju
 kontraktu, bez pozostawionych starych sciezek implementation.
 
-Poprawnie: event, message, command i registries maja canonical paths, a callerzy
+Poprawnie: event, command i registries maja canonical paths, a callerzy
 nie importuja usunietych modulow.
 """
 
@@ -39,15 +39,10 @@ def test_serialization_has_canonical_grouped_topology() -> None:
         SERIALIZATION / "event" / "deserializer.py",
         SERIALIZATION / "envelope" / "envelope_engine.py",
         SERIALIZATION / "uow_serializer.py",
-        SERIALIZATION / "message" / "serializer.py",
-        SERIALIZATION / "message" / "deserializer.py",
         SERIALIZATION / "event_serializer.py",
         SERIALIZATION / "event_deserializer.py",
-        SERIALIZATION / "message_serializer.py",
-        SERIALIZATION / "message_deserializer.py",
         SERIALIZATION / "type_registry.py",
         SERIALIZATION / "event_registry.py",
-        SERIALIZATION / "message_registry.py",
         SERIALIZATION / "command_registry.py",
         ROOT
         / "platform"
@@ -63,11 +58,8 @@ def test_serialization_has_canonical_grouped_topology() -> None:
     old_imports = (
         "infrastructure.serialization." + "event_serializer",
         "infrastructure.serialization." + "event_deserializer",
-        "infrastructure.serialization." + "message_serializer",
-        "infrastructure.serialization." + "message_deserializer",
         "infrastructure.serialization." + "type_registry",
         "infrastructure.serialization." + "event_registry",
-        "infrastructure.serialization." + "message_registry",
         "infrastructure.serialization." + "command_registry",
         "infrastructure.messaging.serialization." + "command_deserializer",
         "infrastructure.serialization." + "event.",

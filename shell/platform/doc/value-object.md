@@ -26,17 +26,17 @@ class ValueObject:
 Konkretne value objects w `shell/platform/domain/value_objects/`:
 
 - `Timestamp` — `value: datetime`, walidacja w `__post_init__` (`Timestamp must be timezone-aware (UTC)`), `now()`, `from_datetime(dt)` (nadaje `UTC` gdy brak `tzinfo`), `__str__` zwraca `isoformat()`.
-- `OccurredAt` — `value: datetime`, walidacja (`OccurredAt must be timezone-aware (UTC)`); `now()` (`datetime.now(tz=UTC)`), `from_datetime(dt | None)` (rzuca `ValueError` dla `None`, nadaje `UTC` gdy brak `tzinfo`), `to_timestamp() -> Timestamp`.
+- `OccurredAt` — `value: datetime`, walidacja (`OccurredAt must be timezone-aware (UTC)`); `now()` (`datetime.now(tz=UTC)`), `from_datetime(dt | None)` (rzuca `DomainError` dla `None`, nadaje `UTC` gdy brak `tzinfo`), `to_timestamp() -> Timestamp`.
 - `DeletedAt` — `value: datetime | None = None`, walidacja warunkowa, `none()`, `now()`, `from_datetime(dt | None)`; singleton `NONE_DELETED_AT: DeletedAt = DeletedAt(value=None)`.
-- `SchemaVersion` — `value: int` (bez walidacji).
-- `AggregateId`, `AggregateName` — `value: str`; identyfikator i nazwa agregatu na eventach.
+- `Version` — `value: int`, walidacja `value >= 1` (`DomainError("Version must be >= 1, got ...")`), `next()`, `initial()`.
+- `AggregateId` — `value: str`; identyfikator agregatu na eventach (szczegóły w [entity-id](entity-id.md)).
 - `EventId` — `value: str` z `generate()` (`uuid.uuid4`) — patrz [entity-id](entity-id.md).
 - `ExistsResult` — `value: bool`, implementuje `__bool__` zwracające `self.value`; typ zwracany przez `RepositoryPort.exists()`.
 
 Wzorce konwencji:
 
-- Walidacja w `__post_init__` — rzuca `ValueError` (np. "Timestamp must be timezone-aware (UTC)") dla niepoprawnych wartości; `ValueError` zamiast `DomainError`, bo to walidacja strukturalna wartości.
-- Factory methods — `now()`, `from_datetime(...)`, `none()`, `generate()`; centralizują tworzenie i normalizację (np. nadawanie strefy `UTC`).
+- Walidacja w `__post_init__` — rzuca `DomainError` (np. "Timestamp must be timezone-aware (UTC)") dla niepoprawnych wartości.
+- Factory methods — `now()`, `from_datetime(...)`, `none()`, `generate()`, `initial()`; centralizują tworzenie i normalizację (np. nadawanie strefy `UTC`).
 - Wymóg timezone-aware (UTC) dla wszystkich typów czasu jest egzekwowany w `__post_init__`.
 
 ## Kluczowe pliki
@@ -45,11 +45,9 @@ Wzorce konwencji:
 - `shell/platform/domain/value_objects/timestamp.py`
 - `shell/platform/domain/value_objects/occurred_at.py`
 - `shell/platform/domain/value_objects/deleted_at.py`
-- `shell/platform/domain/value_objects/schema_version.py`
+- `shell/platform/domain/value_objects/version.py`
 - `shell/platform/domain/value_objects/aggregate_id.py`
-- `shell/platform/domain/value_objects/aggregate_name.py`
 - `shell/platform/domain/value_objects/event_id.py`
-- `shell/platform/domain/value_objects/message_id.py`
 - `shell/platform/domain/value_objects/exists_result.py`
 
 ## Powiązane koncepcje

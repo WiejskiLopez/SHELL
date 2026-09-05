@@ -12,9 +12,10 @@ Dashboardy i readiness checks potrzebują liczb operacyjnych (ile wiadomości w 
 
 ### Port `MetricsBackend`
 
-`MetricsBackend` to `Protocol` (`shell/platform/observability/application/ports/metrics.py`) z trzema metodami, wszystkie z argumentami keyword-only:
+`MetricsBackend` to `Protocol` (`shell/platform/observability/application/ports/metrics.py`) z czterema metodami, wszystkie z argumentami keyword-only:
 
-- `record_backlog(*, pending: int, processing: int, processed: int, retry: int, dead_letter: int, oldest_pending_age_seconds: float | None) -> None` — pełny snapshot backlogu,
+- `record_backlog(*, pending: int, processing: int, processed: int, retry: int, dead_letter: int, oldest_pending_age_seconds: float | None) -> None` — pełny snapshot backlogu inbox,
+- `record_outbox_backlog(*, pending: int) -> None` — snapshot backlogu outbox,
 - `record_lease_expired(count: int) -> None` — liczba wygasłych dzierżaw,
 - `record_duplicate_delivery(count: int) -> None` — liczba zduplikowanych dostaw.
 
@@ -57,15 +58,23 @@ Jest używany do czasu podpięcia realnego backendu (Prometheus itd.) — patrz 
 Przykładowe podpięcie (BC Ingestion, `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`):
 
 ```python
+metrics_exporter = providers.Singleton(MetricsRegistry)
+metrics_backend = providers.Singleton(PrometheusMetricsBackend, registry=metrics_exporter)
 inbox_metrics_service = providers.Singleton(
     InboxMetricsService,
     session_factory=session_factory,
     inbox_model=persistence_delivery_models.provided.events.inbox,
-    backend=LoggingMetricsBackend(),
+    backend=metrics_backend,
+)
+outbox_metrics_service = providers.Singleton(
+    OutboxMetricsService,
+    session_factory=session_factory,
+    outbox_model=persistence_delivery_models.provided.events.outbox,
+    backend=metrics_backend,
 )
 ```
 
-`persistence_delivery_models` to `providers.Object(PERSISTENCE_DELIVERY_MODELS)` (patrz [delivery-models](delivery-models.md)); `inbox_model` wskazuje model inboxa z bundle'a.
+`persistence_delivery_models` to `providers.Object(PERSISTENCE_DELIVERY_MODELS)` (patrz [delivery-models](delivery-models.md)); `inbox_model` wskazuje model inboxa z bundle'a. Realne backendy to `PrometheusMetricsBackend` (+ `OutboxMetricsService` dla outbox); `LoggingMetricsBackend` służy jako adapter bez zależności (do testów/rozwoju).
 
 ## Decyzja o implementacji rejestru
 

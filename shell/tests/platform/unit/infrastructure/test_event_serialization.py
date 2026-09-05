@@ -38,10 +38,10 @@ def test_integration_event_serializer_excludes_all_envelope_metadata() -> None:
 
 def test_integration_event_serializer_builds_envelope_separately() -> None:
     envelope = IntegrationEventSerializer().to_envelope(
-        _sample_integration_event(), outbox_id="outbox-1", source_service="sample_service"
+        _sample_integration_event(), source_service="sample_service"
     )
 
-    assert envelope["integration_event_name"] == "SampleIntegrationEvent"
+    assert envelope["contract_type"] == "SampleIntegrationEvent"
     assert envelope["event_id"] == "event-1"
     assert envelope["schema_version"] == 3
     assert envelope["payload"] == {"name": "created"}
@@ -50,7 +50,7 @@ def test_integration_event_serializer_builds_envelope_separately() -> None:
 def test_integration_event_round_trip_preserves_datetime_and_integer_schema_version() -> None:
     event = _sample_integration_event()
     envelope = IntegrationEventSerializer().to_envelope(
-        event, outbox_id="outbox-1", source_service="sample_service"
+        event, source_service="sample_service"
     )
 
     restored = IntegrationEventDeserializer(

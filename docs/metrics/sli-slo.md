@@ -2,7 +2,7 @@
 
 Status: **propozycja do kalibracji na stagingu**. Metryki bazowe są już
 eksportowane przez `/metrics` (Prometheus text format) — patrz
-`docs/metrics/README` i metryki w `shell/platform/observability/infrastructure/metrics/`.
+`shell/platform/doc/metrics.md` i metryki w `shell/platform/observability/infrastructure/metrics/`.
 
 ## Zasada
 

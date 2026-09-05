@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlalchemy as sa
-from alembic import op
+from alembic import context, op
 
 revision = "platform_0008_saga_instance"
 down_revision = "platform_0007_worker_heartbeat"
@@ -10,6 +10,8 @@ depends_on = None
 
 
 def upgrade() -> None:
+    if context.config.get_main_option("include_saga") != "true":
+        return
     op.create_table(
         "saga_instance",
         sa.Column("id", sa.String(), primary_key=True),
@@ -36,5 +38,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    if context.config.get_main_option("include_saga") != "true":
+        return
     op.drop_index("ix_saga_instance_status_current", table_name="saga_instance")
     op.drop_table("saga_instance")

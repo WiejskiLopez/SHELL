@@ -13,7 +13,8 @@ from shell.project_service.process.project.project_provision.manager import SAGA
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from shell.platform.process.saga.ports.saga_repository import SagaRepository
+    from saga_orchestration.process.saga.ports.saga_repository import SagaRepository
+
     from shell.project_service.process.project.project_provision.manager import (
         ProjectProvisionSagaManager,
     )

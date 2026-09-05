@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, Protocol
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -11,17 +11,23 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CommandDeliveryEnvelope:
-    kind: Literal["command"]
-    outbox_id: str
+    """Technical delivery envelope for commands.
+
+    The channel is encoded by the envelope type, not by a field. ``contract_type``
+    is the stable wire contract name and ``destination_service`` is the receiving
+    bounded context. ``outbox_id`` is intentionally absent — it is the local
+    identity of the sender's outbox record.
+    """
+
     command_id: str
-    command_name: str
+    contract_type: str
     source_service: str
-    target_service: str
+    destination_service: str
     issued_at: datetime
-    payload: dict[str, object]
-    correlation_id: str
-    causation_id: str
     schema_version: int = 1
+    correlation_id: str = ""
+    causation_id: str = ""
+    payload: dict[str, object] = field(default_factory=dict)
 
 
 class CommandDeliveryTransport(Protocol):

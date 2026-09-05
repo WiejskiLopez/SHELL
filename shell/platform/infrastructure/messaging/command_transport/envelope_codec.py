@@ -17,9 +17,10 @@ if TYPE_CHECKING:
 class EnvelopeCodec:
     """Encodes a command delivery envelope to JSON bytes and back.
 
-    The wire carries ``command_id``, ``command_name``, ``source_service``,
-    ``target_service`` and ``issued_at``; transport metadata is never part of the
-    command payload.
+    The wire carries ``contract_type`` (the stable contract name),
+    ``source_service`` and ``destination_service``; transport metadata is never
+    part of the command payload. The channel is implied by the envelope type, so
+    no ``kind``/``outbox_id`` is on the wire.
     """
 
     def encode(self, envelope: CommandDeliveryEnvelope) -> bytes:
@@ -30,12 +31,10 @@ class EnvelopeCodec:
             else str(raw_issued_at)
         )
         document: dict[str, object] = {
-            "kind": envelope.kind,
-            "outbox_id": envelope.outbox_id,
             "command_id": envelope.command_id,
-            "command_name": envelope.command_name,
+            "contract_type": envelope.contract_type,
             "source_service": envelope.source_service,
-            "target_service": envelope.target_service,
+            "destination_service": envelope.destination_service,
             "issued_at": issued_at,
             "schema_version": envelope.schema_version,
             "payload": envelope.payload,
@@ -46,15 +45,11 @@ class EnvelopeCodec:
 
     def decode(self, raw: bytes) -> CommandDeliveryEnvelope:
         document: Mapping[str, object] = json.loads(raw.decode("utf-8"))
-        if document.get("kind") != "command":
-            raise ValueError(f"Expected command delivery, got {document.get('kind')!r}")
         return CommandDeliveryEnvelope(
-            kind="command",
-            outbox_id=str(document["outbox_id"]),
             command_id=str(document["command_id"]),
-            command_name=str(document["command_name"]),
+            contract_type=str(document["contract_type"]),
             source_service=str(document.get("source_service", "")),
-            target_service=str(document.get("target_service", "")),
+            destination_service=str(document.get("destination_service", "")),
             issued_at=self._parse_issued_at(str(document["issued_at"])),
             payload=dict(cast("Mapping[str, object]", document["payload"]))
             if document.get("payload")

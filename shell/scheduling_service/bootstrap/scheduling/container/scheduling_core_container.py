@@ -3,29 +3,26 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.command_bus_publisher import CommandBusPublisher
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command import CommandInboxConsumer, CommandOutboxRelay
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.command_transport import (
-    CommandOutboxToTransportRelay,
 )
 from shell.platform.infrastructure.messaging.command_transport.rabbit import (
     RabbitCommandDeliveryTransport,
-    RabbitCommandInboxConsumer,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event import EventInboxConsumer, EventOutboxRelay
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     RabbitEventDeliveryTransport,
-    RabbitEventInboxConsumer,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
@@ -141,6 +138,7 @@ from shell.scheduling_service.application.scheduling.scheduler_job.query_handler
 from shell.scheduling_service.bootstrap.scheduling.contract_catalog import (
     SCHEDULING_CONTRACT_CATALOG,
 )
+from shell.scheduling_service.bootstrap.scheduling.delivery import build_delivery_config
 from shell.scheduling_service.bootstrap.scheduling.event_registry import (
     build_scheduling_event_registry,
 )
@@ -223,6 +221,7 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     command_bus = providers.Singleton(CommandBus)
+    command_bus_publisher = providers.Singleton(CommandBusPublisher, command_bus=command_bus)
     query_bus = providers.Singleton(QueryBus)
     event_bus = providers.Singleton(EventBus)
     event_registry = providers.Singleton(build_scheduling_event_registry)
@@ -233,8 +232,6 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         models=persistence_delivery_models.provided.events,
         registry=event_registry,
         worker_id=config.worker_id,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="scheduling",
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         envelope_policy=envelope_policy_from_catalog(SCHEDULING_CONTRACT_CATALOG),
@@ -244,7 +241,7 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         RabbitEventDeliveryTransport, url=config.broker_url
     )
     outbox_to_transport_relay_factory = providers.Factory(
-        EventOutboxToTransportRelay,
+        EventOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
         transport=event_delivery_transport,
@@ -253,7 +250,7 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         RabbitCommandDeliveryTransport, url=config.broker_url
     )
     command_outbox_to_transport_relay_factory = providers.Factory(
-        CommandOutboxToTransportRelay,
+        CommandOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         transport=command_delivery_transport,
@@ -266,18 +263,16 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
     command_inbox_processor_factory = providers.Factory(
         CommandInboxProcessor,
         session_factory=session_factory,
-        command_bus=command_bus,
+        dispatcher=command_bus_publisher,
         models=persistence_delivery_models.provided.commands,
         registry=command_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="scheduling-command",
         worker_id=config.command_worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         upcaster=providers.Singleton(PayloadUpcaster),
     )
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitEventInboxConsumer,
+        EventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
@@ -285,7 +280,7 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
         routing_keys=["event.#"],
     )
     rabbit_command_inbox_consumer_factory = providers.Factory(
-        RabbitCommandInboxConsumer,
+        CommandInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
@@ -358,6 +353,17 @@ class SchedulingCoreContainer(containers.DeclarativeContainer):
     )
     list_scheduler_jobs_handler_factory = providers.Factory(
         ListSchedulerJobsHandler, queries=scheduler_job_query_service
+    )
+    delivery_config = providers.Singleton(
+        build_delivery_config,
+        models=persistence_delivery_models,
+        event_registry=event_registry,
+        command_registry=command_registry,
+        event_bus=event_bus,
+        command_bus=command_bus,
+        event_transport=event_delivery_transport,
+        command_transport=command_delivery_transport,
+        session_factory=session_factory,
     )
 
 

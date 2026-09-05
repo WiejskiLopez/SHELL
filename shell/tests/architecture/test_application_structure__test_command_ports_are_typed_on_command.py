@@ -28,7 +28,7 @@ _TARGETS = (
         },
     ),
     (
-        "platform/process/saga/ports/command_delivery_dispatcher.py",
+        "../packaging/saga-orchestration/saga_orchestration/process/saga/ports/command_delivery_dispatcher.py",
         {
             "dispatch": {"command"},
         },

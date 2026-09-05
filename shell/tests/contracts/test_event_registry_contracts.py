@@ -30,11 +30,11 @@ def test_definition_event_round_trips_through_its_registry() -> None:
         graph_definition_id="graph-1",
     )
     outbox_payload = IntegrationEventSerializer().to_envelope(
-        event, outbox_id="outbox-1", source_service="definition_service"
+        event, source_service="definition_service"
     )
 
     restored = IntegrationEventDeserializer(build_definition_event_registry()).deserialize(
-        cast("str", outbox_payload["integration_event_name"]),
+        cast("str", outbox_payload["contract_type"]),
         event.occurred_at,
         cast("dict[str, object]", outbox_payload["payload"]),
         schema_version=cast("int", outbox_payload["schema_version"]),

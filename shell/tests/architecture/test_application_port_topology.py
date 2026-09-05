@@ -23,7 +23,6 @@ def test_application_ports_have_canonical_grouped_topology() -> None:
         PORTS / "persistence" / "unit_of_work.py",
         PORTS / "transport" / "event_transport.py",
         PORTS / "transport" / "command_transport.py",
-        PORTS / "transport" / "delivery_dedup_store.py",
         PORTS / "runtime" / "seed.py",
         PORTS / "runtime" / "filesystem.py",
         PORTS / "logger.py",

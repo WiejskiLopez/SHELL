@@ -20,7 +20,7 @@ DESERIALIZATION_ERROR = "DESERIALIZATION_ERROR"
 UNSUPPORTED_SCHEMA_VERSION = "UNSUPPORTED_SCHEMA_VERSION"
 INVALID_ENVELOPE = "INVALID_ENVELOPE"
 PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
-MISSING_OUTBOX_ID = "MISSING_OUTBOX_ID"
+MISSING_DELIVERY_ID = "MISSING_DELIVERY_ID"
 MISSING_CORRELATION_ID = "MISSING_CORRELATION_ID"
 MISSING_CAUSATION_ID = "MISSING_CAUSATION_ID"
 
@@ -37,7 +37,7 @@ class EnvelopeValidationPolicy:
     supported_schema_versions: Mapping[str, frozenset[int]] = field(default_factory=dict)
     default_supported_versions: frozenset[int] = frozenset({1})
     max_payload_bytes: int = 1_000_000
-    require_outbox_id: bool = True
+    require_delivery_id: bool = True
     require_correlation_id: bool = False
     require_causation_id: bool = False
 
@@ -49,7 +49,7 @@ class EnvelopeValidator:
     def validate(
         self,
         *,
-        outbox_id: str | None,
+        delivery_id: str | None,
         message_name: str,
         schema_version: int,
         payload: object,
@@ -57,8 +57,8 @@ class EnvelopeValidator:
         causation_id: str | None,
     ) -> str | None:
         """Return an error code if the envelope is invalid, else ``None``."""
-        if self._policy.require_outbox_id and not outbox_id:
-            return MISSING_OUTBOX_ID
+        if self._policy.require_delivery_id and not delivery_id:
+            return MISSING_DELIVERY_ID
         if self._policy.require_correlation_id and not correlation_id:
             return MISSING_CORRELATION_ID
         if self._policy.require_causation_id and not causation_id:

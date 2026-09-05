@@ -5,14 +5,15 @@ from __future__ import annotations
 from datetime import timedelta
 from typing import TYPE_CHECKING
 
-from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
-from shell.platform.infrastructure.process.saga.repositories.sql_saga_timeout_repository import (
+from saga_orchestration.infrastructure.process.saga.repositories.sql_saga_timeout_repository import (
     SqlSagaTimeoutRepository,
 )
-from shell.platform.infrastructure.process.saga.worker.saga_timeout_processor import (
+from saga_orchestration.infrastructure.process.saga.worker.saga_timeout_processor import (
     SagaTimeoutProcessor,
 )
-from shell.platform.process.saga.saga_timed_out import SagaTimedOut
+from saga_orchestration.process.saga.saga_timed_out import SagaTimedOut
+
+from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
 from shell.tests.platform.integration.platform_delivery_models import SAGA_DELIVERY_MODELS
 
 if TYPE_CHECKING:

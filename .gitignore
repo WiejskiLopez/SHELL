@@ -9,14 +9,24 @@ build/
 .eggs/
 *.egg
 .pytest_cache/
+.pytest-*/
+.grimp_cache/
+.import_linter_cache/
 .mypy_cache/
 .ruff_cache/
+.idea/
 .coverage
 htmlcov/
 .env
 .venv
 *.log
 *.db
+# lokalne logi dev (root)
+app.log
+mtls_*.log
+missing-{uuid}.db
+# lokalny scratch na notatki robocze
+tmp/
 shell/*_service/docker/logs/*
 shell/*_service/docker/dev_db/*
 !shell/*_service/docker/logs/.gitkeep

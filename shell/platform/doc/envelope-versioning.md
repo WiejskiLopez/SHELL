@@ -2,26 +2,26 @@
 
 ## Cel / Co realizuje
 
-Mechanizm wersjonowania i walidacji schematu payloadu dostaw. `EnvelopeValidator` (`shell/platform/infrastructure/messaging/inbox/envelope_validator.py`) klasyfikuje problemy kontraktowe koperty (nieznana wersja schematu, brak wymaganych ID, za duży payload) do jawnych kodów błędów zanim rekord trafi do deserializacji. `PayloadUpcaster` (`shell/platform/infrastructure/serialization/upcaster.py`) migruje payload z wersji N do N+1 łańcuchem transformacji, dzięki czemu deserializery zawsze budują aktualny kształt obiektu. `EventDeserializer` i `CommandDeserializer` odtwarzają obiekty domenowe z payloadu przy współpracy registry typów.
+Mechanizm wersjonowania i walidacji schematu payloadu dostaw. `EnvelopeValidator` (`shell/platform/infrastructure/messaging/inbox/envelope_validator.py`) klasyfikuje problemy kontraktowe koperty (nieznana wersja schematu, brak wymaganych ID, za duży payload) do jawnych kodów błędów zanim rekord trafi do deserializacji. `PayloadUpcaster` (`shell/platform/infrastructure/serialization/upcaster.py`) migruje payload z wersji N do N+1 łańcuchem transformacji, dzięki czemu deserializery zawsze budują aktualny kształt obiektu. `IntegrationEventDeserializer` i `CommandDeserializer` odtwarzają obiekty domenowe z payloadu przy współpracy registry typów.
 
 ## Problem
 
-Integracje ewoluują: schemat payloadu danego typu dostawy zmienia się w czasie. Konsument musi odczytywać wiadomości w wielu wersjach (aktualna i poprzednia przez upcaster), ale nie może cicho odrzucać ani crashować na nieznanych wersjach. Błędy kontraktowe (nieznana wersja, za duży payload, brakujący `outbox_id`) nie mogą być maskowane jako generyczne błędy handlera — processor musi je klasyfikować do polityki retry/DLQ. Równolegle deserializacja musi być deterministyczna: typ kontraktu → klasa (registry), payload → argumenty konstruktora z poprawną konwersją typów.
+Integracje ewoluują: schemat payloadu danego typu dostawy zmienia się w czasie. Konsument musi odczytywać wiadomości w wielu wersjach (aktualna i poprzednia przez upcaster), ale nie może cicho odrzucać ani crashować na nieznanych wersjach. Błędy kontraktowe (nieznana wersja, za duży payload, brakujący `delivery_id`) nie mogą być maskowane jako generyczne błędy handlera — processor musi je klasyfikować do polityki retry/DLQ. Równolegle deserializacja musi być deterministyczna: typ kontraktu → klasa (registry), payload → argumenty konstruktora z poprawną konwersją typów.
 
 ## Realizacja techniczna
 
 ### Kody błędów i polityka
 
-Stałe kodów w `envelope_validator.py`: `DESERIALIZATION_ERROR`, `UNSUPPORTED_SCHEMA_VERSION`, `INVALID_ENVELOPE`, `PAYLOAD_TOO_LARGE`, `MISSING_OUTBOX_ID`, `MISSING_CORRELATION_ID`, `MISSING_CAUSATION_ID`.
+Stałe kodów w `envelope_validator.py`: `DESERIALIZATION_ERROR`, `UNSUPPORTED_SCHEMA_VERSION`, `INVALID_ENVELOPE`, `PAYLOAD_TOO_LARGE`, `MISSING_DELIVERY_ID`, `MISSING_CORRELATION_ID`, `MISSING_CAUSATION_ID`.
 
 `EnvelopeValidationPolicy` (frozen dataclass z `slots=True`):
 
 - `supported_schema_versions: Mapping[str, frozenset[int]]` — dozwolone wersje per nazwa typu dostawy (konsument obsługuje aktualną i poprzednią przez upcaster);
 - `default_supported_versions: frozenset[int] = frozenset({1})` — dla typów nie wymienionych w mapie;
 - `max_payload_bytes: int = 1_000_000`;
-- `require_outbox_id: bool = True`, `require_correlation_id: bool = False`, `require_causation_id: bool = False`.
+- `require_delivery_id: bool = True`, `require_correlation_id: bool = False`, `require_causation_id: bool = False`.
 
-`EnvelopeValidator.validate(*, outbox_id, contract_type, schema_version, payload, correlation_id, causation_id) -> str | None` — w kolejności: brak `outbox_id` → `MISSING_OUTBOX_ID` (gdy wymagany), brak correlation/causation → odpowiednie `MISSING_*`, `schema_version not in supported` → `UNSUPPORTED_SCHEMA_VERSION`, a rozmiar payloadu mierzony przez `_measure_payload` ponad `max_payload_bytes` → `PAYLOAD_TOO_LARGE`. Nieprawidłowa koperta nigdy nie rzuca — zwraca strukturę błędu, którą processor mapuje na retry/DLQ.
+`EnvelopeValidator.validate(*, delivery_id, message_name, schema_version, payload, correlation_id, causation_id) -> str | None` — w kolejności: brak `delivery_id` → `MISSING_DELIVERY_ID` (gdy wymagany), brak correlation/causation → odpowiednie `MISSING_*`, `schema_version not in supported` → `UNSUPPORTED_SCHEMA_VERSION`, a rozmiar payloadu mierzony przez `_measure_payload` ponad `max_payload_bytes` → `PAYLOAD_TOO_LARGE`. Nieprawidłowa koperta nigdy nie rzuca — zwraca strukturę błędu, którą processor mapuje na retry/DLQ.
 
 `envelope_policy_from_catalog(catalog: ContractCatalog, *, default_supported_versions=None) -> EnvelopeValidationPolicy` — buduje politykę z katalogu kontraktów BC: `supported_schema_versions` każdego wpisu staje się per-typowej allowlistą (`entry.type_name: entry.supported_schema_versions`), co czyni katalog jedynym źródłem prawdy o akceptowanych wersjach.
 
@@ -38,14 +38,12 @@ Stałe kodów w `envelope_validator.py`: `DESERIALIZATION_ERROR`, `UNSUPPORTED_S
 
 ### Serializery i deserializery
 
-`DomainEventSerializer` (`serialization/event/domain_event_serializer.py`): `to_payload(event)` (pomija `occurred_at`, `schema_version`), `to_outbox_payload(event)` (dokument `{id, event_type, occurred_at, payload}`), `from_payload(event_cls, occurred_at, payload, schema_version=1)` — buduje obiekt z `SchemaVersion(schema_version)` i konwersją typów (`CreatedAt`, datetime, list/dict, zagnieżdżone dataclass) przez `_serialize_value`/`_deserialize_value`.
-
-> `DomainMessageSerializer`/`MessageDeserializer` zostały usunięte razem z kanałem Message — patrz `docs/messages-removed.md`.
+`IntegrationEventSerializer` (`serialization/integration_event/integration_event_serializer.py`): `to_payload(event)` (pomija pola koperty), `to_envelope(event, *, source_service)` (dokument wire: `event_id`, `source_service`, `contract_type`, `occurred_at`, `schema_version`, `correlation_id`, `causation_id`, `aggregate_id`, `payload`).
 
 Deserializery:
 
-- `EventDeserializer` (`serialization/event/event_deserializer.py`): `deserialize(event_type, occurred_at, payload, schema_version=1)` — szuka klasy w `_registry`, nieznany typ → log `Unknown event type` i `None`; przy `upcaster` wykonuje upcast, potem `self._serializer.from_payload(...)`; błędy `KeyError/ValueError/TypeError` → log `Failed to deserialize event` i `None`.
-- `CommandDeserializer` (`serialization/command/deserializer.py`): `deserialize(command_type, payload, schema_version=1)` — `cls = registry.get(command_type)`, brak klasy → `None`; przy upcasterze najpierw upcast, potem `cls(**payload)` (komenda budowana bezpośrednio z payloadu).
+- `IntegrationEventDeserializer` (`serialization/integration_event/integration_event_deserializer.py`): `deserialize(integration_event_name, occurred_at, payload, schema_version=1, **envelope_metadata)` — szuka klasy w `_registry`, nieznany typ → `None`; przy `upcaster` wykonuje upcast, potem deleguje do `PayloadObjectDeserializer.deserialize` (konwersja typów wg type hints); błędy `KeyError/ValueError/TypeError/SerializationError` → log `Failed to deserialize integration event` i `None`.
+- `CommandDeserializer` (`serialization/command/deserializer.py`): `deserialize(command_type, payload, schema_version=1)` — `cls = registry.get(command_type)`, brak klasy → `None`; przy upcasterze najpierw upcast, potem budowa obiektu przez `PayloadObjectDeserializer.deserialize` (payload-type-hint conversion), nie bezpośrednio `cls(**payload)`.
 
 ### Registry
 
@@ -57,8 +55,8 @@ Deserializery:
 
 - `shell/platform/infrastructure/messaging/inbox/envelope_validator.py`
 - `shell/platform/infrastructure/serialization/upcaster.py`
-- `shell/platform/infrastructure/serialization/event/event_deserializer.py`
-- `shell/platform/infrastructure/serialization/event/domain_event_serializer.py`
+- `shell/platform/infrastructure/serialization/integration_event/integration_event_deserializer.py`
+- `shell/platform/infrastructure/serialization/integration_event/integration_event_serializer.py`
 - `shell/platform/infrastructure/serialization/command/deserializer.py`
 - `shell/platform/infrastructure/serialization/registries/type_registry.py`
 - `shell/platform/infrastructure/serialization/registries/event_registry.py`

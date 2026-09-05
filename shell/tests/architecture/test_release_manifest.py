@@ -59,5 +59,9 @@ def test_release_manifest_contains_verified_metadata(
         assert set(manifest["artifact_sha256"]) == {
             "shell_platform-0.1.0-py3-none-any.whl",
             f"{package_name.replace('-', '_')}-0.1.0-py3-none-any.whl",
-        }
+        } | (
+            {"saga_orchestration-0.1.0-py3-none-any.whl"}
+            if service_name == "project_service"
+            else set()
+        )
         assert manifest["migration_head"] == _migration_head(service_name)

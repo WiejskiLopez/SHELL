@@ -15,13 +15,13 @@ from shell.platform.infrastructure.context import (
     reset_session_scope,
     set_session_scope,
 )
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command import CommandOutboxRelay
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
 )
 from shell.platform.infrastructure.messaging.command.sql_command_outbox_writer import (
     SqlCommandOutboxWriter,
 )
-from shell.platform.infrastructure.messaging.command_transport import CommandOutboxToTransportRelay
 from shell.tests.platform.integration.platform_delivery_models import (
     COMMAND_DELIVERY_MODELS,
 )
@@ -69,7 +69,6 @@ async def _add_command(session_factory: async_sessionmaker, command_id: str = "c
         session.add(
             COMMAND_DELIVERY_MODELS.inbox(
                 id=command_id,
-                outbox_id=f"outbox-{command_id}",
                 command_id=f"cmd-{command_id}",
                 command_name="SampleCommand",
                 source_service="session",
@@ -111,7 +110,7 @@ class TestCommandInboxProcessor:
                 reset_session_scope(token)
             await session.commit()
         transport = RecordingTransport()
-        relay = CommandOutboxToTransportRelay(
+        relay = CommandOutboxRelay(
             session_factory,
             models=COMMAND_DELIVERY_MODELS,
             transport=transport,

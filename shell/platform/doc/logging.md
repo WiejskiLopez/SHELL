@@ -2,11 +2,11 @@
 
 ## Cel / Co realizuje
 
-Logowanie w SHELL opiera się na portcie `Logger` (`shell/platform/application/ports/ports.py`), którego podstawową implementacją jest `StdlibLogger` (`shell/platform/infrastructure/logging/stdlib_logger/stdlib_logger.py`) z formatowaniem JSON przez `JsonFormatter`. Konfigurację root loggera wykonuje `setup_logging()` (`shell/platform/bootstrap/logging/setup_logging.py`). Osobno istnieją dwa adaptery EventPublisher: `LoggingEventPublisher` (każdy domain event jako wpis logu) i `SqlAuditPublisher` (każdy domain event jako wiersz w tabeli `audit_event`).
+Logowanie w SHELL opiera się na portcie `Logger` (`shell/platform/application/ports/logger.py`), którego podstawową implementacją jest `StdlibLogger` (`shell/platform/infrastructure/logging/stdlib_logger/stdlib_logger.py`) z formatowaniem JSON przez `JsonFormatter`. Konfigurację root loggera wykonuje `setup_logging()` (`shell/platform/bootstrap/logging/setup_logging.py`). Osobno istnieje adapter `LoggingEventPublisher` (każdy domain event jako wpis logu). Trwały audyt zdarzeń (tabela `audit_event`) jest zapisywany atomowo z wierszem outboxu w `SqlAlchemyUnitOfWorkBase._write_staged_outbox()` — patrz [transactional-outbox](transactional-outbox.md).
 
 ## Problem
 
-W systemie rozproszonym dzienniki muszą być maszynowo parsowalne i skorelowane (correlation_id) — goły tekst wielolinijkowy nie nadaje się do agregacji. Jednocześnie eventy domenowe są cennym źródłem audytu, ale ich trwała rejestracja nie może zależeć od publikowania do brokera. Potrzebny jest: jeden spójny format logu, konfiguracja dostępna w każdym entrypoincie oraz dwa komplementarne mechanizmy publikacji eventów (log + baza).
+W systemie rozproszonym dzienniki muszą być maszynowo parsowalne i skorelowane (correlation_id) — goły tekst wielolinijkowy nie nadaje się do agregacji. Jednocześnie eventy domenowe są cennym źródłem audytu, ale ich trwała rejestracja nie może zależeć od publikowania do brokera. Potrzebny jest: jeden spójny format logu, konfiguracja dostępna w każdym entrypoincie oraz trwały audyt zdarzeń (zapis w tej samej transakcji co outbox).
 
 ## Realizacja techniczna
 
@@ -31,14 +31,22 @@ Implementuje port `Logger` opakowując `logging.getLogger(name)` (domyślnie `"s
 
 Adapter `EventPublisher` (`publish(events: Sequence[object])`) logujący każdy domain event jako `logger.info("domain_event", event_type=type(event).__name__, occurred_at=event.occurred_at.value.isoformat())`. Służy jako obserwowalność eventów w środowiskach bez brokerów oraz przy testach.
 
-### `SqlAuditPublisher`
+### Trwały audyt — `audit_event`
 
-Adapter `EventPublisher` zapisujący audyt do bazy. Konstruktor przyjmuje `session_factory: async_sessionmaker[AsyncSession]` oraz `models: PersistenceDeliveryModels` (wykorzystuje `models.audit` — model z `build_audit_event_model`). `publish()`:
+Tabela `audit_event` (model `build_audit_event_model`, kolumny `id`, `integration_event_name`, `occurred_at`, `payload`) jest zapisywana **atomowo z wierszem outboxu** w `SqlAlchemyUnitOfWorkBase._write_staged_outbox()`:
 
-1. `DomainEventSerializer().to_payload(event)` (z `shell/platform/infrastructure/serialization`) serializuje event do payloadu;
-2. tworzy wiersz `audit_model(id=str(uuid.uuid4()), event_type=type(event).__name__, occurred_at=event.occurred_at.value, payload=payload)`;
-3. błąd serializacji → `logging.getLogger(__name__).critical("Failed to serialize audit event %s — event LOST", ...)` i `raise` (nie ma cichych upadków);
-4. pojedynczy `await session.commit()` dla całej partii.
+```python
+self._session.add(
+    self._models.audit(
+        id=self._id_generator.new_id(),
+        integration_event_name=envelope["contract_type"],
+        occurred_at=envelope["occurred_at"],
+        payload=envelope["payload"],
+    )
+)
+```
+
+Zapis audytu jest częścią tej samej transakcji co zmiana domenowa i outbox — nie istnieje osobny adapter `SqlAuditPublisher`; nic nie pisze do `audit_event` poza UoW.
 
 ## Kluczowe pliki
 
@@ -46,13 +54,15 @@ Adapter `EventPublisher` zapisujący audyt do bazy. Konstruktor przyjmuje `sessi
 - `shell/platform/infrastructure/logging/stdlib_logger/json_formatter.py`
 - `shell/platform/bootstrap/logging/setup_logging.py`
 - `shell/platform/infrastructure/logging/logging_event_publisher.py`
-- `shell/platform/infrastructure/logging/sql_audit_publisher.py`
-- `shell/platform/application/ports/ports.py` (port `Logger`)
+- `shell/platform/infrastructure/persistence/sql/models/audit_delivery.py`
+- `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`
+- `shell/platform/application/ports/logger.py` (port `Logger`)
 
 ## Powiązane koncepcje
 
 - [tracing-context](tracing-context.md)
 - [domain-event](domain-event.md)
+- [transactional-outbox](transactional-outbox.md)
 - [sqlalchemy-persistence](sqlalchemy-persistence.md)
 - [configuration](configuration.md)
 - [delivery-models](delivery-models.md)

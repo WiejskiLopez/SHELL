@@ -5,7 +5,7 @@ import ast
 import sys
 
 sys.path.insert(0, "shell/tests/architecture")
-from _arch_helpers import BASE, iter_py_files, find_classes, extends_any_base
+from _arch_helpers import BASE, extends_any_base, find_classes, iter_py_files
 
 AGGREGATE_BASES = {"AggregateRoot"}
 

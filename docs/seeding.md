@@ -31,7 +31,7 @@ shell/<bc>_service/
 └── bootstrap/<bc>/seed.py  # CLI
 ```
 
-Publiczne API (kontrakt `shell/platform/application/ports/seed.py` → `SeedProvider`):
+Publiczne API (kontrakt `shell/platform/application/ports/runtime/seed.py` → `SeedProvider`):
 
 ```python
 async def bootstrap_<bc>_database(url: str, reset_db: bool = False) -> None

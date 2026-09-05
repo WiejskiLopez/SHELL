@@ -2,9 +2,8 @@
 
 Status: propozycja architektury i plan migracji  
 Data audytu: 2026-08-12
-Aktualizacja: 2026-08-24 — kanał **Message** (message outbox/inbox) został
-**usunięty** z SHELL; patrz `outbox.md` (STATUS) i `docs/messages-removed.md`.
-Pozostałe sekcje poniżej dotyczą kanałów **Event** i **Command**.
+Aktualizacja: 2026-09-04 — opis dotyczy wyłącznie kanałów **Event** i
+**Command**.
 
 ## Cel
 
@@ -12,15 +11,13 @@ Każdy bounded context powinien posiadać własne rekordy transportowe:
 
 - event outbox,
 - event inbox,
-- message outbox,
-- message inbox,
 - command outbox,
 - command inbox,
 - audit event.
 
 Platforma powinna dostarczać jedną implementację wspólnych modeli i mechanizmów:
-modele `InboxEventModel`/`OutboxEventModel`, `InboxMessageModel`/`OutboxMessageModel`,
-`InboxCommandModel`/`OutboxCommandModel`, serializację, retry oraz generyczne
+modele `InboxEventModel`/`OutboxEventModel`, `InboxCommandModel`/`OutboxCommandModel`,
+serializację, retry oraz generyczne
 publisher'y, relay'e i procesory. Wszystkie BC korzystają z tych samych klas
 platformowych na własnych bazach danych.
 
@@ -29,11 +26,11 @@ platformowych na własnych bazach danych.
 W repozytorium już istnieją:
 
 - osobne SQLAlchemy bases dla bounded contexts, np. `DefinitionSqlAlchemyModelBase`, `ExecutionSqlAlchemyModelBase` i `UserSqlAlchemyModelBase`;
-- platformowe factory/bundle’y modeli event, message, command i audit;
-- serializery i deserializery eventów oraz messages;
-- `SqlMessageOutboxPublisher` i `SqlCommandOutboxPublisher` dla kontraktów tworzonych poza UoW;
-- wspólny `OutboxToTransportRelay` dla eventów, messages i commands;
-- `EventInboxProcessor` i `MessageInboxProcessor`;
+- platformowe factory/bundle’y modeli event, command i audit;
+- serializery i deserializery eventów oraz komend;
+- `SqlCommandOutboxWriter` / `SqlCommandDeliveryDispatcher` dla kontraktów tworzonych poza domenowym UoW;
+- wspólny mechanizm relay dla eventów i komend;
+- `EventInboxProcessor` i `CommandInboxProcessor`;
 - baseline migrations dla poszczególnych bounded contexts;
 - testy idempotencji relayów, transactional outbox i retry/DLQ inbox.
 
@@ -44,13 +41,13 @@ Aktualne modele znajdują się w:
 Ich tabele mają wspólne nazwy:
 
 ```text
-outbox_event
-inbox_event
-outbox_command
-inbox_command
+event_outbox
+event_inbox
+command_outbox
+command_inbox
 ```
 
-Baseline każdego BC dołącza komplet modeli event/message/command/audit do własnego metadata.
+Baseline każdego BC dołącza komplet modeli event/command/audit do własnego metadata.
 Fizyczna izolacja wynika z osobnego `db_url` dla każdego BC. Wspólna implementacja
 klas platformowych nie oznacza wspólnej bazy ani wspólnych danych.
 
@@ -59,7 +56,7 @@ klas platformowych nie oznacza wspólnej bazy ani wspólnych danych.
 Poniższe komponenty importują konkretne platformowe modele SQL:
 
 - globalne importy modeli w runtime pozostają tylko jako kompatybilny fallback;
-- docelowe modele są przekazywane przez `PersistenceDeliveryModels` albo jego bundle event/message/command;
+- docelowe modele są przekazywane przez `PersistenceDeliveryModels` albo jego bundle event/command;
 - relay'e mogą używać osobnych `target_session_factory` i `target_models`;
 - baseline'y używają modeli z metadata właściwego BC.
 
@@ -80,8 +77,6 @@ flowchart LR
     subgraph DefinitionDB[Definition DB]
         DO[Definition event outbox]
         DI[Definition event inbox]
-        DM[Definition message outbox]
-        DMI[Definition message inbox]
         DC[Definition command outbox]
         DCI[Definition command inbox]
     end
@@ -89,8 +84,6 @@ flowchart LR
     subgraph ExecutionDB[Execution DB]
         EO[Execution event outbox]
         EI[Execution event inbox]
-        EM[Execution message outbox]
-        EMI[Execution message inbox]
     end
 
     DO --> T[HTTP or broker]
@@ -103,11 +96,12 @@ Proponowana topologia:
 
 ```text
 shell/platform/infrastructure/
-    persistence/sql/models/
-        messaging_columns.py
+    messaging/delivery/
+        delivery_columns.py      # DeliveryColumnsMixin (payload, correlation_id, causation_id)
     messaging/
         event/
-        message/
+        command/
+        inbox/
 
     shell/definition_service/infrastructure/definition/persistence/sql/models/base.py
     shell/execution_service/infrastructure/execution/persistence/sql/models/base.py
@@ -122,7 +116,7 @@ własne klasy ORM w swoich metadata.
 
 Platforma posiada:
 
-- kontrakty `EventPublisher` i `MessagePublisher`;
+- kontrakty publisherów eventów i komend;
 - kontrakty envelope i porty transportowe;
 - serializery i deserializery;
 - wspólne modele `InboxEventModel` i `OutboxEventModel`;
@@ -229,7 +223,7 @@ Po przepięciu wszystkich BC:
 
 ### Testy metadata
 
-- każdy BC rejestruje event/message/command/audit w swoim metadata;
+- każdy BC rejestruje event/command/audit w swoim metadata;
 - modele są zarejestrowane w metadata właściwego BC;
 - platformowe metadata nie rejestruje modeli BC;
 - każdy baseline tworzy komplet wymaganych tabel.
@@ -265,6 +259,6 @@ Refaktoryzację można uznać za zakończoną, gdy:
 
 - zmiana UoW dotyka wszystkich agregatów i może zmienić transactional outbox;
 - wspólne nazwy tabel są bezpieczne tylko przy osobnych bazach;
-- message i event mają podobną strukturę, ale nie powinny zostać połączone w jeden niejawny model;
+- event i command mają podobny lifecycle techniczny, ale zachowują osobne kontrakty i dispatch;
 - migracja musi zachować istniejące rekordy, więc należy stosować migracje schematu, a nie samo `create_all` na produkcji;
 - nie należy usuwać platformowych modeli przed przepięciem wszystkich BC i testów regresji.

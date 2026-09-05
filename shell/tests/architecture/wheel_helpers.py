@@ -37,6 +37,7 @@ class ServiceWheels:
     output_dir: Path
     platform_wheel: Path
     service_wheel: Path
+    saga_wheel: Path | None = None
 
 
 def build_service_wheels(build_root: Path) -> dict[str, ServiceWheels]:
@@ -53,6 +54,14 @@ def build_service_wheels(build_root: Path) -> dict[str, ServiceWheels]:
         output_dir=platform_dir,
     )
     platform_wheel = next(platform_dir.glob("shell_platform-*.whl"))
+    saga_dir = build_root / "saga-orchestration"
+    build_single_wheel(
+        package_name="saga-orchestration",
+        manifest_path=REPOSITORY_ROOT / "packaging" / "saga-orchestration" / "pyproject.toml",
+        source_path=REPOSITORY_ROOT / "packaging" / "saga-orchestration" / "saga_orchestration",
+        output_dir=saga_dir,
+    )
+    saga_wheel = next(saga_dir.glob("saga_orchestration-*.whl"))
     result: dict[str, ServiceWheels] = {}
     for service_name, package_name in SERVICES:
         service_dir = build_root / service_name
@@ -65,9 +74,12 @@ def build_service_wheels(build_root: Path) -> dict[str, ServiceWheels]:
         service_wheel_name = f"{package_name.replace('-', '_')}-*.whl"
         service_wheel = next(service_dir.glob(service_wheel_name))
         shutil.copy2(platform_wheel, service_dir / platform_wheel.name)
+        if service_name == "project_service":
+            shutil.copy2(saga_wheel, service_dir / saga_wheel.name)
         result[service_name] = ServiceWheels(
             output_dir=service_dir,
             platform_wheel=service_dir / platform_wheel.name,
             service_wheel=service_wheel,
+            saga_wheel=(service_dir / saga_wheel.name if service_name == "project_service" else None),
         )
     return result

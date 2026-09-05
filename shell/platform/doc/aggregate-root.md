@@ -24,17 +24,14 @@ def __init__(self, id: TId) -> None:
 
 Rejestracja zdarzenia — `append_event(event: DomainEvent) -> None`:
 
-- metoda importuje lokalnie `AggregateId` i `AggregateName` z `shell/platform/domain/value_objects/`;
-- uzupełnia event o dane agregatu przez `object.__setattr__`, co jest konieczne, ponieważ `DomainEvent` jest frozen dataclass (brak normalnego settera):
-  - `aggregate_id = AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id))`,
-  - `aggregate_name = AggregateName(type(self).__name__)` (nazwa klasy agregatu);
+- metoda importuje lokalnie `AggregateId` z `shell/platform/domain/value_objects/aggregate_id.py` (import lokalny unika cyklicznych zależności);
+- uzupełnia event o identyfikator agregatu przez `object.__setattr__`, co jest konieczne, ponieważ `DomainEvent` jest frozen dataclass (brak normalnego settera):
+  - `aggregate_id = AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id))`;
 - dopisuje event do `self._events`.
 
 Odbiór zdarzeń — `pull_events() -> list[DomainEvent]`:
 
 - kopiuje bufor (`self._events.copy()`), czyści go (`self._events.clear()`) i zwraca kopię. Dzięki temu każde zdarzenie jest odbierane dokładnie raz przez warstwę aplikacji.
-
-> Kanał Message (`append_message`/`pull_messages`) został usunięty — patrz `docs/messages-removed.md`.
 
 Wzorzec metody domenowej (sekwencja guard → mutacja → event): metody domenowe agregatu najpierw wykonują guard clauses (weryfikacja invariants — patrz `DomainError` w [domain-errors](domain-errors.md)), następnie mutują stan prywatnych pól, a na końcu wywołują `append_event(...)`. Brak publicznych setterów — stan jest zmieniany wyłącznie przez metody domenowe; tożsamość jest ustawiana tylko w `__init__`.
 
@@ -44,7 +41,6 @@ Wzorzec metody domenowej (sekwencja guard → mutacja → event): metody domenow
 - `shell/platform/domain/base/entity.py`
 - `shell/platform/domain/events/domain_event.py`
 - `shell/platform/domain/value_objects/aggregate_id.py`
-- `shell/platform/domain/value_objects/aggregate_name.py`
 
 ## Powiązane koncepcje
 

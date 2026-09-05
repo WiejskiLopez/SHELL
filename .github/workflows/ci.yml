@@ -12,9 +12,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Install dependencies
         run: uv sync
+      - name: Saga orchestration library
+        run: |
+          uv run pytest packaging/saga-orchestration/tests -q
+          uv build --wheel packaging/saga-orchestration
       - name: Ruff check
         run: uv run ruff check shell shell/tests
       - name: Ruff format check
@@ -39,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Install dependencies
         run: uv sync
       - name: Start PostgreSQL and RabbitMQ

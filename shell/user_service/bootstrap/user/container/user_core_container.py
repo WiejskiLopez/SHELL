@@ -7,23 +7,21 @@ from datetime import timedelta
 from dependency_injector import containers, providers
 
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.command_bus_publisher import CommandBusPublisher
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command import CommandInboxConsumer, CommandOutboxRelay
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.command_transport import (
-    CommandOutboxToTransportRelay,
 )
 from shell.platform.infrastructure.messaging.command_transport.rabbit import (
     RabbitCommandDeliveryTransport,
-    RabbitCommandInboxConsumer,
 )
-from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
+from shell.platform.infrastructure.messaging.event import EventOutboxRelay
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     RabbitEventDeliveryTransport,
 )
@@ -106,6 +104,7 @@ from shell.user_service.application.user.user_state.queries.get_user_state_by_id
 from shell.user_service.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
     GetUserStateByIdHandler,
 )
+from shell.user_service.bootstrap.user.delivery import build_delivery_config
 from shell.user_service.infrastructure.user.auth_session.adapters.token_generator.secure_token_generator import (
     SecureTokenGenerator,
 )
@@ -187,6 +186,7 @@ class UserCoreContainer(containers.DeclarativeContainer):
 
     # Application buses
     command_bus = providers.Singleton(CommandBus)
+    command_bus_publisher = providers.Singleton(CommandBusPublisher, command_bus=command_bus)
     query_bus = providers.Singleton(QueryBus)
     command_registry = providers.Object(
         build_command_registry(discover_command_types("shell.user_service.application.user"))
@@ -194,11 +194,9 @@ class UserCoreContainer(containers.DeclarativeContainer):
     command_inbox_processor_factory = providers.Factory(
         CommandInboxProcessor,
         session_factory=session_factory,
-        command_bus=command_bus,
+        dispatcher=command_bus_publisher,
         models=persistence_delivery_models.provided.commands,
         registry=command_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="user-command",
         worker_id=config.command_worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
@@ -210,7 +208,7 @@ class UserCoreContainer(containers.DeclarativeContainer):
         url=config.broker_url,
     )
     outbox_to_transport_relay_factory = providers.Factory(
-        EventOutboxToTransportRelay,
+        EventOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
         transport=event_delivery_transport,
@@ -220,13 +218,13 @@ class UserCoreContainer(containers.DeclarativeContainer):
         url=config.broker_url,
     )
     command_outbox_to_transport_relay_factory = providers.Factory(
-        CommandOutboxToTransportRelay,
+        CommandOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         transport=command_delivery_transport,
     )
     rabbit_command_inbox_consumer_factory = providers.Factory(
-        RabbitCommandInboxConsumer,
+        CommandInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
@@ -311,6 +309,17 @@ class UserCoreContainer(containers.DeclarativeContainer):
         GetCurrentAuthSessionHandler,
         queries=auth_session_query_service,
         clock=clock_factory,
+    )
+    delivery_config = providers.Singleton(
+        build_delivery_config,
+        models=persistence_delivery_models,
+        event_registry=None,
+        command_registry=command_registry,
+        event_bus=None,
+        command_bus=command_bus,
+        event_transport=event_delivery_transport,
+        command_transport=command_delivery_transport,
+        session_factory=session_factory,
     )
 
 

@@ -39,9 +39,16 @@ Gdy `heartbeat_interval_seconds > 0`, dispatch jest owinięty:
 ```python
 stop_event = asyncio.Event()
 lease_ok = {"value": True}
-heartbeat = asyncio.create_task(self._heartbeat_loop(record_id, stop_event, lease_ok))
+heartbeat = asyncio.create_task(self._heartbeat_loop(inbox_id, stop_event, lease_ok))
+dispatch = asyncio.create_task(self._dispatch(domain_object))
 try:
-    await self._dispatch(domain_object)
+    done, _ = await asyncio.wait({dispatch, heartbeat}, return_when=asyncio.FIRST_COMPLETED)
+    if heartbeat in done and not lease_ok["value"]:
+        dispatch.cancel()
+        with suppress(asyncio.CancelledError):
+            await dispatch
+        return False
+    await dispatch
 finally:
     stop_event.set()
     with suppress(asyncio.CancelledError):
@@ -49,7 +56,7 @@ finally:
 return lease_ok["value"]
 ```
 
-`_heartbeat_loop(record_id, stop_event, lease_ok)` co `heartbeat_interval_seconds` budzi się, sprawdza `stop_event`, woła `_renew_lease(record_id)`; przy `not renewed` ustawia `lease_ok["value"] = False` i kończy pętlę. Dispatch trwa więc razem z lease, a każda iteracja potwierdza własność.
+Dispatch i heartbeat działają jako osobne zadania; gdy heartbeat zakończy się pierwszy z utratą lease (`lease_ok["value"] = False`), dispatch jest **anulowany** i zwracane jest `False`. `_heartbeat_loop(record_id, stop_event, lease_ok)` co `heartbeat_interval_seconds` budzi się, sprawdza `stop_event`, woła `_renew_lease(record_id)`; przy `not renewed` ustawia `lease_ok["value"] = False` i kończy pętlę.
 
 W `_process_in_transaction` wynik jest używany tak:
 
@@ -106,7 +113,7 @@ W `InboxProcessorBase.__init__`: `lease_duration_seconds=60`, `heartbeat_interva
 
 ## Kluczowe pliki
 
-- `shell/platform/infrastructure/messaging/inbox/inbox_processor_base.py` (`_renew_lease`, `_dispatch_with_heartbeat`, `_heartbeat_loop`, `run_once`, `_process_in_transaction`)
+- `shell/platform/infrastructure/messaging/delivery/inbox_processor_base.py` (`_renew_lease`, `_dispatch_with_heartbeat`, `_heartbeat_loop`, `run_once`, `_process_in_transaction`)
 - `shell/platform/infrastructure/messaging/inbox/inbox_claim_service.py` (`claim_batch(limit=...)`)
 
 ## Powiązane koncepcje

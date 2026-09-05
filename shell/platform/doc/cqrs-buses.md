@@ -8,8 +8,6 @@ Implementuje podział wiadomości aplikacyjnych na trzy osobne kanały CQRS/EDA:
 handlerów rozwiązujące handler w momencie dispatch/publish — nie zawierają
 logiki biznesowej ani transakcyjności.
 
-> Kanał `MessageBus` został usunięty — patrz `docs/messages-removed.md`.
-
 ## Problem
 
 W systemie z wieloma bounded contextami przesyłanie komunikatów wymaga

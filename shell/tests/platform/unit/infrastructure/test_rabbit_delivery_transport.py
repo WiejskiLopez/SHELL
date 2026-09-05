@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, cast
 import pytest
 
 from shell.platform.application.ports.transport.event_transport import (
-    IntegrationEventDeliveryEnvelope,
+    EventDeliveryEnvelope,
 )
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     rabbit_event_delivery_transport as transport_module,
@@ -30,16 +30,16 @@ if TYPE_CHECKING:
     from aio_pika.abc import AbstractChannel
 
 
-def _envelope() -> IntegrationEventDeliveryEnvelope:
-    return IntegrationEventDeliveryEnvelope(
-        kind="event",
-        outbox_id="outbox-1",
-        integration_event_name="TaskExecutionCreatedEvent",
+def _envelope() -> EventDeliveryEnvelope:
+    return EventDeliveryEnvelope(
+        event_id="event-1",
+        contract_type="TaskExecutionCreatedEvent",
         occurred_at=datetime(2026, 1, 1, tzinfo=UTC),
         payload={"task_execution_id": "abc"},
         correlation_id="corr-1",
         causation_id="cause-1",
-        event_id="event-1",
+        source_service="execution",
+        destination_service="*",
         aggregate_id="aggregate-1",
     )
 

@@ -122,4 +122,4 @@ class PermanentError(Exception):
 - `shell/platform/infrastructure/retry/`
 - `shell/platform/infrastructure/circuit_breaker/`
 
-> **Zakres obecny**: retry jest skupione w `EventInboxProcessor` (`shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py`). Zakres docelowy obejmuje dedykowane klasy.
+> **Zakres obecny**: retry jest skupione w `EventInboxProcessor` (`shell/platform/infrastructure/messaging/event/event_inbox_processor.py`). Zakres docelowy obejmuje dedykowane klasy.

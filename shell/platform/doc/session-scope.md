@@ -61,8 +61,7 @@ processora, by przerwać transakcję.
 Scope jest tworzony i publikowany przez inbox processor przed dispatchem
 rekordu (proces claim→process→ack, patrz [inbox-processor](inbox-processor.md)),
 a po zakończeniu przetwarzania resetowany przez `reset_session_scope(token)`.
-Handlery (także te w `DeliveryDedupStore`, które rozwiązują sesję z aktywnego
-scope'a) odczytują go przez `get_session_scope()`.
+Handlery odczytują go przez `get_session_scope()`.
 
 ### Re-export
 
@@ -75,7 +74,6 @@ scope'a) odczytują go przez `get_session_scope()`.
 - `shell/platform/application/context/session_scope.py`
 - `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`
 - `shell/platform/infrastructure/context/__init__.py`
-- `shell/platform/application/ports/delivery_dedup_store.py`
 
 ## Powiązane koncepcje
 
@@ -83,5 +81,4 @@ scope'a) odczytują go przez `get_session_scope()`.
 - [unit-of-work](unit-of-work.md)
 - [transactional-outbox](transactional-outbox.md)
 - [tracing-context](tracing-context.md)
-- [processed-delivery-dedup](processed-delivery-dedup.md)
 - [inbox-lifecycle](inbox-lifecycle.md)

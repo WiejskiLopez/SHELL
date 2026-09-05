@@ -59,14 +59,14 @@ def test_event_delivery_models_are_bound_to_the_consuming_bc_metadata() -> None:
         "warunek zapisany w asercji musi być spełniony",
         "Asercja nie zawierała dodatkowych szczegółów.",
     )
-    assert set(DefinitionBase.metadata.tables) == {"inbox_event", "outbox_event"}, (
+    assert set(DefinitionBase.metadata.tables) == {"event_inbox", "event_outbox"}, (
         architecture_assertion_message(
             "reguła testowana przez test_event_delivery_models_are_bound_to_the_consuming_bc_metadata",
             "warunek zapisany w asercji musi być spełniony",
             "Asercja nie zawierała dodatkowych szczegółów.",
         )
     )
-    assert set(ExecutionBase.metadata.tables) == {"inbox_event", "outbox_event"}, (
+    assert set(ExecutionBase.metadata.tables) == {"event_inbox", "event_outbox"}, (
         architecture_assertion_message(
             "reguła testowana przez test_event_delivery_models_are_bound_to_the_consuming_bc_metadata",
             "warunek zapisany w asercji musi być spełniony",

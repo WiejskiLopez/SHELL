@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
-    MISSING_OUTBOX_ID,
+    MISSING_DELIVERY_ID,
     PAYLOAD_TOO_LARGE,
     UNSUPPORTED_SCHEMA_VERSION,
     EnvelopeValidationPolicy,
@@ -17,7 +17,7 @@ class TestEnvelopeValidator:
             EnvelopeValidationPolicy(supported_schema_versions={"SampleEvent": frozenset({1, 2})})
         )
         error = validator.validate(
-            outbox_id="outbox-1",
+            delivery_id="delivery-1",
             message_name="SampleEvent",
             schema_version=2,
             payload={},
@@ -31,7 +31,7 @@ class TestEnvelopeValidator:
             EnvelopeValidationPolicy(supported_schema_versions={"SampleEvent": frozenset({1})})
         )
         error = validator.validate(
-            outbox_id="outbox-1",
+            delivery_id="delivery-1",
             message_name="SampleEvent",
             schema_version=99,
             payload={},
@@ -44,7 +44,7 @@ class TestEnvelopeValidator:
         validator = EnvelopeValidator(EnvelopeValidationPolicy())
         assert (
             validator.validate(
-                outbox_id="outbox-1",
+                delivery_id="delivery-1",
                 message_name="AnyEvent",
                 schema_version=1,
                 payload={},
@@ -55,7 +55,7 @@ class TestEnvelopeValidator:
         )
         assert (
             validator.validate(
-                outbox_id="outbox-1",
+                delivery_id="delivery-1",
                 message_name="AnyEvent",
                 schema_version=2,
                 payload={},
@@ -65,22 +65,22 @@ class TestEnvelopeValidator:
             == UNSUPPORTED_SCHEMA_VERSION
         )
 
-    def test_missing_outbox_id_rejected_when_required(self) -> None:
-        validator = EnvelopeValidator(EnvelopeValidationPolicy(require_outbox_id=True))
+    def test_missing_delivery_id_rejected_when_required(self) -> None:
+        validator = EnvelopeValidator(EnvelopeValidationPolicy(require_delivery_id=True))
         error = validator.validate(
-            outbox_id=None,
+            delivery_id=None,
             message_name="AnyEvent",
             schema_version=1,
             payload={},
             correlation_id="c",
             causation_id="k",
         )
-        assert error == MISSING_OUTBOX_ID
+        assert error == MISSING_DELIVERY_ID
 
     def test_oversized_payload_rejected(self) -> None:
         validator = EnvelopeValidator(EnvelopeValidationPolicy(max_payload_bytes=10))
         error = validator.validate(
-            outbox_id="outbox-1",
+            delivery_id="delivery-1",
             message_name="AnyEvent",
             schema_version=1,
             payload={"big": "x" * 100},

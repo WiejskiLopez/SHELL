@@ -90,7 +90,7 @@ Integration Event: między BC, stabilny kontrakt, zmiana wymaga wersjonowania.
 
 **Aplikacyjny Event Handler obsługuje Integration Events.** Domain Event jest
 wewnętrznym faktem agregatu: `append_event()` → UoW stage'uje →
-`ReflectiveIntegrationMapper` mapuje na **Integration Event** → `outbox_event`.
+`ReflectiveIntegrationMapper` mapuje na **Integration Event** → `event_outbox`.
 W ramach reakcji handler może publikować kolejne Integration Events (do innych BC).
 
 ## Wersjonowanie eventów

@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Porty domenowe w `shell/platform/domain/ports/` definiują minimalne kontrakty (protocols) między warstwą domeny a adapterami infrastruktury: `RepositoryPort` (operacje CRUD na agregatach), `IdGenerator` (generowanie identyfikatorów), `Clock` (źródło czasu), `Logger` (logowanie). Dzięki nim warstwa domeny nie zależy od konkretnych implementacji (baza danych, UUID, `datetime`, logger).
+Porty domenowe w `shell/platform/domain/ports/` definiują minimalne kontrakty (protocols) między warstwą domeny a adapterami infrastruktury: `RepositoryPort` (operacje CRUD na agregatach), `IdGenerator` (generowanie identyfikatorów), `Clock` (źródło czasu). Port `Logger` żyje w warstwie aplikacji (`shell/platform/application/ports/logger.py`). Dzięki nim warstwa domeny nie zależy od konkretnych implementacji (baza danych, UUID, `datetime`, logger).
 
 ## Problem
 
@@ -14,9 +14,9 @@ W architekturze hexagonalnej domena nie może importować infrastruktury, ale po
 
 ```python
 TAggregate = TypeVar("TAggregate")
-TId = TypeVar("TId")
+TId = TypeVar("TId", contravariant=True)
 
-class RepositoryPort(Protocol[TAggregate, TId]):  # type: ignore[misc]
+class RepositoryPort(Protocol[TAggregate, TId]):
     async def get_by_id(self, id: TId) -> TAggregate | None: ...
 
     async def save(self, entity: TAggregate) -> None: ...
@@ -31,7 +31,7 @@ class RepositoryPort(Protocol[TAggregate, TId]):  # type: ignore[misc]
 - `save(entity: TAggregate) -> None` — zapis (pełni też rolę update).
 - `delete(id: TId) -> None` — usunięcie (soft delete na poziomie agregatu).
 - `exists(id: TId) -> ExistsResult` — zwraca `ExistsResult` (frozen dataclass z `value: bool` i `__bool__`), nie goły `bool`.
-- Wszystkie metody są `async`. `# type: ignore[misc]` tłumi mypy dla variance generycznego protocol.
+- Wszystkie metody są `async`. `TId` jest kontrawariantny (`TypeVar("TId", contravariant=True)`).
 - `TAggregate`/`TId` są niesparametryzowane boundami — tożsamość agregatu jest nieprzezroczysta.
 
 ### IdGenerator — `shell/platform/domain/ports/identity.py`
@@ -56,7 +56,7 @@ class Clock(Protocol):
 - Abstrakcyjne źródło czasu; adaptery dostarczają czas rzeczywisty (UTC) lub zamrożony do testów.
 - Używany do tworzenia `OccurredAt`, `DeletedAt`, `Timestamp` (timezone-aware UTC).
 
-### Logger — `shell/platform/domain/ports/log.py`
+### Logger — `shell/platform/application/ports/logger.py`
 
 ```python
 class Logger(Protocol):
@@ -76,7 +76,7 @@ Wszystkie porty to strukturalne `Protocol` (duck typing) — adapter nie musi dz
 - `shell/platform/domain/ports/repository_port.py`
 - `shell/platform/domain/ports/identity.py`
 - `shell/platform/domain/ports/time.py`
-- `shell/platform/domain/ports/log.py`
+- `shell/platform/application/ports/logger.py`
 - `shell/platform/domain/value_objects/exists_result.py`
 
 ## Powiązane koncepcje

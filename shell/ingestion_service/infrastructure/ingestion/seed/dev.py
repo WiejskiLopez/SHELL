@@ -110,7 +110,6 @@ _OUTBOX_EVENTS_DATA: list[dict[str, Any]] = [
 _INBOX_EVENTS_DATA: list[dict[str, Any]] = [
     {
         "id": f"{DEV_ID_PREFIX}-inbox-1",
-        "outbox_id": f"{DEV_ID_PREFIX}-outbox-1",
         "event_id": f"{DEV_ID_PREFIX}-event-1",
         "source_service": "ingestion_service",
         "integration_event_name": "workflow.completed",
@@ -123,7 +122,6 @@ _INBOX_EVENTS_DATA: list[dict[str, Any]] = [
     },
     {
         "id": f"{DEV_ID_PREFIX}-inbox-2",
-        "outbox_id": f"{DEV_ID_PREFIX}-outbox-2",
         "event_id": f"{DEV_ID_PREFIX}-event-2",
         "source_service": "ingestion_service",
         "integration_event_name": "task.created",
@@ -136,7 +134,6 @@ _INBOX_EVENTS_DATA: list[dict[str, Any]] = [
     },
     {
         "id": f"{DEV_ID_PREFIX}-inbox-3",
-        "outbox_id": f"{DEV_ID_PREFIX}-outbox-3",
         "event_id": f"{DEV_ID_PREFIX}-event-3",
         "source_service": "ingestion_service",
         "integration_event_name": "scheduler.ready",

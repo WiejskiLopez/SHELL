@@ -71,7 +71,6 @@ async def _seed_pending(session_factory: async_sessionmaker, count: int) -> None
             session.add(
                 _INBOX_MODEL(
                     id=f"evt-ready-{index}",
-                    outbox_id=f"outbox-evt-ready-{index}",
                     event_id=event.event_id,
                     source_service="execution_service",
                     integration_event_name=type(event).__name__,
@@ -156,7 +155,6 @@ class TestWorkerHeartbeatReadiness:
             session.add(
                 _INBOX_MODEL(
                     id="evt-hb-pending",
-                    outbox_id="outbox-evt-hb-pending",
                     event_id=event.event_id,
                     source_service="execution_service",
                     integration_event_name=type(event).__name__,

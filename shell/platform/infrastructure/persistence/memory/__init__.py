@@ -9,9 +9,6 @@ from shell.platform.infrastructure.persistence.memory.fake_event_publisher impor
 from shell.platform.infrastructure.persistence.memory.fake_id_generator import FakeIdGenerator
 from shell.platform.infrastructure.persistence.memory.fake_logger import FakeLogger
 from shell.platform.infrastructure.persistence.memory.fake_task_loader import FakeTaskLoader
-from shell.platform.infrastructure.persistence.memory.in_memory_saga_repository import (
-    InMemorySagaRepository,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -21,5 +18,4 @@ __all__ = [
     "FakeIdGenerator",
     "FakeLogger",
     "FakeTaskLoader",
-    "InMemorySagaRepository",
 ]

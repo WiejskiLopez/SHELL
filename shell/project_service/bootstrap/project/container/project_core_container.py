@@ -1,8 +1,20 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+from saga_orchestration.infrastructure.process.saga.command_delivery import (
+    build_command_delivery_dispatcher,
+)
+from saga_orchestration.infrastructure.process.saga.repositories.sql_saga_repository import (
+    SqlSagaRepository,
+)
+from saga_orchestration.infrastructure.process.saga.repositories.sql_saga_timeout_repository import (
+    SqlSagaTimeoutRepository,
+)
+from saga_orchestration.infrastructure.process.saga.worker import SagaTimeoutProcessor
+from saga_orchestration.process.saga.saga_timed_out import SagaTimedOut
 
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.command_bus_publisher import CommandBusPublisher
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.event_bus_publisher import EventBusPublisher
 from shell.platform.application.bus.query_bus import QueryBus
@@ -10,23 +22,19 @@ from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGener
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command import CommandInboxConsumer, CommandOutboxRelay
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.command_transport import (
-    CommandOutboxToTransportRelay,
 )
 from shell.platform.infrastructure.messaging.command_transport.rabbit import (
     RabbitCommandDeliveryTransport,
-    RabbitCommandInboxConsumer,
 )
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event import EventInboxConsumer, EventOutboxRelay
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
 )
-from shell.platform.infrastructure.messaging.event_transport import EventOutboxToTransportRelay
 from shell.platform.infrastructure.messaging.event_transport.rabbit import (
     RabbitEventDeliveryTransport,
-    RabbitEventInboxConsumer,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
@@ -38,16 +46,6 @@ from shell.platform.infrastructure.messaging.outbox.outbox_metrics_service impor
     OutboxMetricsService,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.platform.infrastructure.process.saga import build_command_delivery_dispatcher
-from shell.platform.infrastructure.process.saga.repositories.sql_saga_repository import (
-    SqlSagaRepository,
-)
-from shell.platform.infrastructure.process.saga.repositories.sql_saga_timeout_repository import (
-    SqlSagaTimeoutRepository,
-)
-from shell.platform.infrastructure.process.saga.worker.saga_timeout_processor import (
-    SagaTimeoutProcessor,
-)
 from shell.platform.infrastructure.serialization.upcaster import PayloadUpcaster
 from shell.platform.infrastructure.time.system_clock import SystemClock
 from shell.platform.observability.infrastructure.health.composite_readiness_probe import (
@@ -61,7 +59,6 @@ from shell.platform.observability.infrastructure.metrics.prometheus_metrics_back
     PrometheusMetricsBackend,
 )
 from shell.platform.observability.infrastructure.metrics.registry import MetricsRegistry
-from shell.platform.process.saga.saga_timed_out import SagaTimedOut
 from shell.project_service.application.project.project.command_handlers.change_project_handler import (
     ChangeProjectHandler,
 )
@@ -127,9 +124,11 @@ from shell.project_service.bootstrap.project.command_contracts import (
     build_project_command_registry,
 )
 from shell.project_service.bootstrap.project.contract_catalog import PROJECT_CONTRACT_CATALOG
+from shell.project_service.bootstrap.project.delivery import build_delivery_config
 from shell.project_service.bootstrap.project.event_registry import build_project_event_registry
 from shell.project_service.infrastructure.project.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS,
+    SAGA_DELIVERY_MODELS,
 )
 from shell.project_service.infrastructure.project.project.persistence.sql.services.project_query_service import (
     ProjectQueryService,
@@ -164,7 +163,9 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
     command_bus = providers.Singleton(CommandBus)
+    command_bus_publisher = providers.Singleton(CommandBusPublisher, command_bus=command_bus)
     persistence_delivery_models = providers.Object(PERSISTENCE_DELIVERY_MODELS)
+    saga_delivery_models = providers.Object(SAGA_DELIVERY_MODELS)
     event_bus = providers.Singleton(EventBus)
     event_publisher = providers.Singleton(EventBusPublisher, event_bus=event_bus)
     event_registry = providers.Singleton(build_project_event_registry)
@@ -174,8 +175,6 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         event_bus=event_bus,
         models=persistence_delivery_models.provided.events,
         registry=event_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="project",
         worker_id=config.worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
@@ -186,7 +185,7 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         RabbitEventDeliveryTransport, url=config.broker_url
     )
     outbox_to_transport_relay_factory = providers.Factory(
-        EventOutboxToTransportRelay,
+        EventOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
         transport=event_delivery_transport,
@@ -195,7 +194,7 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         RabbitCommandDeliveryTransport, url=config.broker_url
     )
     command_outbox_to_transport_relay_factory = providers.Factory(
-        CommandOutboxToTransportRelay,
+        CommandOutboxRelay,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         transport=command_delivery_transport,
@@ -204,7 +203,7 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         SagaTimeoutProcessor,
         session_factory=session_factory,
         event_bus=event_bus,
-        models=persistence_delivery_models.provided.sagas,
+        models=saga_delivery_models,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
     )
@@ -217,12 +216,12 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
     saga_repository = providers.Singleton(
         SqlSagaRepository,
         session_factory=session_factory,
-        models=persistence_delivery_models.provided.sagas,
+        models=saga_delivery_models,
     )
     saga_timeout_repository = providers.Singleton(
         SqlSagaTimeoutRepository,
         session_factory=session_factory,
-        models=persistence_delivery_models.provided.sagas,
+        models=saga_delivery_models,
         source_service="project",
     )
     project_provision_manager_factory = providers.Singleton(
@@ -265,28 +264,37 @@ class ProjectCoreContainer(containers.DeclarativeContainer):
         repository=saga_repository,
     )
     command_registry = providers.Object(build_project_command_registry())
+    delivery_config = providers.Singleton(
+        build_delivery_config,
+        models=persistence_delivery_models,
+        event_registry=event_registry,
+        command_registry=command_registry,
+        event_bus=event_bus,
+        command_bus=command_bus,
+        event_transport=event_delivery_transport,
+        command_transport=command_delivery_transport,
+        session_factory=session_factory,
+    )
     command_inbox_processor_factory = providers.Factory(
         CommandInboxProcessor,
         session_factory=session_factory,
-        command_bus=command_bus,
+        dispatcher=command_bus_publisher,
         models=persistence_delivery_models.provided.commands,
         registry=command_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="project-command",
         worker_id=config.command_worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
         upcaster=providers.Singleton(PayloadUpcaster),
     )
     rabbit_command_inbox_consumer_factory = providers.Factory(
-        RabbitCommandInboxConsumer,
+        CommandInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.commands,
         service_name="project",
     )
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitEventInboxConsumer,
+        EventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,

@@ -4,7 +4,7 @@
 
 Implementuje jawny, per-bounded-context rejestr kontraktów publicznych
 (`ContractCatalog`/`ContractEntry`) — pojedyncze źródło prawdy o tym, które
-typy event/message/command dany BC produkuje lub konsumuje. Katalog odnotowuje
+typy event/command dany BC produkuje lub konsumuje. Katalog odnotowuje
 właściciela, producentów, konsumentów oraz wspierane wersje schematu, dzięki
 czemu rejestr deserializacji nie jest jedynym autorytetem w kwestii istnienia
 danego kontraktu.

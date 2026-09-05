@@ -5,13 +5,13 @@ from shell.platform.application.ports.transport.command_transport import (
     CommandDeliveryTransport,
 )
 from shell.platform.application.ports.transport.event_transport import (
-    IntegrationEventDeliveryEnvelope,
+    EventDeliveryEnvelope,
     IntegrationEventDeliveryTransport,
 )
 
 __all__ = [
     "CommandDeliveryEnvelope",
     "CommandDeliveryTransport",
-    "IntegrationEventDeliveryEnvelope",
+    "EventDeliveryEnvelope",
     "IntegrationEventDeliveryTransport",
 ]

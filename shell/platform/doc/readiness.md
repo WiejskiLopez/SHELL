@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Port `ReadinessProbe` (`shell/platform/observability/application/ports/readiness.py`) oraz jego implementacja `SqlReadinessProbe` (`shell/platform/observability/infrastructure/health/sql_readiness_probe.py`) odpowiadają na pytanie "czy ten proces może teraz wykonać użyteczną pracę". Endpoint `GET /readiness` (`shell/platform/observability/framework/api/readiness.py`) zwraca `503` z diagnostycznym ciałem, dopóki serwis nie jest gotowy. `mount_readiness` (`shell/platform/observability/framework/api/health.py`) montuje ten endpoint w aplikacji BC tylko wtedy, gdy kontener rejestruje probe.
+Port `ReadinessProbe` (`shell/platform/observability/application/ports/readiness.py`) oraz jego implementacje `SqlReadinessProbe` (`shell/platform/observability/infrastructure/health/sql_readiness_probe.py`), `RabbitReadinessProbe` i `CompositeReadinessProbe` odpowiadają na pytanie "czy ten proces może teraz wykonać użyteczną pracę". Endpoint `GET /readiness` (`shell/platform/observability/framework/api/readiness.py`) zwraca `503` z diagnostycznym ciałem, dopóki serwis nie jest gotowy. `mount_readiness` (`shell/platform/observability/framework/api/health.py`) montuje ten endpoint w aplikacji każdego BC; brak `readiness_probe` w kontenerze jest błędem twardym (`AttributeError`), nie cichym pominięciem.
 
 ## Problem
 
@@ -62,21 +62,30 @@ Router ma `tags=["Health"]`. Liveness pozostaje w `GET /health` definiowanym prz
 
 ### Montowanie w BC
 
-`mount_readiness(app: FastAPI, core_container: ContainerProtocol | Any)` (`shell/platform/observability/framework/api/health.py`) odpytuje kontener o atrybut `readiness_probe` przez `getattr` i montuje router tylko, gdy jest zarejestrowany — BC bez workerów delivery zostają liveness-only.
+`mount_readiness(app: FastAPI, providers: ObservabilityProviders)` (`shell/platform/observability/framework/api/health.py`) wywołuje `providers.readiness_probe()` **bezwarunkowo** i zawsze montuje router — brak providera `readiness_probe` w kontenerze jest twardym `AttributeError` (serwis z deklaracją obserwowalności nie może cicho zgubić endpointu).
 
 Rejestracja w kontenerze (np. `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`):
 
 ```python
 readiness_probe = providers.Singleton(
-    SqlReadinessProbe,
-    session_factory=session_factory,
-    inbox_model=persistence_delivery_models.provided.events.inbox,
-    max_backlog=1000,
-    worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
+    CompositeReadinessProbe,
+    probes=providers.List(
+        providers.Singleton(
+            SqlReadinessProbe,
+            session_factory=session_factory,
+            inbox_model=persistence_delivery_models.provided.events.inbox,
+            max_backlog=1000,
+            worker_heartbeat_model=persistence_delivery_models.provided.worker_heartbeat,
+        ),
+        providers.Singleton(
+            RabbitReadinessProbe,
+            url_provider=providers.Object(config.broker_url),
+        ),
+    ),
 )
 ```
 
-Analogiczne rejestracje istnieją w kontenerach BC: `definition`, `project`, `session`, `scheduling`, `execution`, `user`.
+Analogiczne rejestracje (kompozyt `SqlReadinessProbe` + `RabbitReadinessProbe`) istnieją w kontenerach BC: `definition`, `project`, `session`, `scheduling`, `execution`, `user`.
 
 ## Kluczowe pliki
 

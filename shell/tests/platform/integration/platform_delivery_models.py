@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from saga_orchestration.infrastructure.process.saga.models import build_saga_delivery_models
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
 
@@ -20,4 +21,4 @@ PERSISTENCE_DELIVERY_MODELS: PersistenceDeliveryModels = build_persistence_deliv
 )
 EVENT_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.events
 COMMAND_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.commands
-SAGA_DELIVERY_MODELS = PERSISTENCE_DELIVERY_MODELS.sagas
+SAGA_DELIVERY_MODELS = build_saga_delivery_models(PlatformTestModelBase)

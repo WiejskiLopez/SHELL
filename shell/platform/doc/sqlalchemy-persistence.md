@@ -29,8 +29,8 @@ Domenowy typ `JsonStr` (frozen dataclass w `shell/platform/types/json_str.py`) w
 
 ### Mixiny
 
-- `TimestampedMixin` (`mixins/timestamped.py`): dodaje `created_at: Mapped[datetime]` (nullable=False), `updated_at: Mapped[datetime]` (nullable=False), `deleted_at: Mapped[datetime | None]` (nullable=True, default=None). Uwaga w docstringu: model, który sam definiuje `created_at`, nie może dziedziczyć mixinu — SQLAlchemy nie pozwala nadpisywać kolumn z mixinów; musi dodać `updated_at`/`deleted_at` ręcznie.
-- `VersionedMixin` (`mixins/versioned.py`): dodaje kolumnę `version: Mapped[int]` (nullable=False, default=1). Mixin **nie** ustawia `__mapper_args__` — każda klasa go dziedzicząca MUSI sama ustawić `__mapper_args__ = {"version_id_col": version}` (np. przez `@declared_attr`), bo SQLAlchemy nie dziedziczy `__mapper_args__` z mixinów. To włącza optymistyczne blokowanie (version_id_col) dla współbieżnych zapisów.
+- `TimestampedMixin` (`mixins/timestamped.py`): dodaje `created_at: Mapped[datetime]` (nullable=False), `changed_at: Mapped[datetime]` (nullable=False), `deleted_at: Mapped[datetime | None]` (nullable=True, default=None). Uwaga w docstringu: model, który sam definiuje `created_at`, nie może dziedziczyć mixinu — SQLAlchemy nie pozwala nadpisywać kolumn z mixinów; musi dodać `changed_at`/`deleted_at` ręcznie.
+- `VersionedMixin` (`mixins/versioned.py`): dodaje kolumnę `version: Mapped[int]` (nullable=False, default=1) oraz **sam ustawia** `__mapper_args__` przez `@declared_attr` zwracające `{"version_id_col": cls.version}`. To włącza optymistyczne blokowanie (version_id_col) dla współbieżnych zapisów; klasa dziedzicząca mixin nie musi definiować `__mapper_args__` samodzielnie.
 
 ### Sesja — `build_session_factory`
 
@@ -57,7 +57,6 @@ Konkretne podklasy per BC (np. `InMemoryGraphExecutionStateInputRepository`, `In
 
 - `FakeClock(fixed)` — `now()` zwraca stały czas;
 - `FakeEventPublisher` — gromadzi `self.published: list[object]`;
-- `FakeMessagePublisher` — analogiczny dla wiadomości;
 - `FakeIdGenerator` — sekwencyjne UUID-kształtne id (`f"00000000-0000-0000-0000-{counter:012d}"`) przez `new_id(id_type)`;
 - `FakeLogger` — no-op implementacja portu `Logger`;
 - `FakeTaskLoader` — loader zadań.

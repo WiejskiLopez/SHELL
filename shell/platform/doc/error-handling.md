@@ -2,22 +2,21 @@
 
 ## Cel / Co realizuje
 
-Warstwa obsługi błędów mapuje wyjątki aplikacji na odpowiedzi HTTP w spójnym,
-maszynowo czytelnym formacie `ProblemDetail` (RFC 7807). Błędy domenowe
+Warstwa obsługi błędów mapuje wyjątki aplikacji na odpowiedzi HTTP. Błędy domenowe
 (`DomainError`) i ich specjalizacje (np. `ConcurrentModificationError`) są
-tłumaczone na statusy HTTP 400/409, błędy walidacji FastAPI na 422 z listą pól,
-a nieprzewidziane wyjątki na ustrukturyzowane 500. Rejestracja handlerów odbywa
-się centralnie w `setup_api_common` oraz per-BC w fabrykach aplikacji.
+tłumaczone na statusy HTTP 400/409 z prostym ciałem `{"detail": str(exc)}`; błędy
+walidacji FastAPI na 422 z `ProblemDetail` i listą pól, HTTPException na
+`ProblemDetail`, a nieprzewidziane wyjątki na ustrukturyzowane 500. Rejestracja
+handlerów odbywa się per-BC w fabrykach aplikacji oraz centralnie w
+`setup_api_common`.
 
 ## Problem
 
 Rzucanie surowych wyjątków przez handler/agregat daje domyślne, nieinformacyjne
 odpowiedzi 500 i niespójny kształt błędów między endpointami. Klient potrzebuje
-jednolitego kontraktu błędu: `title`, `status`, `detail`, `instance`,
-`correlation_id`, `timestamp`, opcjonalnie listy `errors` dla walidacji.
-Jednocześnie błędy o znanym znaczeniu biznesowym (naruszony invariant, konflikt
-współbieżności) muszą mapować się na właściwe statusy HTTP bez ujawniania
-wewnętrznych szczegółów.
+jednolitego kontraktu błędu. Jednocześnie błędy o znanym znaczeniu biznesowym
+(naruszony invariant, konflikt współbieżności) muszą mapować się na właściwe
+statusy HTTP bez ujawniania wewnętrznych szczegółów.
 
 ## Realizacja techniczna
 
@@ -37,7 +36,7 @@ wewnętrznych szczegółów.
   - `isinstance(exc, ConcurrentModificationError)` → `409` z `{"detail": str(exc)}`;
   - w przeciwnym razie → `400` z `{"detail": str(exc)}`.
 - `application_error_handler(request, exc: ApplicationError)` → `400`
-  z `{"detail": str(exc)}` (handler zdefiniowany, rejestrowany per-BC).
+  z `{"detail": str(exc)}`.
 - `http_exception_handler(request, exc: HTTPException)` → `ProblemDetail`
   z `title` i `detail` równymi `exc.detail`, `status=exc.status_code`,
   `timestamp=ProblemDetail.now_iso()`.
@@ -49,6 +48,10 @@ wewnętrznych szczegółów.
   `ProblemDetail` (title "Internal Server Error", genericzny `detail` — nie
   ujawnia treści wyjątku).
 
+> Uwaga: `domain_error_handler`/`application_error_handler` zwracają proste
+> `{"detail": ...}` (bez pełnego `ProblemDetail`); pełny `ProblemDetail` (RFC 7807)
+> jest używany dla walidacji, HTTPException i nieobsłużonych wyjątków.
+
 ### Rejestracja
 
 `_register_error_handlers` (`shell/platform/framework/api/setup.py`) rejestruje:
@@ -57,14 +60,14 @@ wewnętrznych szczegółów.
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(DomainError, domain_error_handler)
+app.add_exception_handler(ApplicationError, application_error_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)
 ```
 
-BC mogą rozszerzać mapowanie: `create_execution_app` dodaje własny
-`app.add_exception_handler(DomainError, domain_error_handler)`
-(`shell/execution_service/framework/execution/api/app.py`). Dodatkowe mapowania
-specyficzne dla BC mają być dodawane per-BC (komentarz w module
-`error_handler.py`).
+BC rejestrują handler `DomainError` także bezpośrednio w fabrykach aplikacji,
+np. `create_user_app`/`create_execution_app` robią
+`app.add_exception_handler(DomainError, domain_error_handler)`.
+(`setup_api_common` nie jest obecnie wywoływany przez żaden BC.)
 
 ### Hierarchia wyjątków
 

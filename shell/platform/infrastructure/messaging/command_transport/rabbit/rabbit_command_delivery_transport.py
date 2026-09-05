@@ -1,7 +1,7 @@
 """RabbitCommandDeliveryTransport — publishes command envelopes to RabbitMQ.
 
    exchange  : ``shell.delivery`` (topic)
-            routing key: ``command.<target_service>.<command_name>``
+            routing key: ``command.<destination_service>.<contract_type>``
    message   : JSON envelope bytes (see the command EnvelopeCodec), persistent delivery mode.
 """
 
@@ -45,7 +45,7 @@ class RabbitCommandDeliveryTransport:
     async def deliver(self, envelope: CommandDeliveryEnvelope) -> None:
         channel = await self._get_channel()
         exchange = await channel.get_exchange(self._exchange_name)
-        routing_key = f"command.{envelope.target_service}.{envelope.command_name}"
+        routing_key = f"command.{envelope.destination_service}.{envelope.contract_type}"
         try:
             await exchange.publish(
                 Message(
@@ -58,10 +58,10 @@ class RabbitCommandDeliveryTransport:
             )
         except Exception:
             logger.exception(
-                "RabbitMQ command delivery failed — exchange=%s routing_key=%s outbox_id=%s",
+                "RabbitMQ command delivery failed — exchange=%s routing_key=%s command_id=%s",
                 self._exchange_name,
                 routing_key,
-                envelope.outbox_id,
+                envelope.command_id,
             )
             raise
 

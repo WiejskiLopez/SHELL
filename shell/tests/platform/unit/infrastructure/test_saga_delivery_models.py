@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import cast
 
+from saga_orchestration.infrastructure.process.saga.models.saga_delivery import (
+    build_saga_delivery_models,
+)
+from saga_orchestration.process.saga.base.saga_state import SagaStatus
 from sqlalchemy import MetaData, Table, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase
 
-from shell.platform.domain.value_objects.inbox_status import InboxStatus
 from shell.platform.infrastructure.persistence.sql.models.persistence_delivery import (
     build_persistence_delivery_models,
 )
-from shell.platform.infrastructure.process.saga.models.saga_delivery import (
-    build_saga_delivery_models,
-)
-from shell.platform.process.saga.base.saga_state import SagaStatus
 
 _OPERATIONAL_COLUMNS = {
     "status",
@@ -54,15 +53,11 @@ def _new_base() -> type[DeclarativeBase]:
 
 
 class TestSagaDeliveryModels:
-    def test_persistence_bundle_includes_saga_tables(self) -> None:
+    def test_persistence_bundle_excludes_optional_saga_tables(self) -> None:
         base = _new_base()
-        bundle = build_persistence_delivery_models(base)
-        instance_table = cast("Any", bundle.sagas.instance).__table__
-        timeout_table = cast("Any", bundle.sagas.timeout).__table__
-        assert instance_table.name == "saga_instance"
-        assert timeout_table.name == "saga_timeout"
-        assert instance_table.metadata is base.metadata
-        assert timeout_table.metadata is base.metadata
+        build_persistence_delivery_models(base)
+        assert "saga_instance" not in base.metadata.tables
+        assert "saga_timeout" not in base.metadata.tables
 
     def test_saga_instance_has_core_columns(self) -> None:
         models = build_saga_delivery_models(_new_base())
@@ -93,7 +88,7 @@ class TestSagaDeliveryModels:
         assert _OPERATIONAL_COLUMNS.issubset(models.timeout.__table__.columns.keys())
         status_default = models.timeout.__table__.c.status.default
         assert status_default is not None
-        assert status_default.arg == InboxStatus.PENDING.value
+        assert status_default.arg == "PENDING"
 
     def test_saga_timeout_has_processing_columns(self) -> None:
         models = build_saga_delivery_models(_new_base())

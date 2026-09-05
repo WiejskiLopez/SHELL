@@ -26,14 +26,13 @@ class Workflow(AggregateRoot[WorkflowId]):
 
 ```python
 class Workflow(AggregateRoot[WorkflowId]):
-    __slots__ = ('_name', '_status', '_nodes', '_version')
+    __slots__ = ('_name', '_status', '_nodes')
 
     def __init__(self, workflow_id: WorkflowId, name: WorkflowName, ...) -> None:
         super().__init__(workflow_id)
         self._name = name
         self._status = WorkflowStatus.IDLE
         self._nodes: list[Node] = []
-        self._version = Version.initial()
 ```
 
 ## Stan
@@ -54,11 +53,16 @@ def status(self) -> WorkflowStatus:
 
 ## Metody domenowe
 
-- Każda metoda domenowa na agregacie, która modyfikuje stan, przestrzega niezmiennej sekwencji trzech kroków:
-
-  1. **Guard clause** — sprawdzenie warunku wejściowego (invariant).
+- Każda metoda domenowa na agregacie, która modyfikuje stan, przestrzega sekwencji:
+  1. **Guard clause** — sprawdzenie warunku wejściowego (invariant), fail-fast.
   2. **Mutacja stanu** — zmiana pól agregatu.
-  3. **Bezwarunkowe `append_event()`** — rejestracja faktu biznesowego.
+  3. **`append_event()`** — rejestracja faktu biznesowego dla przejść stanu.
+
+Metody reprezentujące przejście stanu emitują event bezwarunkowo. Istnieją też
+metody guard + mutacja bez emisji eventu (np. `User.enable()`/`disable()`,
+maszyna stanów `NodeExecution`) — komplet takich metod jest jawnie katalogowany
+w testach architektury (`_KNOWN_NO_EVENT_EMIT` w
+`test_domain_structure__test_mutating_methods_emit_events.py`).
 
 ```python
 def start(self) -> None:
@@ -68,7 +72,6 @@ def start(self) -> None:
 
     # 2. Mutacja stanu
     self._status = WorkflowStatus.RUNNING
-    self._version = self._version.next()
 
     # 3. Event bezwarunkowo
     self.append_event(WorkflowStartedEvent(
@@ -82,7 +85,7 @@ def start(self) -> None:
 
 - **Guard clause zawsze pierwszy** — mutacja stanu zachodzi po potwierdzeniu invariantu.
 - **Mutacja przed eventem** — event rejestruje fakt po zmianie stanu.
-- **Event bezwarunkowo** — metoda reprezentująca przejście stanu emituje event zawsze; emisja niezależna od parametrów.
+- **Event bezwarunkowo dla przejść stanu** — metoda reprezentująca przejście stanu emituje event zawsze; emisja niezależna od parametrów.
 
 ```python
 # Dobrze
@@ -116,8 +119,10 @@ def can_start(self) -> bool:
 
 ## Wersjonowanie
 
-- Każdy agregat trzyma `_version` inkrementowany przy każdym zapisie.
-- Wykorzystywany do optymistycznego blokowania przy zapisie do bazy.
+- Agregat domenowy nie trzyma pola `_version` — optymistyczne blokowanie jest
+  realizowane na poziomie ORM przez `VersionedMixin` (kolumna `version` +
+  `__mapper_args__["version_id_col"]` w modelu SQL, patrz
+  `sqlalchemy-persistence.md`).
 
 ## Encje dziecięce
 
@@ -128,8 +133,12 @@ def can_start(self) -> bool:
 ## Lokalizacja
 
 - `shell/<service>/domain/<bc>/aggregates/<nazwa>/<nazwa>.py`
-- W folderze agregatu znajduje się wyłącznie plik agregatu.
-- Wszystkie VO (w tym ID) należą do podfolderu `value_objects/` agregatu (w BC).
+- Folder agregatu zawiera plik agregatu oraz podfoldery per rodzaj artefaktu
+  (`entities/`, `events/`, `exceptions/`, `repositories/`, a tam, gdzie są VO —
+  `value_objects/`).
+- Współdzielone VO (np. `UserId`, `UserEmail`, `UserStatus`) żyją na poziomie BC
+  w `shell/<service>/domain/<bc>/value_objects/`; VO typowe dla jednego agregatu
+  mogą żyć w jego podfolderze `value_objects/`.
 
 ## Bezpieczeństwo
 

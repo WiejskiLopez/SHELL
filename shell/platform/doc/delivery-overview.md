@@ -2,9 +2,7 @@
 
 ## Cel / Co realizuje
 
-Opisuje jedną ścieżkę przekazywania deliverable (event, command) między bounded contextami platformy SHELL: zapis w transakcyjnym outboxie, wspólny relay do transportu i brokera, zapis w inboxie, claim z lease, procesor oraz atomowy ack w konsumenckim BC. Wszystkie rodzaje korzystają z `OutboxToTransportRelay`, `DeliveryEnvelope`, `EnvelopeCodec` i odpowiedniego procesora inbox.
-
-> Kanał Message został usunięty — patrz `docs/messages-removed.md`.
+Opisuje jedną ścieżkę przekazywania deliverable (event, command) między bounded contextami platformy SHELL: zapis w transakcyjnym outboxie, relay do transportu i brokera, zapis w inboxie, claim z lease, procesor oraz atomowy ack w konsumenckim BC. Wszystkie rodzaje korzystają z `EventOutboxRelay`/`CommandOutboxRelay` (na bazie `OutboxRelayBase`), kopert `EventDeliveryEnvelope`/`CommandDeliveryEnvelope`, `EnvelopeCodec` i odpowiedniego procesora inbox.
 
 ## Problem
 
@@ -18,10 +16,11 @@ Bounded contexts są od siebie niezależne (oddzielne bazy, procesy, cykle życi
 BC A (producent)
   API/CLI → Command → CommandBus → CommandHandler
     → UnitOfWork (SqlAlchemyUnitOfWorkBase) → Aggregate mutacja → stage_events()
-    → commit: stan agregatu + outbox_event + audit (_write_staged_outbox)
-    UoW / outbox writer → outbox_event|outbox_command
-  OutboxToTransportRelay → EnvelopeCodec.encode → DeliveryTransport.deliver → broker
-                                   (JSON: kind, outbox_id, contract_type,
+    → commit: stan agregatu + event_outbox + audit (_write_staged_outbox)
+    UoW / outbox writer → event_outbox|command_outbox
+  EventOutboxRelay/CommandOutboxRelay → DeliveryTransport.deliver → broker
+                                   (EnvelopeCodec.encode wykonywany wewnątrz transportu;
+                                    JSON: event_id|command_id, contract_type,
                                     occurred_at, schema_version, payload, metadata)
 
 BC B (konsument)
@@ -31,48 +30,46 @@ BC B (konsument)
     → status=PROCESSING, claimed_by, lease_until (krótka transakcja)
   InboxProcessorBase (Event/CommandInboxProcessor)
     _process_in_transaction
-      → is_duplicate? (ProcessedDeliveryStore) → dispatch (bus) → handler w session scope
+      → dispatch (bus) → handler w session scope
       → commit: efekt biznesowy + lokalny outbox + ack PROCESSED (jedna transakcja)
 ```
 
-Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-overview.md), a jego poszczególne ogniwa są rozwinięte w [transactional-outbox](transactional-outbox.md), [relay](relay.md), [delivery-transport](delivery-transport.md), [inbox-lifecycle](inbox-lifecycle.md), [claim-lease](claim-lease.md), [inbox-processor](inbox-processor.md), [heartbeat-lease](heartbeat-lease.md) i [processed-delivery-dedup](processed-delivery-dedup.md).
+Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-overview.md), a jego poszczególne ogniwa są rozwinięte w [transactional-outbox](transactional-outbox.md), [relay](relay.md), [delivery-transport](delivery-transport.md), [inbox-lifecycle](inbox-lifecycle.md), [claim-lease](claim-lease.md), [inbox-processor](inbox-processor.md) i [heartbeat-lease](heartbeat-lease.md).
 
 ### Role komponentów
 
 - **Outbox (producent)** — trwały bufor deliverable zapisywany atomowo ze stanem domeny przez `SqlAlchemyUnitOfWorkBase`; `published_at` pozostaje puste do czasu potwierdzonego transportu.
-- **Relay** — jedyny `OutboxToTransportRelay` czyta odpowiednią tabelę outbox i publikuje kopertę do brokera. Pełny opis w [relay](relay.md).
-- **Transport** — port `DeliveryTransport`, realizowany przez adaptery brokerskie. `EnvelopeCodec` koduje `DeliveryEnvelope` do JSON z `outbox_id`, `contract_type`, `schema_version`, payloadem i metadanymi. Szczegóły w [delivery-transport](delivery-transport.md).
-- **Inbox (konsument)** — konsument generuje lokalne `inbox_event.id`/`inbox_command.id`, zapisuje `outbox_id` jako referencję do rekordu nadawcy i stosuje idempotencję po źródle oraz outboxie.
+- **Relay** — `EventOutboxRelay`/`CommandOutboxRelay` (wspólny cykl w `OutboxRelayBase`) czyta odpowiednią tabelę outbox i publikuje kopertę do brokera. Pełny opis w [relay](relay.md).
+- **Transport** — porty `IntegrationEventDeliveryTransport` i `CommandDeliveryTransport` (w `application/ports/transport/`), realizowane przez adaptery `RabbitEventDeliveryTransport`/`RabbitCommandDeliveryTransport`. `EnvelopeCodec` (w `messaging/event_transport/` i `messaging/command_transport/`) koduje kopertę (`EventDeliveryEnvelope`/`CommandDeliveryEnvelope`) do JSON z `contract_type`, `schema_version`, payloadem i metadanymi (bez `kind` i `outbox_id`). Szczegóły w [delivery-transport](delivery-transport.md).
+- **Inbox (konsument)** — konsument generuje lokalne `event_inbox.id`/`command_inbox.id` i stosuje idempotencję po `(source_service, event_id|command_id)`.
 - **Claim z lease** — `InboxClaimService.claim_batch()` przejmuje rekordy w krótkiej transakcji bez trzymania zamka na czas handlera (`SELECT ... FOR UPDATE SKIP LOCKED` na PostgreSQL; SQLite bez skip locked). Szczegóły w [claim-lease](claim-lease.md).
-- **Processor** — `InboxProcessorBase` realizuje wspólny cykl claim→process→ack; podtypy `EventInboxProcessor` (dispatch przez `EventPublisher`), `CommandInboxProcessor` (dispatch przez `CommandBus`) dostarczają tylko deserializację, dispatch i wartość causation. Uruchamiany przez [polling-worker](polling-worker.md) (`PollingWorker.run()` → `task.run_once()`).
+- **Processor** — `InboxProcessorBase` realizuje wspólny cykl claim→process→ack; podtypy `EventInboxProcessor` (dispatch przez `EventPublisher`), `CommandInboxProcessor` (dispatch przez port `CommandDispatcher` → `CommandBusPublisher`) dostarczają tylko deserializację, dispatch i wartość causation. Uruchamiany przez [polling-worker](polling-worker.md) (`PollingWorker.run()` → `task.run_once()`).
 - **Handler w session scope** — `_process_in_transaction` publikuje sesję jako ambientowy scope (`DeliverySessionScope`), więc UoW handlera współdzieli tę samą sesję i odracza commit; jeden commit utrwala efekt + outbox + ack atomowo. Patrz [session-scope](session-scope.md).
-- **Dedup (fallback)** — dla handlerów, które nie mogą współdzielić transakcji procesora, wiersz `processed_delivery` zapisywany atomowo z efektem; `is_duplicate` sprawdzany przed dispatch. Patrz [processed-delivery-dedup](processed-delivery-dedup.md).
+- **Dedup** — idempotencja at-least-once wynika z unikalnego `(source_service, event_id|command_id)` na tabelach inbox (`on_conflict_do_nothing` przy insert) oraz warunkowego ack po `id + status + claimed_by`; wariant dzielący sesję procesora nie zapisuje efektu bez ack (jeden commit).
 - **Ack warunkowy** — `_acknowledge_in_session` ustawia `PROCESSED` warunkowym UPDATE kluczowanym po lokalnym `inbox.id + status + claimed_by`; jeżeli lease wygasł i rekord przejął inny worker, ack nie zmienia wiersza (rowcount=0).
 
 ### At-least-once i brak utraty
 
 - Producent: zapis w outboxie jest atomowy z efektem biznesowym → wiadomość nie ginie przed transportem.
-- Konsument: potwierdzenie (ack `PROCESSED`) jest warunkowe i atomowe z efektem; awaria po efekcie, a przed ack, skutkuje redelivery — które jest no-op dzięki dedup (`processed_delivery`) lub dzięki temu, że wariant dzielący sesję nie zapisuje efektu bez ack (jeden commit).
+- Konsument: potwierdzenie (ack `PROCESSED`) jest warunkowe i atomowe z efektem; awaria po efekcie, a przed ack, skutkuje redelivery — które jest no-op dzięki dedup na insert (`on_conflict_do_nothing` + unique `(source_service, event_id|command_id)`) oraz dzięki temu, że wariant dzielący sesję nie zapisuje efektu bez ack (jeden commit).
 - Brak potwierdzenia → lease wygasa → rekord wraca do zbioru claimowalnego (reclaim).
 
 ## Kluczowe pliki
 
-- `shell/platform/application/ports/delivery_transport.py` (`DeliveryTransport`, `DeliveryEnvelope`)
-- `shell/platform/application/ports/delivery_dedup_store.py` (`DeliveryDedupStore`)
+- `shell/platform/application/ports/transport/event_transport.py` (`IntegrationEventDeliveryTransport`, `EventDeliveryEnvelope`)
+- `shell/platform/application/ports/transport/command_transport.py` (`CommandDeliveryTransport`, `CommandDeliveryEnvelope`)
 - `shell/platform/domain/value_objects/inbox_status.py` (`InboxStatus`)
 - `shell/platform/infrastructure/messaging/inbox/inbox_claim_service.py` (`InboxClaimService`)
-- `shell/platform/infrastructure/messaging/inbox/inbox_processor_base.py` (`InboxProcessorBase`)
+- `shell/platform/infrastructure/messaging/delivery/inbox_processor_base.py` (`InboxProcessorBase`)
 - `shell/platform/infrastructure/messaging/inbox/inbox_batch_result.py` (`InboxBatchResult`)
-- `shell/platform/infrastructure/messaging/inbox/processed_delivery_store.py` (`ProcessedDeliveryStore`)
-- `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` (`EventInboxProcessor`)
-- `shell/platform/infrastructure/messaging/command/processor/command_inbox_processor.py` (`CommandInboxProcessor`)
-- `shell/platform/infrastructure/serialization/event/integration_event_serializer.py` (`IntegrationEventSerializer`)
-- `shell/platform/infrastructure/messaging/command/sql_command_outbox_publisher.py` (`SqlCommandOutboxPublisher`)
-- `shell/platform/infrastructure/messaging/transport/envelope_codec.py` (`EnvelopeCodec`)
+- `shell/platform/infrastructure/messaging/event/event_inbox_processor.py` (`EventInboxProcessor`)
+- `shell/platform/infrastructure/messaging/command/command_inbox_processor.py` (`CommandInboxProcessor`)
+- `shell/platform/infrastructure/serialization/integration_event/integration_event_serializer.py` (`IntegrationEventSerializer`)
+- `shell/platform/infrastructure/messaging/command/sql_command_outbox_writer.py` (`SqlCommandOutboxWriter`, `SqlCommandDeliveryDispatcher`)
+- `shell/platform/infrastructure/messaging/event_transport/envelope_codec.py` i `command_transport/envelope_codec.py` (`EnvelopeCodec`)
 - `shell/platform/infrastructure/messaging/polling_worker.py` (`PollingWorker`, `PollingTask`, `PollingWorkerConfig`)
 - `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py` (`SqlAlchemyUnitOfWorkBase`)
 - `shell/platform/infrastructure/persistence/sql/models/mixins/inbox_state.py` (`InboxStateMixin`)
-- `shell/platform/infrastructure/persistence/sql/models/processed_delivery.py` (`build_processed_delivery_model`)
 
 ## Powiązane koncepcje
 
@@ -81,7 +78,6 @@ Powyższy diagram odpowiada przepływowi z [architecture-overview](architecture-
 - [claim-lease](claim-lease.md)
 - [inbox-processor](inbox-processor.md)
 - [heartbeat-lease](heartbeat-lease.md)
-- [processed-delivery-dedup](processed-delivery-dedup.md)
 - [polling-worker](polling-worker.md)
 - [relay](relay.md)
 - [delivery-transport](delivery-transport.md)

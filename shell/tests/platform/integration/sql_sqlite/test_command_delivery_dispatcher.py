@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from saga_orchestration.infrastructure.process.saga.command_delivery import (
+    build_command_delivery_dispatcher,
+)
 from sqlalchemy import select
 
 from shell.platform.application.commands.command import Command
@@ -13,9 +16,6 @@ from shell.platform.infrastructure.context import (
     DeliverySessionScope,
     reset_session_scope,
     set_session_scope,
-)
-from shell.platform.infrastructure.process.saga.command_delivery import (
-    build_command_delivery_dispatcher,
 )
 from shell.tests.platform.integration.platform_delivery_models import COMMAND_DELIVERY_MODELS
 

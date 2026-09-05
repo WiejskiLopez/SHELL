@@ -11,7 +11,7 @@ depends_on = None
 
 def upgrade() -> None:
     op.create_table(
-        "outbox_event",
+        "event_outbox",
         sa.Column("id", sa.String(), primary_key=True),
         sa.Column("event_id", sa.String(), nullable=False),
         sa.Column("source_service", sa.String(), nullable=False),
@@ -23,9 +23,15 @@ def upgrade() -> None:
         sa.Column("correlation_id", sa.String(), nullable=False),
         sa.Column("causation_id", sa.String(), nullable=False),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
-        sa.UniqueConstraint("event_id", name="uq_outbox_event_event_id"),
+        sa.UniqueConstraint("event_id", name="uq_event_outbox_event_id"),
+    )
+    op.create_index(
+        "ix_event_outbox_publish",
+        "event_outbox",
+        ["published_at", "occurred_at"],
     )
 
 
 def downgrade() -> None:
-    op.drop_table("outbox_event")
+    op.drop_index("ix_event_outbox_publish", table_name="event_outbox")
+    op.drop_table("event_outbox")

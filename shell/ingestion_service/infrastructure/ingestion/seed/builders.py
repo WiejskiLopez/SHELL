@@ -62,7 +62,6 @@ def build_inbox_event_model(
     model: type[Any],
     *,
     id: str,
-    outbox_id: str,
     event_id: str,
     source_service: str,
     integration_event_name: str,
@@ -78,7 +77,6 @@ def build_inbox_event_model(
     """Build an inbox event row with deterministic values."""
     return model(
         id=id,
-        outbox_id=outbox_id,
         event_id=event_id,
         source_service=source_service,
         integration_event_name=integration_event_name,

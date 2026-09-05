@@ -1,6 +1,6 @@
 """ContractCatalog — explicit registry of public cross-BC contracts per bounded context.
 
-The catalog is the single source of truth for which event/message/command types a
+The catalog is the single source of truth for which event/command types a
 bounded context publicly exposes or consumes. It records owner, producer(s) and
 consumer(s) plus the supported schema versions, so the deserialization registry is
 never the only authority on a contract's existence.

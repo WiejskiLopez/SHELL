@@ -61,6 +61,20 @@ class EmailNotificationAdapter:
 - Gdy BC komunikuje się z systemem legacy / zewnętrznym, ACL izoluje BC od 'zepsutego' modelu danych zewnętrznego systemu.
 - Stosuj gdy: integracja z systemem legacy, zewnętrzne API o słabym/zmiennym kontrakcie, migracja (strangler fig pattern), third-party SaaS.
 
+## Kontrakt graniczny (koperta/transport) żyje obok portu
+
+- Kontrakt wire (koperta delivery, np. `EventDeliveryEnvelope`/`CommandDeliveryEnvelope`, oraz
+  typy argumentów/zwrotów portu transportu) definiuje się **w warstwie wewnętrznej przy porcie**,
+  w `application/ports/transport/`, a **nie w infrastrukturze**.
+- Powód (reguła zależności): port `DeliveryTransport` jest kontraktem aplikacyjnym, więc jego
+  typy wejścia/wyjścia (koperta) muszą być widoczne z `application/`. Umieszczenie koperty
+  w `infrastructure/messaging/delivery/` wymuszałoby import infrastruktury z warstwy aplikacji
+  (odwrócenie zależności) albo duplikację kontraktu.
+- Adapter (np. `RabbitEventDeliveryTransport`) implementuje port i importuje kopertę z
+  `application/ports/` — koperta nie jest szczegółem technicznym, lecz jawnym kontraktem granicy.
+- Koperta transportowa może być „czysto techniczna" (w infrastrukturze) **wyłącznie wtedy**, gdy
+  nie jest kontraktem konsumowanym przez porty aplikacji (np. wewnętrzny detal brokera).
+
 ## Lokalizacja
 
 - Porty platformy: `shell/platform/domain/ports/` (Clock, IdGenerator, RepositoryPort)

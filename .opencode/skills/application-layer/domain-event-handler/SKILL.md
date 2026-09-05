@@ -15,7 +15,7 @@ w obrębie BC jako fakt wire) i wykonuje reakcję biznesową. Handler jest
 > Event Handler obsługuje **Integration Events**. Domain Event pozostaje
 > wewnętrznym faktem agregatu i dociera do outboxa tylko pod postacią
 > Integration Event: `append_event()` → UoW stage'uje → `ReflectiveIntegrationMapper`
-> mapuje na Integration Event → `outbox_event`.
+> mapuje na Integration Event → `event_outbox`.
 
 ## Lokalizacja
 

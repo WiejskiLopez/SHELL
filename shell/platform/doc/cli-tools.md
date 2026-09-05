@@ -29,20 +29,20 @@ Każdy proces SHELL potrzebuje spójnego zestawu flag bez kopiowania kodu argpar
 
 ### `infrastructure/cli/retention.py`
 
-Platforma udostępnia **`purge_with_models(session_factory, inbox_model, processed_delivery_model, *, dead_letter_retention_days=90, processed_delivery_retention_days=30) -> RetentionReport`**. Funkcja buduje `DeliveryRetentionService` z modeli przekazanych przez caller i nie wykonuje żadnego importu usługi.
+Platforma udostępnia **`purge_with_models(session_factory, inbox_model, *, dead_letter_retention_days=90) -> RetentionReport`**. Funkcja buduje `DeliveryRetentionService` z modeli przekazanych przez caller i nie wykonuje żadnego importu usługi.
 
 **`run_retention_cli(service_name, models)`** dostarcza wspólny parser i raportowanie dla cienkich wrapperów service-owned. `service_name` jest wyłącznie etykietą raportu przekazaną przez właściciela; platforma nie utrzymuje listy dozwolonych usług.
 
-`RetentionReport` (frozen dataclass) raportuje: `purged_dead_letter`, `purged_processed_delivery`, `kept_dead_letter`, `kept_processed_delivery`, `detail`.
+`RetentionReport` (frozen dataclass) raportuje: `purged_dead_letter`, `kept_dead_letter`, `detail`.
 
-Każdy service posiada własny wrapper, na przykład `shell-retention-definition`, który importuje własne `PERSISTENCE_DELIVERY_MODELS` i wywołuje `run_retention_cli("definition_service", PERSISTENCE_DELIVERY_MODELS)`. Komendy nie mają `--bc`; mają tylko `--db-url`, `--dead-letter-days` i `--processed-delivery-days`.
+Każdy service posiada własny wrapper, na przykład `shell-retention-definition`, który importuje własne `PERSISTENCE_DELIVERY_MODELS` i wywołuje `run_retention_cli("definition_service", PERSISTENCE_DELIVERY_MODELS)`. Komendy nie mają `--bc`; mają tylko `--db-url` i `--dead-letter-days`.
 
 ## Kluczowe pliki
 
 - `shell/platform/framework/cli/main.py`
 - `shell/platform/framework/cli/parser.py`
 - `shell/platform/infrastructure/cli/retention.py`
-- `shell/*_service/framework/*/cli/retention.py`
+- `shell/*_service/infrastructure/*/cli/retention.py`
 - `shell/platform/infrastructure/messaging/inbox/delivery_retention_service.py`
 - `shell/platform/infrastructure/persistence/sql/__init__.py` (`build_session_factory`)
 

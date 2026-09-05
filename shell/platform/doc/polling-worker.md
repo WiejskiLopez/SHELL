@@ -67,12 +67,11 @@ _backoff_factor: float = field(default=2.0, repr=False)
 
 ### Integracja heartbeat
 
-Heartbeat to opcjonalny `Callable[[], Awaitable[None]]`. Dostarczany przez `WorkerHeartbeatRecorder` (`shell/platform/infrastructure/messaging/worker_heartbeat.py`), który w `beat()` wykonuje upsert `last_seen_at` przez `session.merge(model(worker_id=..., last_seen_at=datetime.now(tz=UTC)))` + `session.commit()` — jeden wiersz na `worker_id` (klucz główny tabeli `worker_heartbeat`, patrz [delivery-models](delivery-models.md)).
+Heartbeat to opcjonalny `Callable[[], Awaitable[None]]`. Dostarczany przez `WorkerHeartbeatRecorder` (`shell/platform/infrastructure/messaging/worker_heartbeat.py`), który w `beat()` wykonuje upsert `last_seen_at` przez `session.merge(model(worker_id=..., last_seen_at=...))` + `session.commit()` — `last_seen_at` pochodzi z **zegara bazy** (`select(func.current_timestamp())`), nie z `datetime.now()`; jeden wiersz na `worker_id` (klucz główny tabeli `worker_heartbeat`, patrz [delivery-models](delivery-models.md)).
 
 Przykłady użycia:
 
-- `shell/scheduling_service/bootstrap/scheduling/main.py` — `WorkerHeartbeatRecorder(...)` z `worker_id="scheduling-event-processor"` przekazany jako `heartbeat=heartbeat.beat` do `run_polling_worker(container.event_inbox_processor_factory(), interval_seconds=args.worker_interval, ...)`.
-- `shell/session_service/bootstrap/session/main.py` — `PollingWorker` instancjonowany bezpośrednio z `PollingWorkerConfig(worker_id="session-event-processor", poll_interval_seconds=config.events.worker_poll_interval)` i `heartbeat=heartbeat.beat`, uruchamiany przez `await processor_worker.run()`.
+- `shell/scheduling_service/bootstrap/scheduling/main.py` oraz `shell/session_service/bootstrap/session/main.py` — startują konsumentów, workery i relay przez `run_delivery_workers(...)` (z `shell/platform/infrastructure/messaging/event/event_worker.py`); heartbeaty `WorkerHeartbeatRecorder` tworzone są wewnątrz `run_delivery_workers` (nazwy workerów per BC), a interwał pracy bierze się z `config.events.worker_poll_interval`, nie z `args.worker_interval`.
 
 ### Graceful shutdown
 

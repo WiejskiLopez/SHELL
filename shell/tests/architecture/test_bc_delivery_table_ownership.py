@@ -39,7 +39,7 @@ def test_each_bc_uses_distinct_event_delivery_table_objects() -> None:
     for module_name in _BASELINE_MODULES:
         import_module(module_name)
     platform_tables = SqlAlchemyModelBase.metadata.tables
-    assert not {"inbox_event", "outbox_event"}.intersection(platform_tables), (
+    assert not {"event_inbox", "event_outbox"}.intersection(platform_tables), (
         architecture_assertion_message(
             "reguła testowana przez test_each_bc_uses_distinct_event_delivery_table_objects",
             "warunek zapisany w asercji musi być spełniony",
@@ -48,14 +48,14 @@ def test_each_bc_uses_distinct_event_delivery_table_objects() -> None:
     )
     for bounded_context, base_path in _BASES.items():
         metadata = _load_base(base_path).metadata
-        assert metadata.tables["inbox_event"] not in platform_tables.values(), (
+        assert metadata.tables["event_inbox"] not in platform_tables.values(), (
             architecture_assertion_message(
                 "reguła testowana przez test_each_bc_uses_distinct_event_delivery_table_objects",
                 "warunek zapisany w asercji musi być spełniony",
                 f"Naruszona reguła: tabela inbox_event musi należeć wyłącznie do BC. Znaleziono współdzielenie tabeli przez BC {bounded_context!r}. Jak naprawić: utwórz osobny model delivery dla metadanych BC.",
             )
         )
-        assert metadata.tables["outbox_event"] not in platform_tables.values(), (
+        assert metadata.tables["event_outbox"] not in platform_tables.values(), (
             architecture_assertion_message(
                 "reguła testowana przez test_each_bc_uses_distinct_event_delivery_table_objects",
                 "warunek zapisany w asercji musi być spełniony",

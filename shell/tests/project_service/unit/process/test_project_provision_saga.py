@@ -13,6 +13,17 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
+from saga_orchestration.infrastructure.process.saga.command_delivery import (
+    build_command_delivery_dispatcher,
+)
+from saga_orchestration.infrastructure.process.saga.models import build_saga_delivery_models
+from saga_orchestration.infrastructure.process.saga.repositories.sql_saga_repository import (
+    SqlSagaRepository,
+)
+from saga_orchestration.infrastructure.process.saga.repositories.sql_saga_timeout_repository import (
+    SqlSagaTimeoutRepository,
+)
+from saga_orchestration.process.saga.base.saga_state import SagaStatus
 from sqlalchemy import MetaData, select
 from sqlalchemy.orm import DeclarativeBase
 
@@ -20,21 +31,13 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.event_bus_publisher import EventBusPublisher
 from shell.platform.application.contracts.command_contract import CommandContract
-from shell.platform.infrastructure.messaging.command.processor.command_inbox_processor import (
+from shell.platform.infrastructure.messaging.command.command_inbox_processor import (
     CommandInboxProcessor,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.persistence.sql.models.persistence_delivery import (
     build_persistence_delivery_models,
 )
-from shell.platform.infrastructure.process.saga import build_command_delivery_dispatcher
-from shell.platform.infrastructure.process.saga.repositories.sql_saga_repository import (
-    SqlSagaRepository,
-)
-from shell.platform.infrastructure.process.saga.repositories.sql_saga_timeout_repository import (
-    SqlSagaTimeoutRepository,
-)
-from shell.platform.process.saga.base.saga_state import SagaStatus
 from shell.project_service.application.project.project_provision.command_handlers.provision_workspace_handler import (
     ProvisionWorkspaceHandler,
 )
@@ -88,7 +91,7 @@ class _PilotTestBase(DeclarativeBase):
 
 PERSISTENCE_MODELS = build_persistence_delivery_models(_PilotTestBase)
 COMMAND_MODELS = PERSISTENCE_MODELS.commands
-SAGA_MODELS = PERSISTENCE_MODELS.sagas
+SAGA_MODELS = build_saga_delivery_models(_PilotTestBase)
 
 _COMMAND_CLASSES = (
     StartProjectProvisionCommand,
@@ -193,7 +196,6 @@ async def _insert_inbox(
         session.add(
             COMMAND_MODELS.inbox(
                 id=str(uuid.uuid4()),
-                outbox_id=outbox_id,
                 command_id=outbox_id,
                 command_name=type(command).__name__,
                 source_service=_SERVICE,
@@ -219,7 +221,6 @@ async def _relay_pending_commands(session_factory) -> int:
             session.add(
                 COMMAND_MODELS.inbox(
                     id=str(uuid.uuid4()),
-                    outbox_id=row.id,
                     command_id=row.command_id,
                     command_name=row.command_name,
                     source_service=row.source_service,

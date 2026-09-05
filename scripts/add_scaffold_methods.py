@@ -4,7 +4,6 @@ Uses proper Python AST manipulation, not fragile regex."""
 
 from __future__ import annotations
 
-import ast
 import re
 from pathlib import Path
 

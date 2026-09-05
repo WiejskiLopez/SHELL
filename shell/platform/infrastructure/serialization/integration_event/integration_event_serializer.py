@@ -35,17 +35,15 @@ class IntegrationEventSerializer(PayloadObjectSerializer):
     def to_envelope(
         self,
         event: object,
-        outbox_id: str,
         *,
         source_service: str,
     ) -> dict[str, object]:
         if not isinstance(event, IntegrationEvent):
             raise TypeError("IntegrationEventSerializer requires an IntegrationEvent")
         return {
-            "outbox_id": outbox_id,
             "event_id": event.event_id,
             "source_service": source_service,
-            "integration_event_name": type(event).__name__,
+            "contract_type": type(event).__name__,
             "occurred_at": event.occurred_at,
             "schema_version": event.schema_version,
             "correlation_id": event.correlation_id,

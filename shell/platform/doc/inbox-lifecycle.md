@@ -2,7 +2,7 @@
 
 ## Cel / Co realizuje
 
-Definiuje jawny, współdzielony cykl życia rekordu inbox: enum `InboxStatus` (w `shell/platform/domain/value_objects/inbox_status.py`) oraz kolumny operacyjne i indeksy w `InboxStateMixin` (w `shell/platform/infrastructure/persistence/sql/models/mixins/inbox_state.py`). Event, message i command inboxy dzielą ten sam cykl operacyjny, więc kolumny żyją w jednym mixinie platformowym zamiast być duplikowane w każdym modelu.
+Definiuje jawny, współdzielony cykl życia rekordu inbox: enum `InboxStatus` (w `shell/platform/domain/value_objects/inbox_status.py`) oraz kolumny operacyjne i indeksy w `InboxStateMixin` (w `shell/platform/infrastructure/persistence/sql/models/mixins/inbox_state.py`). Event i command inboxy dzielą ten sam cykl operacyjny, więc kolumny żyją w jednym mixinie platformowym zamiast być duplikowane w każdym modelu.
 
 ## Problem
 
@@ -38,7 +38,7 @@ Kolumny deklarowane jako `Mapped[...]` z `@declared_attr` `__table_args__` (inde
 | `failed_at` | `DateTime(timezone=True)`, nullable | czas trafienia do DLQ |
 | `last_attempted_at` | `DateTime(timezone=True)`, nullable | czas ostatniej próby |
 | `retry_count` | `int`, nie-null, default `0` | liczba dotychczasowych prób |
-| `error` | `str`, nullable | pełny tekst błędu (używany m.in. przez `_schedule_failure`) |
+| `error` | `str`, nullable | pełny tekst błędu (zarezerwowany; obecnie nie jest zapisywany — szczegóły błędów trafiają do `error_code`/`error_message`) |
 | `error_code` | `str`, nullable | kod błędu (`HANDLER_ERROR`, `DESERIALIZATION_ERROR`, `UNSUPPORTED_SCHEMA_VERSION` ...) |
 | `error_message` | `str`, nullable | komunikat błędu |
 | `schema_version` | `int`, nie-null, default `1` | wersja schematu payloadu (walidacja/upcast) |
@@ -63,12 +63,19 @@ Kolumny `received_at`, `correlation_id`, `causation_id`, `payload` nie są w mix
 
 Przejścia między stanami realizowane są wyłącznie przez procesor i serwis claima; nie istnieją statusy zarezerwowane dla przepływów migracyjnych.
 
+### Deduplikacja (idempotencja at-least-once)
+
+Idempotencja nie wymaga osobnej tabeli `processed_delivery` — jest zapewniona na dwóch poziomach:
+
+1. **Insert** — konsumenci zapisują wiersz inbox przez `pg_insert(...).on_conflict_do_nothing()`; unikalny `(source_service, event_id|command_id)` (constraint `uq_event_inbox_source_event` / `uq_command_inbox_source_command`) sprawia, że redelivery tej samej wiadomości jest no-op na etapie zapisu.
+2. **Ack** — `_acknowledge_in_session` wykonuje warunkowy UPDATE kluczowany po `id + status = PROCESSING + claimed_by`; jeżeli lease wygasł i rekord przejął inny worker, ack nie zmienia wiersza (rowcount=0).
+
 ## Kluczowe pliki
 
 - `shell/platform/domain/value_objects/inbox_status.py`
 - `shell/platform/infrastructure/persistence/sql/models/mixins/inbox_state.py`
 - `shell/platform/infrastructure/messaging/inbox/inbox_claim_service.py` (protokół `InboxStateModel`, przejścia PENDING/RETRY → PROCESSING)
-- `shell/platform/infrastructure/messaging/inbox/inbox_processor_base.py` (przejścia → PROCESSED / RETRY / DEAD_LETTER)
+- `shell/platform/infrastructure/messaging/delivery/inbox_processor_base.py` (przejścia → PROCESSED / RETRY / DEAD_LETTER)
 
 ## Powiązane koncepcje
 

@@ -1,6 +1,6 @@
 ---
 name: tracing-correlation-sync-write-flow
-description: Zakres obsługiwany przez ten skill to write path (CQRS write side) — przepływ correlation_id w synchronicznej komendzie: od ustawienia na granicy wejścia (HTTP/CLI) przez CommandBus/handler/agregat, aż do zapisania do eventu (mapper → IntegrationEvent → outbox_event/audit_event). Dostawa cross-BC (relay/broker/inbox/delivery) jest poza tym zakresem. Używaj gdy analizujesz skąd bierze się correlation_id w wierszu outbox_event, debugujesz puste/niepoprawne ID, dodajesz nową komendę synchroniczną albo sprawdzasz czy trace przetrwa od requestu do zapisu eventu.
+description: Zakres obsługiwany przez ten skill to write path (CQRS write side) — przepływ correlation_id w synchronicznej komendzie: od ustawienia na granicy wejścia (HTTP/CLI) przez CommandBus/handler/agregat, aż do zapisania do eventu (mapper → IntegrationEvent → event_outbox/audit_event). Dostawa cross-BC (relay/broker/inbox/delivery) jest poza tym zakresem. Używaj gdy analizujesz skąd bierze się correlation_id w wierszu event_outbox, debugujesz puste/niepoprawne ID, dodajesz nową komendę synchroniczną albo sprawdzasz czy trace przetrwa od requestu do zapisu eventu.
 ---
 
 # Observability w kontekście SYNCCHRONICZNEJ komendy — od ustawienia correlation_id do zapisu do eventu
@@ -9,7 +9,7 @@ description: Zakres obsługiwany przez ten skill to write path (CQRS write side)
 
 Opisuje **jeden konkretny przepływ**: synchroniczna komenda (write side, jeden BC).
 Punkt startu: ustawienie `correlation_id` na granicy wejścia.
-Punkt końca: zapisanie `correlation_id`/`causation_id` do **eventu** — dokładnie do wiersza `outbox_event` (i `audit_event`), przez mapper `ReflectiveIntegrationMapper`.
+Punkt końca: zapisanie `correlation_id`/`causation_id` do **eventu** — dokładnie do wiersza `event_outbox` (i `audit_event`), przez mapper `ReflectiveIntegrationMapper`.
 
 > Poza zakresem: dostawa cross-BC (relay/broker/inbox) — zaczyna się dopiero **po** zapisie outboxa.
 
@@ -28,7 +28,7 @@ Punkt końca: zapisanie `correlation_id`/`causation_id` do **eventu** — dokła
    └─> correlation_id = get_or_create_correlation_id()   [gdzie ID trafia do eventu]
    └─> causation_id   = get_causation_id()
 8. IntegrationEvent(correlation_id, causation_id, ...)
-9. outbox_event  (kolumna correlation_id + causation_id)  [KONIEC: zapisane do eventu]
+9. event_outbox  (kolumna correlation_id + causation_id)  [KONIEC: zapisane do eventu]
    + audit_event (payload, bez correlation)
 ```
 
@@ -93,7 +93,7 @@ schema_version = 1
 
 ## Krok 8 — serializacja envelopu
 
-`IntegrationEventSerializer.to_envelope(event, outbox_id, source_service)` (`infrastructure/serialization/integration_event/integration_event_serializer.py:35-55`) — zwraca dict z `correlation_id`/`causation_id`.
+`IntegrationEventSerializer.to_envelope(event, source_service=...)` (`infrastructure/serialization/integration_event/integration_event_serializer.py:35-55`) — zwraca dict z `correlation_id`/`causation_id`.
 
 ## Krok 9 — KONIEC: zapis do tabeli eventu
 
@@ -107,12 +107,12 @@ outbox = self._models.events.outbox(
 self._session.add(outbox)
 self._session.add(self._models.audit(...))       # :183-190
 ```
-- **`outbox_event`** — kolumny `correlation_id`, `causation_id` (`NOT NULL`, default `""`) — `persistence/sql/models/event_delivery.py:37-38`. **Tu kończy się zapisanie ID do eventu.**
+- **`event_outbox`** — kolumny `correlation_id`, `causation_id` (`NOT NULL`, default `""`) pochodzą z `DeliveryColumnsMixin` w `messaging/delivery/delivery_columns.py:20-21`. **Tu kończy się zapisanie ID do eventu.**
 - **`audit_event`** — `models/audit_delivery.py:15-21` — **nie ma kolumny `correlation_id`** (tylko `id`, `integration_event_name`, `occurred_at`, `payload`).
 
 ## Osobna ścieżka (komenda cross-BC, producent)
 
-`SqlCommandOutboxWriter.append()` — `messaging/command/sql_command_outbox_writer.py:66-80` zapisuje `outbox_command` z `correlation_id = get_or_create_correlation_id()`, `causation_id = get_causation_id()` (`:77-78`). NIE należy do ścieżki sync lokalnej — tylko gdy handler celowo wysyła intencję do innego BC.
+`SqlCommandOutboxWriter.append()` — `messaging/command/sql_command_outbox_writer.py:66-80` zapisuje `command_outbox` z `correlation_id = get_or_create_correlation_id()`, `causation_id = get_causation_id()` (`:77-78`). NIE należy do ścieżki sync lokalnej — tylko gdy handler celowo wysyła intencję do innego BC.
 
 ## Skąd dokładnie wartość w wierszu: podsumowanie
 
@@ -123,7 +123,7 @@ self._session.add(self._models.audit(...))       # :183-190
 | Odczyt przy zapisie | `application/context/correlation_id.py:57-69` | bieżąca albo wygenerowana |
 | Zapis do eventu | `mapping/reflective_integration_mapper.py:28` | `get_or_create_correlation_id()` |
 | Wiersz outboxa | `sql_alchemy_uow_base.py:179` | `envelope["correlation_id"]` |
-| Tabela | `models/event_delivery.py:37-38` | kolumna `correlation_id` |
+| Tabela | `messaging/delivery/delivery_columns.py:20-21` | kolumna `correlation_id` (`DeliveryColumnsMixin`) |
 
 ## Reguły
 
@@ -144,4 +144,5 @@ self._session.add(self._models.audit(...))       # :183-190
 - `platform/infrastructure/persistence/sql_alchemy_uow_base.py`
 - `platform/infrastructure/serialization/integration_event/integration_event_serializer.py`
 - `platform/infrastructure/persistence/sql/models/event_delivery.py`, `audit_delivery.py`
+- `platform/infrastructure/messaging/delivery/delivery_columns.py` (`DeliveryColumnsMixin` — kolumny `correlation_id`/`causation_id`)
 - `platform/infrastructure/messaging/command/sql_command_outbox_writer.py` (producent cross-BC)

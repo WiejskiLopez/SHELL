@@ -17,11 +17,11 @@ description: Tracing context (correlation_id / causation_id / event_id / trace_i
   Handler tworzy DomainEvent (auto event_id)
        │
      ├─► SqlAlchemyUnitOfWork
-       │     └─► outbox_event: [correlation_id, causation_id] ← z ContextVar
+       │     └─► event_outbox: [correlation_id, causation_id] ← z ContextVar
        │
        ▼
-     OutboxToTransportRelay → broker consumer
-       └─► inbox_event: [correlation_id, causation_id] ← kopiowane z outbox
+     EventOutboxRelay/CommandOutboxRelay → broker consumer
+       └─► event_inbox: [correlation_id, causation_id] ← kopiowane z outbox
        │
        ▼
   EventInboxProcessor.run_once()
@@ -61,9 +61,9 @@ Funkcje dostępu (z tego samego modułu):
 
 | Miejsce | Co czyta | Zapisuje do |
 |---------|----------|------------|
-| `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `outbox_event.correlation_id`, `.causation_id` |
-| `SqlCommandOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `outbox_command.correlation_id`, `.causation_id` |
-| `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `outbox_event` (przez `stage_events`) |
+| `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `event_outbox.correlation_id`, `.causation_id` |
+| `SqlCommandOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `command_outbox.correlation_id`, `.causation_id` |
+| `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `event_outbox` (przez `stage_events`) |
 | `SqlAlchemyUnitOfWork.commit()` | `correlation_id` | `Envelope.transport_metadata["correlation_id"]` |
 | `graph_execution_entity_to_model()` | `correlation_id` | `graph_execution.correlation_id` |
 | `CorrelationIdAsyncClient` | `correlation_id` | HTTP header `X-Correlation-ID` |
@@ -73,16 +73,16 @@ Funkcje dostępu (z tego samego modułu):
 
 | Tabela | Kolumny | Uwagi |
 |--------|---------|-------|
-| `outbox_event` | `correlation_id`, `causation_id` | Oba `str`, default `""`, non-nullable |
-| `inbox_event` | `correlation_id`, `causation_id` | Kopiowane z outbox przez relay |
-| `outbox_command` | `correlation_id`, `causation_id` | Analogicznie |
-| `inbox_command` | `correlation_id`, `causation_id` | Kopiowane z outbox przez relay |
+| `event_outbox` | `correlation_id`, `causation_id` | Oba `str`, default `""`, non-nullable |
+| `event_inbox` | `correlation_id`, `causation_id` | Kopiowane z outbox przez relay |
+| `command_outbox` | `correlation_id`, `causation_id` | Analogicznie |
+| `command_inbox` | `correlation_id`, `causation_id` | Kopiowane z outbox przez relay |
 | `graph_execution` | `correlation_id` | Tylko `correlation_id`, ustawiany przez mapper z ContextVar |
 | `workflow` | ~~`correlation_id`~~ | Usunięta w migracji 040 (V2 nie używa) |
 
 ## Envelope (Message system — legacy)
 
-> **Uwaga**: kanał Message oraz klasy `Envelope`/`MessageBus` zostały **usunięte** z SHELL (patrz `docs/messages-removed.md`). Nowe eventy (EventBus) nie używają koperty legacy — tracing context żyje w osobnych kolumnach `outbox_event`/`inbox_event` (`correlation_id`, `causation_id`) i kopercie `IntegrationEventDeliveryEnvelope`.
+> **Uwaga**: kanał Message oraz klasy `Envelope`/`MessageBus` zostały **usunięte** z SHELL (patrz `docs/messages-removed.md`). Nowe eventy (EventBus) nie używają koperty legacy — tracing context żyje w osobnych kolumnach `event_outbox`/`event_inbox` (`correlation_id`, `causation_id`) i kopercie `EventDeliveryEnvelope`.
 
 ## Reguły (invariants)
 

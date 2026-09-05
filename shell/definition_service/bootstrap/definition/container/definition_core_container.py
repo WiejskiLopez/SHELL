@@ -31,6 +31,7 @@ from shell.definition_service.application.definition.runner_config.query_handler
 from shell.definition_service.bootstrap.definition.contract_catalog import (
     DEFINITION_CONTRACT_CATALOG,
 )
+from shell.definition_service.bootstrap.definition.delivery import build_delivery_config
 from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
@@ -51,11 +52,9 @@ from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
-from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+from shell.platform.infrastructure.messaging.event import EventInboxConsumer
+from shell.platform.infrastructure.messaging.event.event_inbox_processor import (
     EventInboxProcessor,
-)
-from shell.platform.infrastructure.messaging.event_transport.rabbit import (
-    RabbitEventInboxConsumer,
 )
 from shell.platform.infrastructure.messaging.inbox.envelope_validator import (
     envelope_policy_from_catalog,
@@ -99,8 +98,6 @@ class DefinitionCoreContainer(containers.DeclarativeContainer):
         event_bus=event_bus,
         models=persistence_delivery_models.provided.events,
         registry=event_registry,
-        processed_delivery_model=persistence_delivery_models.provided.processed_delivery,
-        consumer_name="definition",
         worker_id=config.worker_id,
         heartbeat_interval_seconds=config.worker_heartbeat_interval_seconds,
         max_batch_time_seconds=config.worker_max_batch_time_seconds,
@@ -108,7 +105,7 @@ class DefinitionCoreContainer(containers.DeclarativeContainer):
         upcaster=providers.Singleton(PayloadUpcaster),
     )
     rabbit_inbox_consumer_factory = providers.Factory(
-        RabbitEventInboxConsumer,
+        EventInboxConsumer,
         url=config.broker_url,
         session_factory=session_factory,
         models=persistence_delivery_models.provided.events,
@@ -180,6 +177,17 @@ class DefinitionCoreContainer(containers.DeclarativeContainer):
     # Application buses
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
+    delivery_config = providers.Singleton(
+        build_delivery_config,
+        models=persistence_delivery_models,
+        event_registry=event_registry,
+        command_registry=None,
+        event_bus=event_bus,
+        command_bus=command_bus,
+        event_transport=None,
+        command_transport=None,
+        session_factory=session_factory,
+    )
 
 
 def configure_definition_container(container: DefinitionCoreContainer) -> None:

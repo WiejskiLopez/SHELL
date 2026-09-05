@@ -31,8 +31,8 @@ async def test_definition_baseline_creates_required_tables(tmp_path) -> None:
         "node_link_definition",
         "runner_config",
         "audit_event",
-        "outbox_event",
-        "inbox_event",
+        "event_outbox",
+        "event_inbox",
     } <= tables
 
 

@@ -164,14 +164,13 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             integration_event = self._mapper.map(domain_event)
             envelope = serializer.to_envelope(
                 integration_event,
-                outbox_id=self._id_generator.new_id(),
                 source_service=source_service_for_type(type(domain_event)),
             )
             outbox = self._models.events.outbox(
-                id=envelope["outbox_id"],
+                id=self._id_generator.new_id(),
                 event_id=envelope["event_id"],
                 source_service=envelope["source_service"],
-                integration_event_name=envelope["integration_event_name"],
+                integration_event_name=envelope["contract_type"],
                 occurred_at=envelope["occurred_at"],
                 aggregate_id=envelope["aggregate_id"],
                 schema_version=envelope["schema_version"],
@@ -183,7 +182,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
             self._session.add(
                 self._models.audit(
                     id=self._id_generator.new_id(),
-                    integration_event_name=envelope["integration_event_name"],
+                    integration_event_name=envelope["contract_type"],
                     occurred_at=envelope["occurred_at"],
                     payload=envelope["payload"],
                 )

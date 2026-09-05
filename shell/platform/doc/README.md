@@ -53,10 +53,9 @@ DDD, CQRS, transactional outbox, inbox z lease, at-least-once).
 - [inbox-lifecycle](inbox-lifecycle.md) — Cykl życia rekordu inbox (maszyna stanów)
 - [claim-lease](claim-lease.md) — Claim z lease (krótka transakcja)
 - [inbox-processor](inbox-processor.md) — Wspólny cykl claim→process→ack
-- [processed-delivery-dedup](processed-delivery-dedup.md) — Deduplikacja `processed_delivery`
 - [heartbeat-lease](heartbeat-lease.md) — Odnawianie lease i limit czasu batcha
 - [replay](replay.md) — Bezpieczny replay administracyjny
-- [retention](retention.md) — Retencja DLQ i `processed_delivery`
+- [retention](retention.md) — Retencja DLQ inbox
 - [delivery-transport](delivery-transport.md) — Port i adaptery transportu (RabbitMQ)
 - [relay](relay.md) — Relay outbox→transport oraz outbox→inbox
 - [envelope-versioning](envelope-versioning.md) — Wersjonowanie schematu, walidacja, upcaster

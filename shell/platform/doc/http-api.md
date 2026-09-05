@@ -2,13 +2,12 @@
 
 ## Cel / Co realizuje
 
-Platforma dostarcza kompletny, wspólny stos HTTP dla aplikacji FastAPI wszystkich
-bounded contexts: fabrykę wspólnej konfiguracji aplikacji (`setup_api_common`),
-mechanizm wersjonowania API z cyklem życia (`ApiVersionRegistry`, RFC 8594),
-generację i publikację specyfikacji OpenAPI oraz wstrzykiwanie zależności
-(`ContainerProtocol`, `get_core_container`). Każdy BC tworzy własną aplikację
-FastAPI (fabryka `create_*_app`), montuje swoje routery pod prefiksem `/api/v1`
-i dołącza wspólne elementy platformy.
+Platforma dostarcza kompletny stos HTTP dla aplikacji FastAPI wszystkich
+bounded contexts: mechanizm wersjonowania API z cyklem życia (`ApiVersionRegistry`,
+RFC 8594), generację i publikację specyfikacji OpenAPI oraz wstrzykiwanie
+zależności (`ContainerProtocol`, `get_core_container`). Każdy BC tworzy własną
+aplikację FastAPI (fabryka `create_*_app`) i sam łączy middleware/handlery
+błędów z komponentów platformy.
 
 ## Problem
 
@@ -35,18 +34,24 @@ app.include_router(workflows_router, prefix="/api/v1")
 
 - Fabryka ustawia `app.state.core_container` — obiekt kontenera DI widziany przez
   zależności FastAPI.
-- Routery BC montowane są pod `prefix="/api/v1"` (prefiks zgodny z
-  `API_PREFIX` w `shell/platform/framework/api/constants.py`).
+- Middleware i handlery błędów BC dodają samodzielnie, np. `CorrelationIdMiddleware`
+  i `add_exception_handler(DomainError, domain_error_handler)` (jak w
+  `create_user_app`); `AuthMiddleware`, `AuditLogMiddleware` i `ApiVersionMiddleware`
+  są dodawane tam, gdzie BC ich używa.
+- Routery BC montowane są z prefiksem zależnym od BC — np. execution pod
+  `prefix="/api/v1"` (`API_PREFIX` w `shell/platform/framework/api/constants.py`),
+  a user **bez** prefiksu (`app.include_router(router)`, ścieżki `/users`).
 - Liveness `/health` definiowany jest lokalnie w aplikacji BC (zwraca
-  `{"status": "ok"}`), a readiness montowany przez `mount_readiness`
-  (`shell/platform/observability/framework/api/health.py`) — tylko gdy kontener ma provider
-  `readiness_probe`.
+  `{"status": "ok"}`; session dokłada też `{"backlog": {...}}`, gdy ma provider
+  metryk inbox), a readiness montowany przez `mount_readiness`
+  (`shell/platform/observability/framework/api/health.py`) — bezwarunkowo;
+  brak providera `readiness_probe` w kontenerze to twardy `AttributeError`.
 
 ### Wspólny setup — `setup_api_common`
 
 `setup_api_common` w `shell/platform/framework/api/setup.py` konfiguruje na raz:
 
-1. `CORSMiddleware` (allow_origins `["*"]`, allow_credentials=True).
+1. `CORSMiddleware` (tylko gdy `allowed_origins is not None`; dla `["*"]` `allow_credentials=False`).
 2. `CorrelationIdMiddleware`, `AuditLogMiddleware`.
 3. `AuthMiddleware` (`shell/platform/framework/api/middleware/api_key.py`)
    z `api_key` i `jwt_secret`.
@@ -56,13 +61,13 @@ app.include_router(workflows_router, prefix="/api/v1")
 6. Endpoint `GET /health` z tagiem `Health`, zwracający:
    `{"status": "ok", "api_version": registry.latest, "latest_version": registry.latest}`.
 
+> **Uwaga**: `setup_api_common` nie jest aktualnie wywoływany przez żaden BC —
+> fabryki aplikacji BC (np. `create_user_app`) łączą middleware i handlery ręcznie.
+> Funkcja pozostaje w platformie jako gotowy, ale nieużywany szkielet wspólnego setupu;
+> `resolve_api_key`/`resolve_jwt_secret` również nie mają obecnie callerów.
+
 `create_api_discovery_router` tworzy router z tagiem `ApiDiscovery` i endpointem
 `GET /api` zwracającym `{"versions": registry.list_versions(), "latest": registry.latest}`.
-
-Sekrety dla middleware rozwiązywane są przez `resolve_api_key` i `resolve_jwt_secret`
-— najpierw z atrybutów kontenera (`container.config.api_key` /
-`container.config.jwt_secret`, wspierane jako wartości lub callable), potem z
-`os.environ` (`SHELL_API_KEY`, `SHELL_JWT_SECRET`).
 
 ### Wersjonowanie API — `version.py`
 

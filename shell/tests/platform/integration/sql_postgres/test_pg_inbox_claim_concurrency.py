@@ -50,7 +50,6 @@ async def test_two_workers_do_not_claim_same_record(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=inbox_id,
-                outbox_id=f"outbox-{inbox_id}",
                 event_id=inbox_id,
                 source_service="execution_service",
                 integration_event_name="SampleEvent",
@@ -103,7 +102,6 @@ async def test_expired_lease_is_reclaimed_by_other_worker(
         session.add(
             EVENT_DELIVERY_MODELS.inbox(
                 id=inbox_id,
-                outbox_id=f"outbox-{inbox_id}",
                 event_id=inbox_id,
                 source_service="execution_service",
                 integration_event_name="SampleEvent",

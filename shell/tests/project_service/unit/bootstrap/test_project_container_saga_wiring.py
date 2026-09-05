@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from shell.platform.process.saga.saga_timed_out import SagaTimedOut
+from saga_orchestration.process.saga.saga_timed_out import SagaTimedOut
+
 from shell.project_service.application.project.project_provision.commands.provision_workspace_command import (
     ProvisionWorkspaceCommand,
 )

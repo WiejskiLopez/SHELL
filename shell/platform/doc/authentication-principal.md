@@ -51,13 +51,17 @@ Kolejność (pierwsze trafienie wygrywa):
    `require=["exp", "sub"]`) → `Principal(subject_id, PrincipalKind.USER)`.
 3. **API key** — `X-API-Key` równy skonfigurowanemu `api_key`
    → `Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)`.
+4. **Podpis HMAC-SHA256** — nagłówki `X-Shell-Signature`/`X-Shell-Timestamp`
+   (`shell/platform/application/authentication/request_signing.py`):
+   `verify_signature(secret=api_key, method, path, timestamp, signature, ...)`
+   z oknem replay `max_age_seconds=300` → `Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)`.
 
 Sukces zapisuje `scope.setdefault("state", {})["principal"] = principal`;
 porażka odpowiada `401` z `ProblemDetail` (title "Unauthorized").
 
-Sekrety (`api_key`, `jwt_secret`) pochodzą z `setup_api_common` (rozwikłane przez
-`resolve_api_key` / `resolve_jwt_secret` z `shell/platform/framework/api/setup.py` —
-atrybuty kontenera lub `SHELL_API_KEY` / `SHELL_JWT_SECRET` z env).
+Sekret `api_key` jest przekazywany do `AuthMiddleware` w fabrykach aplikacji BC
+(z konfiguracji serwisu); `resolve_api_key`/`resolve_jwt_secret`
+(`shell/platform/framework/api/setup.py`) nie mają obecnie callerów.
 
 ### Uzyskiwanie principala w kontrolerze
 
@@ -95,10 +99,10 @@ dostęp, gdy `principal.kind == PrincipalKind.SYSTEM` lub
 
 - `Principal` porównywalny przez wartości (frozen dataclass), co umożliwia
   asercje w testach (`shell/tests/platform/unit/framework/test_principal.py`,
-  `shell/tests/user/integration/platform/test_auth_middleware.py`).
+  `shell/tests/user_service/integration/platform/test_auth_middleware.py`).
 - E2E BC nadpisują zależności:
   `app.dependency_overrides[get_principal] = lambda: TEST_PRINCIPAL`
-  (`shell/tests/session/e2e/conftest.py`); helper
+  (`shell/tests/session_service/e2e/conftest.py`); helper
   `shell/tests/shared/e2e_helpers.py` ustawia
   `request.state.principal = Principal("test-user", PrincipalKind.USER)`.
 

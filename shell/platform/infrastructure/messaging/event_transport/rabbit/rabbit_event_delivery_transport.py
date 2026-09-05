@@ -1,7 +1,7 @@
 """RabbitEventDeliveryTransport — publishes integration-event envelopes to RabbitMQ.
 
    exchange  : ``shell.delivery`` (topic)
-     routing key: ``event.<integration_event_name>``
+     routing key: ``event.<contract_type>``
    message   : JSON envelope bytes (see the event EnvelopeCodec), persistent delivery mode.
 """
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from aio_pika.abc import AbstractChannel, AbstractRobustConnection
 
     from shell.platform.application.ports.transport.event_transport import (
-        IntegrationEventDeliveryEnvelope,
+        EventDeliveryEnvelope,
     )
 
 logger = logging.getLogger(__name__)
@@ -42,10 +42,10 @@ class RabbitEventDeliveryTransport:
         self._channel: AbstractChannel | None = None
         self._lock = asyncio.Lock()
 
-    async def deliver(self, envelope: IntegrationEventDeliveryEnvelope) -> None:
+    async def deliver(self, envelope: EventDeliveryEnvelope) -> None:
         channel = await self._get_channel()
         exchange = await channel.get_exchange(self._exchange_name)
-        routing_key = f"event.{envelope.integration_event_name}"
+        routing_key = f"event.{envelope.contract_type}"
         try:
             await exchange.publish(
                 Message(
@@ -58,10 +58,10 @@ class RabbitEventDeliveryTransport:
             )
         except Exception:
             logger.exception(
-                "RabbitMQ event delivery failed — exchange=%s routing_key=%s outbox_id=%s",
+                "RabbitMQ event delivery failed — exchange=%s routing_key=%s event_id=%s",
                 self._exchange_name,
                 routing_key,
-                envelope.outbox_id,
+                envelope.event_id,
             )
             raise
 

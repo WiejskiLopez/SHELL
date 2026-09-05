@@ -60,7 +60,7 @@ Nastepujace pola sa metadata koperty i musza byc przeniesione end-to-end poza `p
 
 | Pole | Znaczenie |
 |---|---|
-| `integration_event_name` | Stabilna nazwa publicznego kontraktu ustalona przez producenta i konsumentow (np. `WorkflowCompleted`). |
+| `contract_type` | Stabilna nazwa publicznego kontraktu ustalona przez producenta i konsumentow (np. `WorkflowCompleted`); na wire koperty, w tabeli inbox/outbox zapisywana jako `integration_event_name`. |
 | `event_id` | Tozsamosc logicznego faktu. Mapper zachowuje ID DomainEvent, jesli opisuje ten sam fakt. |
 | `occurred_at` | Czas zajscia faktu, w UTC. |
 | `schema_version` | Wersja kontraktu IntegrationEvent, od ktorej zaczyna prace upcaster. |
@@ -68,23 +68,23 @@ Nastepujace pola sa metadata koperty i musza byc przeniesione end-to-end poza `p
 | `causation_id` | ID bezposredniego faktu lub bodzca, ktory spowodowal ten event. |
 | `aggregate_id` | ID agregatu zrodla, jezeli wymagane do routingu, korelacji lub idempotencji. |
 | `source_service` | Bounded context nadawcy (nazwa uslugi). |
-| `outbox_id` | Tozsamosc rekordu outbox producenta. |
+| `destination_service` | Bounded context odbiorcy (fan-out eventow: `"*"`). |
 
-Powyższa lista odpowiada realnemu `IntegrationEventDeliveryEnvelope` w `shell/platform/application/ports/transport/event_transport.py`.
+Powyższa lista odpowiada realnemu `EventDeliveryEnvelope` w `shell/platform/application/ports/transport/event_transport.py`.
 
 Docelowa koperta:
 
 ```python
 {
     "event_id": "event-1",
-    "integration_event_name": "WorkflowCompleted",
+    "contract_type": "WorkflowCompleted",
     "occurred_at": "2026-08-21T12:00:00+00:00",
     "schema_version": 2,
     "correlation_id": "correlation-1",
     "causation_id": "event-0",
     "aggregate_id": "workflow-1",
     "source_service": "execution_service",
-    "outbox_id": "outbox-42",
+    "destination_service": "*",
     "payload": {
         "status": "COMPLETED",
         "result": "ok",
@@ -92,7 +92,7 @@ Docelowa koperta:
 }
 ```
 
-`integration_event_name` identyfikuje kontrakt faktu, `event_id` identyfikuje fakt, a `outbox_id` wskazuje rekord outbox producenta. Rekord inbox ma wlasne lokalne `id`.
+`contract_type` identyfikuje kontrakt faktu, `event_id` identyfikuje fakt. `outbox_id` nie jest na wire — jest lokalna tozsamoscia rekordu outbox producenta; rekord inbox ma wlasne lokalne `id`.
 
 ## Lifecycle w SHELL
 

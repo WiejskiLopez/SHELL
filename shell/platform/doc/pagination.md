@@ -88,8 +88,8 @@ przykład: `shell/user_service/framework/user/user/api/controller.py` (`list_use
 `has_more = (page * page_size) < total` — prawda, gdy na bieżącej stronie
 prawdopodobnie nie mieszczą się wszystkie rekordy (offset bieżącej strony
 < `total`). Testy e2e (`shell/tests/platform/e2e/api/test_pagination.py`)
-weryfikują m.in. `page_size=100` oraz `has_more` przy `page=1`/`page=3` dla
-`page_size=2`.
+weryfikują strukturę odpowiedzi (`page=1&page_size=10`) oraz wartości domyślne
+(`page=1`, `page_size=100`).
 
 ## Kluczowe pliki
 

@@ -11,7 +11,6 @@ description: Koncepcje przyszłościowe (roadmap) wokół wsparcia sag na platfo
 > wrapper delivery do rejestracji ról). Zapisane poniżej jako *future*:
 > **(1)** powielanie wzorca pilota na kolejne BC oraz **(2)** readiness w kontekście sag.
 > Przed implementacją zawsze weryfikuj aktualny stan kodu w `shell/<service>/...`.
-> Pełna specyfikacja i status realizacji: `saga.md` (root repo).
 
 ---
 
@@ -60,7 +59,7 @@ Kolejność implementacji nowej sagi na bazie wzorca:
    imports (same layer), kontrakty w katalogu BC.
 
 Test offline (SQLite) wykonuje pętlę: inicjalizator → instancja → krok przez
-`outbox_command` → (transport symulowany klonem do `inbox_command`) → handler →
+`command_outbox` → (transport symulowany klonem do `command_inbox`) → handler →
 event rezultatu → kompletacja / kompensacja. Referencyjny test:
 `shell/tests/project_service/unit/process/test_project_provision_saga.py`.
 
@@ -82,7 +81,7 @@ w kontenerze.
 
 ### 2.2 Readiness w kontekście sag (future)
 
-W `saga.md` (Etap 2/3) zaplanowano `SagaTimeoutReadinessProbe` — **readiness
+Zaplanowano `SagaTimeoutReadinessProbe` — **readiness
 backlogu timeoutów**: raportuje, czy tabela `saga_timeout` nie ma zaległych
 rekordów (dojrzałych, `next_attempt_at <= now`, w stanie PENDING/RETRY, lub
 wisi w PROCESSING z wygasłym lease). Cel: nawał timeoutów nie przechodzi
@@ -98,17 +97,19 @@ class SagaTimeoutReadinessProbe:
 Podłączenie: dodać instancję do `CompositeReadinessProbe` w kontenerze BC, który
 deklaruje sagi (podobnie jak `SqlReadinessProbe` bierze `inbox_model`).
 
-> **Status:** nie zaimplementowane — pozycja roadmap w `saga.md` (Etap 2/3,
-> „Readiness backlogu timeoutów"). Implementacja jest mała i testowalna offline
-> (SQLite): count zaległych wierszy `saga_timeout` vs `max_backlog`.
+> **Status:** nie zaimplementowane — pozycja roadmap. Implementacja jest mała i
+> testowalna offline (SQLite): count zaległych wierszy `saga_timeout` vs `max_backlog`.
 
 ---
 
 ## 3. Kluczowe pliki i reguły
 
-- Składowa: kompletna specyfikacja + status — `saga.md`.
-- Szkielet wsparcia sag (zaimplementowany): `shell/platform/process/saga/*`,
-  `shell/platform/infrastructure/process/saga/*`.
+- Pilotażowa saga (zaimplementowana): `shell/project_service/process/project/project_provision/`
+  + uczestnicy w `shell/project_service/application/project/project_provision/`.
+- Mechanizm sagi (zaimplementowany, wydzielony do biblioteki): `packaging/saga-orchestration`
+  (`process/saga` — kontrakty i manager; `infrastructure/process/saga` — adaptery SQL,
+  repozytoria, worker timeoutów). Capability opt-in per serwis (`include_saga`, migracja
+  adopcyjna per serwis).
 - Mechanizm readiness (istniejący): `shell/platform/observability/infrastructure/health/*`,
   `shell/platform/observability/framework/api/readiness.py`.
 - Reguły: kontrakty w `bootstrap/<bc>/contract_catalog.py`; testy process:

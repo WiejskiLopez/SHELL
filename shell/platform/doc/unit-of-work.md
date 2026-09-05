@@ -37,8 +37,9 @@ najprościej przez współdzielenie sesji między handlerem a delivery processor
 `SqlAlchemyUnitOfWorkBase(UnitOfWork)`:
 
 - konstruktor przyjmuje `session_factory: async_sessionmaker[AsyncSession]`,
+  `mapper: Any` (opcjonalny — gdy `None`, fallback do `ReflectiveIntegrationMapper`),
   `models: PersistenceDeliveryModels | None` (wymagane — `ValueError`, gdy
-  `None`) i opcjonalny `mapper`;
+  `None`) oraz opcjonalny `id_generator: TechnicalIdGenerator`;
 - stan: `_staged_events`, `_committed`, `_deferred_commit`, `_session`.
 
 Kluczowe metody:
@@ -73,13 +74,13 @@ Kluczowe metody:
   `self._mapper.map(event)` na `IntegrationEvent`, buduje envelope przez
   `IntegrationEventSerializer().to_envelope(...)` (payload biznesowy + metadata)
   i zapisuje:
-  - wiersz outboxu `self._models.events.outbox(...)` — tabela `outbox_event`
+  - wiersz outboxu `self._models.events.outbox(...)` — tabela `event_outbox`
     (`event_delivery.py`);
   - wiersz audytu `self._models.audit(...)`.
   Zapis odbywa się w tej samej transakcji co zmiana domenowa (commit/flush).
 
 Modele persistence: `PersistenceDeliveryModels` (NamedTuple z
-`events/commands/audit/processed_delivery/worker_heartbeat`) buduje
+`events/commands/audit/worker_heartbeat`) buduje
 `build_persistence_delivery_models(base)` z
 `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`.
 
@@ -89,7 +90,7 @@ Modele persistence: `PersistenceDeliveryModels` (NamedTuple z
 - `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py`
 - `shell/platform/infrastructure/persistence/sql/models/persistence_delivery.py`
 - `shell/platform/infrastructure/persistence/sql/models/event_delivery.py`
-- `shell/platform/infrastructure/serialization/event/integration_event_serializer.py`
+- `shell/platform/infrastructure/serialization/integration_event/integration_event_serializer.py`
 - `shell/platform/domain/exceptions/concurrent_modification_error.py`
 - `shell/platform/domain/base/aggregate_root.py`
 

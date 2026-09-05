@@ -94,7 +94,9 @@ def _verify_lockfile(package_name: str) -> None:
         isolated_root = Path(temporary_dir)
         platform_copy = isolated_root / "shell-platform"
         service_copy = isolated_root / package_name
+        saga_copy = isolated_root / "saga-orchestration"
         shutil.copytree(REPOSITORY_ROOT / "packaging" / "shell-platform", platform_copy)
+        shutil.copytree(REPOSITORY_ROOT / "packaging" / "saga-orchestration", saga_copy)
         shutil.copytree(package_root, service_copy)
         _run("uv", "lock", "--check", cwd=service_copy)
 
